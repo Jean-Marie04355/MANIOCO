@@ -3,47 +3,47 @@ import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 
-@ApiTags('users') //  important pour Swagger
+@ApiTags('users') // important for Swagger
 @Controller('users')
 export class UsersController {
 
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOperation({ summary: 'Liste de tous les utilisateurs' })
-  @ApiResponse({ status: 200, description: 'Liste récupérée' })
+  @ApiOperation({ summary: 'List of all users' })
+  @ApiResponse({ status: 200, description: 'List retrieved' })
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
-  @ApiOperation({ summary: 'Créer un nouvel utilisateur' })
-  @ApiResponse({ status: 201, description: 'Utilisateur créé avec succès' })
+  @ApiOperation({ summary: 'Create a new user' })
+  @ApiResponse({ status: 201, description: 'User created successfully' })
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
   }
 
-  @ApiOperation({ summary: 'Voir un utilisateur par ID' })
-  @ApiResponse({ status: 200, description: 'Utilisateur récupéré' })
+  @ApiOperation({ summary: 'Get a user by ID' })
+  @ApiResponse({ status: 200, description: 'User retrieved' })
   @ApiParam({ name: 'id', type: Number })
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(Number(id)); //  conversion importante
+    return this.usersService.findOne(Number(id)); // important conversion
   }
 
-  @ApiOperation({ summary: 'Supprimer un utilisateur' })
-  @ApiResponse({ status: 200, description: 'Utilisateur supprimé' })
+  @ApiOperation({ summary: 'Delete a user' })
+  @ApiResponse({ status: 200, description: 'User deleted' })
   @ApiParam({ name: 'id', type: Number })
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(Number(id)); //  conversion
+    return this.usersService.remove(Number(id)); // conversion
   }
 
-  @ApiOperation({ summary: 'Modifier un utilisateur' })
-  @ApiResponse({ status: 200, description: 'Utilisateur modifié' })
+  @ApiOperation({ summary: 'Update a user' })
+  @ApiResponse({ status: 200, description: 'User updated' })
   @ApiParam({ name: 'id', type: Number })
   @Patch(':id')
   update(@Param('id') id: string, @Body() data: Partial<CreateUserDto>) {
-    return this.usersService.update(Number(id), data); // conversion + typage
+    return this.usersService.update(Number(id), data); // conversion + typing
   }
 }

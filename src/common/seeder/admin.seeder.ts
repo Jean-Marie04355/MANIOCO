@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { DataSource } from 'typeorm';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../enum/role.enum';
@@ -6,12 +6,14 @@ import { User } from 'src/core/users/user.entity';
 
 @Injectable()
 export class AdminSeeder {
+  private readonly logger = new Logger(AdminSeeder.name);
+
   constructor(private dataSource: DataSource) {}
 
   async seed() {
     const userRepository = this.dataSource.getRepository(User);
 
-    // Vérifie si un admin existe déjà
+    // Check if an admin already exists
     const adminExists = await userRepository.findOne({ where: { role: UserRole.ADMIN } });
 
     if (!adminExists) {
@@ -25,9 +27,9 @@ export class AdminSeeder {
       });
 
       await userRepository.save(admin);
-      console.log(' Admin initial créé avec succès !');
+      this.logger.log('Initial admin created successfully!');
     } else {
-      console.log('L’admin existe déjà, seed ignoré.');
+      this.logger.log('Admin already exists, seeding skipped.');
     }
   }
 }

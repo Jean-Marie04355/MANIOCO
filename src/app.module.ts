@@ -4,12 +4,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './core/users/users.module';
+import { FilesModule } from './core/files/files.module';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AdminSeeder } from './common/seeder/admin.seeder';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    TypeOrmModule.forRootAsync({
+    ...(process.env.STORAGE_TYPE === 'postgres' ? [TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
@@ -22,8 +24,16 @@ import { AdminSeeder } from './common/seeder/admin.seeder';
         autoLoadEntities: true,
         synchronize: true,
       }),
-    }),
+    })] : []),
+    ...(process.env.STORAGE_TYPE === 'mongo' ? [MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGO_URI', 'mongodb://localhost:27017/afrigari'),
+      }),
+    })] : []),
     UsersModule,
+    FilesModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminSeeder],

@@ -5,10 +5,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Configuration de Swagger
+  // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('Afrigari API')
-    .setDescription('API pour gérer les clients, vendeurs, livreurs et produits')
+    .setDescription('API to manage clients, sellers, delivery personnel, and products')
     .setVersion('1.0')
     .build();
 

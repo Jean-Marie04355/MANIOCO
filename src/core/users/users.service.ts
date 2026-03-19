@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import * as bcrypt from 'bcrypt';
+import type { IHasher } from '../interfaces/hasher.interface';
 import { UserRole } from 'src/common/enum/role.enum';
 
 @Injectable()
@@ -13,6 +13,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    @Inject('HASHER_PROVIDER')
+    private readonly hasher: IHasher,
   ) {}
 
   findAll() {
@@ -20,15 +22,15 @@ export class UsersService {
   }
 
  async create(createUserDto: CreateUserDto) {
-  // Vérifie si on essaie de créer un admin
+  // Check if trying to create an admin
   if (createUserDto.role === UserRole.ADMIN) {
   const existingAdmin = await this.userRepository.findOneBy({ role: UserRole.ADMIN });
   if (existingAdmin) {
-    throw new Error(' Un seul admin est autorisé !');
+    throw new Error('Only one admin is allowed!');
   }
 }
 
-  const hashedPassword = await bcrypt.hash(createUserDto.password, 10);
+  const hashedPassword = await this.hasher.hash(createUserDto.password);
 
   const user = this.userRepository.create({
     ...createUserDto,
@@ -48,7 +50,7 @@ remove(id: number) {
 
 async update(id: number, updateUserDto: Partial<CreateUserDto>) {
   if (updateUserDto.password) {
-    updateUserDto.password = await bcrypt.hash(updateUserDto.password, 10);
+    updateUserDto.password = await this.hasher.hash(updateUserDto.password);
   }
 
   return this.userRepository.update(id, updateUserDto);
