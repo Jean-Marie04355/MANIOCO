@@ -11,12 +11,16 @@ import { BcryptHasherProvider } from '../providers/bcrypt-hasher.provider';
 import { TypeOrmUserRepository } from '../providers/typeorm-user.repository';
 import { MongoUserRepository } from '../providers/mongo-user.repository';
 
+import * as dotenv from 'dotenv';
+dotenv.config();
+const isMongo = process.env.DB_TYPE === 'mongodb';
+
 @Module({
   imports: [
-    // Support for TypeORM (SQL)
-    TypeOrmModule.forFeature([User]),
-    // Support for Mongoose (NoSQL)
-    MongooseModule.forFeature([{ name: MongoUser.name, schema: UserSchema }]),
+    ...(isMongo 
+      ? [MongooseModule.forFeature([{ name: MongoUser.name, schema: UserSchema }])] 
+      : [TypeOrmModule.forFeature([User])]
+    )
   ],
   controllers: [UsersController],
   providers: [
@@ -25,22 +29,15 @@ import { MongoUserRepository } from '../providers/mongo-user.repository';
       provide: 'HASHER_PROVIDER',
       useClass: BcryptHasherProvider,
     },
-    // Dynamic repository injection based on the chosen database
+    // We only inject the Repository class that matches the database
+    ...(isMongo ? [MongoUserRepository] : [TypeOrmUserRepository]),
     {
       provide: 'USER_REPOSITORY',
-      inject: [ConfigService, TypeOrmUserRepository, MongoUserRepository],
-      useFactory: (
-        configService: ConfigService,
-        typeOrmRepo: TypeOrmUserRepository,
-        mongoRepo: MongoUserRepository,
-      ) => {
-        const dbType = configService.get<string>('DB_TYPE', 'sqlite');
-        return dbType === 'mongodb' ? mongoRepo : typeOrmRepo;
+      inject: [isMongo ? MongoUserRepository : TypeOrmUserRepository],
+      useFactory: (selectedRepo) => {
+        return selectedRepo;
       },
     },
-    // Also declare classes so they are injectable in the factory
-    TypeOrmUserRepository,
-    MongoUserRepository,
   ],
   exports: [UsersService],
 })

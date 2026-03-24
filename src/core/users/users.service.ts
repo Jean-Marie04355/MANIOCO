@@ -7,6 +7,13 @@ import type { IUserRepository } from '../interfaces/user-repository.interface';
 @Injectable()
 export class UsersService {
 
+  /**
+   * Find a user by email
+   */
+  async findByEmail(email: string) {
+    return this.userRepository.findByEmail(email);
+  }
+
   constructor(
     @Inject('USER_REPOSITORY')
     private readonly userRepository: IUserRepository,
