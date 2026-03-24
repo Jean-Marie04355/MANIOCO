@@ -1,8 +1,9 @@
 import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import type { IHasher } from '../interfaces/hasher.interface';
 import { UserRole } from 'src/common/enum/role.enum';
-import type { IUserRepository } from '../interfaces/user-repository.interface';
+import { User } from './user.entity';
+import { IBaseRepository } from '../../database';
+import { hashPassword } from '../../common/helpers/hash.helper';
 
 @Injectable()
 export class UsersService {
@@ -11,14 +12,11 @@ export class UsersService {
    * Find a user by email
    */
   async findByEmail(email: string) {
-    return this.userRepository.findByEmail(email);
+    return this.userRepository.findOneBy({ email });
   }
 
   constructor(
-    @Inject('USER_REPOSITORY')
-    private readonly userRepository: IUserRepository,
-    @Inject('HASHER_PROVIDER')
-    private readonly hasher: IHasher,
+    @Inject('USER_REPOSITORY') private userRepository: IBaseRepository<User>,
   ) {}
 
   /**
@@ -33,13 +31,13 @@ export class UsersService {
    */
   async create(createUserDto: CreateUserDto) {
     // 1. Check for unique email
-    const existing = await this.userRepository.findByEmail(createUserDto.email);
+    const existing = await this.userRepository.findOneBy({ email: createUserDto.email });
     if (existing) {
       throw new ConflictException('This email is already in use.');
     }
 
-    // 2. Hash password using abstract Hasher
-    const hashedPassword = await this.hasher.hash(createUserDto.password);
+    // 2. Hash password using helper
+    const hashedPassword = await hashPassword(createUserDto.password);
 
     // 3. Create via abstract Repository
     return this.userRepository.create({
@@ -74,7 +72,7 @@ export class UsersService {
     await this.findOne(id); // Check existence
 
     if (updateUserDto.password) {
-      updateUserDto.password = await this.hasher.hash(updateUserDto.password);
+      updateUserDto.password = await hashPassword(updateUserDto.password);
     }
 
     return this.userRepository.update(id, updateUserDto);

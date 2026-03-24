@@ -5,7 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
-const isMongo = process.env.DB_TYPE === 'mongodb';
+const isMongo = process.env.DB_TYPE?.toLowerCase() === 'mongodb';
 
 const databaseImports: any[] = [];
 
