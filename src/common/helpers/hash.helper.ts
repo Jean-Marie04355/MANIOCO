@@ -1,14 +1,17 @@
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
-export class HashHelper {
-  // Hash a password
-  static async hashPassword(password: string): Promise<string> {
-    const saltRounds = 10;
-    return await bcrypt.hash(password, saltRounds);
-  }
+const SALT_ROUNDS = 10;
 
-  // Compare a plain password with a hashed password
-  static async comparePassword(password: string, hashed: string): Promise<boolean> {
-    return await bcrypt.compare(password, hashed);
-  }
+/**
+ * Hash a password using Bcrypt
+ */
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, SALT_ROUNDS);
+}
+
+/**
+ * Compare a plain password with a hash
+ */
+export async function comparePassword(password: string, hash: string): Promise<boolean> {
+  return bcrypt.compare(password, hash);
 }
