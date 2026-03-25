@@ -1,4 +1,4 @@
-import { IBaseRepository } from '../interfaces/base-repository.interface';
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Model, Document } from 'mongoose';
 
 export class MongoBaseRepository<T extends Document> implements IBaseRepository<T> {

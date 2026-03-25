@@ -1,7 +1,7 @@
 import { Repository, DeepPartial } from 'typeorm';
-import { IBaseRepository } from '../interfaces/base-repository.interface';
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
-export class SqlBaseRepository<T extends { id: any }> implements IBaseRepository<T> {
+export class SqlBaseRepository<T extends { id: any }> implements IBaseRepository {
   constructor(protected readonly repo: Repository<T>) {}
 
   findAll(): Promise<T[]> {

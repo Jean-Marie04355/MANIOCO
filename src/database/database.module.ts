@@ -1,4 +1,3 @@
-// src/database/database.module.ts
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -9,7 +8,6 @@ import { MongooseModule } from '@nestjs/mongoose';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
 
-    // SQL : Postgres ou SQLite
     ...(process.env.DB_TYPE !== 'mongodb'
       ? [
           TypeOrmModule.forRootAsync({
@@ -43,7 +41,6 @@ import { MongooseModule } from '@nestjs/mongoose';
         ]
       : []),
 
-    // Mongo : seulement si DB_TYPE=mongodb
     ...(process.env.DB_TYPE === 'mongodb'
       ? [
           MongooseModule.forRootAsync({
