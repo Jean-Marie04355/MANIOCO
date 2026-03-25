@@ -1,80 +1,112 @@
-import { Injectable, Inject, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UserRole } from 'src/common/enum/role.enum';
 import { User } from './user.entity';
-import { IBaseRepository } from '../../database';
 import { hashPassword } from '../../common/helpers/hash.helper';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { IBaseRepository } from '../../database';
 
 @Injectable()
 export class UsersService {
-
-  /**
-   * Find a user by email
-   */
-  async findByEmail(email: string) {
-    return this.userRepository.findOneBy({ email });
-  }
+  private isMongo: boolean;
 
   constructor(
-    @Inject('USER_REPOSITORY') private userRepository: IBaseRepository<User>,
-  ) {}
+    private readonly configService: ConfigService,
 
-  /**
-   * Fetch all users
-   */
-  findAll() {
-    return this.userRepository.findAll();
+    @InjectRepository(User)
+    private readonly sqlRepository: Repository<User>,
+
+    @Inject('USER_REPOSITORY')
+    private readonly mongoRepository: IBaseRepository<any>,
+  ) {
+    this.isMongo = this.configService.get<string>('DB_TYPE') === 'mongodb';
   }
 
-  /**
-   * Create a new user
-   */
+  private get repo() {
+    return this.isMongo ? this.mongoRepository : this.sqlRepository;
+  }
+
+  async findByEmail(email: string) {
+    if (this.isMongo) {
+      return this.mongoRepository.findOneBy({ email });
+    }
+    return this.sqlRepository.findOneBy({ email });
+  }
+
+  async findAll() {
+    if (this.isMongo) {
+      return this.mongoRepository.findAll();
+    }
+    return this.sqlRepository.find();
+  }
+
   async create(createUserDto: CreateUserDto) {
-    // 1. Check for unique email
-    const existing = await this.userRepository.findOneBy({ email: createUserDto.email });
+    const existing = await this.findByEmail(createUserDto.email);
+
     if (existing) {
       throw new ConflictException('This email is already in use.');
     }
 
-    // 2. Hash password using helper
     const hashedPassword = await hashPassword(createUserDto.password);
 
-    // 3. Create via abstract Repository
-    return this.userRepository.create({
+    if (this.isMongo) {
+      return this.mongoRepository.create({
+        ...createUserDto,
+        password: hashedPassword,
+      });
+    }
+
+    return this.sqlRepository.save({
       ...createUserDto,
       password: hashedPassword,
     });
   }
 
-  /**
-   * Find a user by ID
-   */
   async findOne(id: number) {
-    const user = await this.userRepository.findById(id);
+    let user;
+
+    if (this.isMongo) {
+      user = await this.mongoRepository.findById(id);
+    } else {
+      user = await this.sqlRepository.findOneBy({ id });
+    }
+
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
+
     return user;
   }
 
-  /**
-   * Delete a user
-   */
   async remove(id: number) {
-    await this.findOne(id); // Check existence
-    return this.userRepository.delete(id);
-  }
+    await this.findOne(id);
 
-  /**
-   * Update a user
-   */
-  async update(id: number, updateUserDto: Partial<CreateUserDto>) {
-    await this.findOne(id); // Check existence
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await hashPassword(updateUserDto.password);
+    if (this.isMongo) {
+      return this.mongoRepository.delete(id);
     }
 
-    return this.userRepository.update(id, updateUserDto);
+    return this.sqlRepository.delete(id);
+  }
+
+  async update(id: number, updateUserDto: Partial<CreateUserDto>) {
+    await this.findOne(id);
+
+    if (updateUserDto.password) {
+      updateUserDto.password = await hashPassword(
+        updateUserDto.password,
+      );
+    }
+
+    if (this.isMongo) {
+      return this.mongoRepository.update(id, updateUserDto);
+    }
+
+    return this.sqlRepository.update(id, updateUserDto);
   }
 }

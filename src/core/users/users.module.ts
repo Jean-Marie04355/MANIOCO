@@ -1,16 +1,16 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MongooseModule } from '@nestjs/mongoose';
+import { MongooseModule, InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
+import { Model } from 'mongoose';
 
 import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 
 import { User } from './user.entity';
-import { User as MongoUser, UserSchema } from './schemas/user.schema';
+import { User as MongoUser, UserDocument, UserSchema } from './schemas/user.schema';
+import { BaseRepository } from 'src/database/repositories/base.repository';
 
-import { TypeOrmUserRepository } from './repositories/typeorm-user.repository';
-import { MongoUserRepository } from './repositories/mongo-user.repository';
 
 const dbType = process.env.DB_TYPE;
 
@@ -23,25 +23,22 @@ const dbType = process.env.DB_TYPE;
   providers: [
     UsersService,
 
-    // Fournir uniquement les repositories nécessaires selon DB_TYPE
-    ...(dbType !== 'mongodb' ? [TypeOrmUserRepository] : []),
-    ...(dbType === 'mongodb' ? [MongoUserRepository] : []),
-
-    // Factory pour USER_REPOSITORY
     {
       provide: 'USER_REPOSITORY',
       inject: [
-        ...(dbType !== 'mongodb' ? [TypeOrmUserRepository] : []),
-        ...(dbType === 'mongodb' ? [MongoUserRepository] : []),
         ConfigService,
+        ...(dbType === 'mongodb' ? [InjectModel(MongoUser.name)] : []),
       ],
-      useFactory: (...reposAndConfig: any[]) => {
-        const config = reposAndConfig[reposAndConfig.length - 1]; // dernier = ConfigService
-        const repo = reposAndConfig[0]; // le repository correct injecté
-        return repo;
+      useFactory: (config: ConfigService, mongoModel?: Model<UserDocument>) => {
+        if (config.get<string>('DB_TYPE') === 'mongodb') {
+          return new BaseRepository<UserDocument>({ mongoModel });
+        } else {
+          
+          return null; 
+        }
       },
     },
   ],
-  exports: [UsersService],
+  exports: [UsersService, 'USER_REPOSITORY'],
 })
 export class UsersModule {}
