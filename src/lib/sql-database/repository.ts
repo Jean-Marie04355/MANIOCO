@@ -1,18 +1,15 @@
-import { Repository, DeepPartial } from 'typeorm';
+import { Repository, DeepPartial, FindManyOptions } from 'typeorm';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
-export class SqlRepository<T extends { id: any }> implements IBaseRepository {
+export class SqlRepository<T extends { id: any }> implements IBaseRepository<T> {
   constructor(protected readonly repo: Repository<T>) {}
 
-  findAll(): Promise<T[]> {
+  find(): Promise<T[]> {
     return this.repo.find();
   }
 
-  findById(id: any): Promise<T | null> {
-    return this.repo.findOneBy({ id } as any);
-  }
 
-  findOneBy(criteria: any): Promise<T | null> {
+  findOne(criteria: any): Promise<T | null> {
     return this.repo.findOneBy(criteria);
   }
 
@@ -27,5 +24,12 @@ export class SqlRepository<T extends { id: any }> implements IBaseRepository {
 
   async delete(id: any): Promise<void> {
     await this.repo.delete(id);
+  }
+  async count(options: FindManyOptions<T>): Promise<number> {
+        return this.repo.count(options);
+    }
+
+  save(entity: T): Promise<T> {
+    return this.repo.save(entity);
   }
 }

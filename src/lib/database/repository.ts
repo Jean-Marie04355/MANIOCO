@@ -1,19 +1,17 @@
 import { Repository, DeepPartial } from 'typeorm';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
+import { Inject } from '@nestjs/common';
 
-export class AbstractRepository<T extends { id: any }> implements IBaseRepository {
-  constructor(protected readonly repo: Repository<T>) {}
+export class AbstractRepository<T extends { id: any }> implements IBaseRepository<T> {
+  constructor(@Inject('DATABASE_REPOSITORY')
+        private readonly repo: IBaseRepository<T>,) {}
 
-  findAll(): Promise<T[]> {
-    return this.repo.find();
+  find(options: any): Promise<T[]> {
+    return this.repo.find(options);
   }
 
-  findById(id: any): Promise<T | null> {
-    return this.repo.findOneBy({ id } as any);
-  }
-
-  findOneBy(criteria: any): Promise<T | null> {
-    return this.repo.findOneBy(criteria);
+  findOne(criteria: Partial<T>): Promise<T | null> {
+    return this.repo.findOne({ where: criteria });
   }
 
   async create(data: DeepPartial<T>): Promise<T> {
@@ -21,11 +19,24 @@ export class AbstractRepository<T extends { id: any }> implements IBaseRepositor
     return await this.repo.save(entity);
   }
 
-  async update(id: any, data: any): Promise<void> {
+  async createMany(data: DeepPartial<T>[]): Promise<T[]> {
+    const entities = this.repo.create(data);
+    return await this.repo.save(entities);
+  }
+
+  async update(id: string | number, data: DeepPartial<T>): Promise<void> {
     await this.repo.update(id, data);
   }
 
-  async delete(id: any): Promise<void> {
+  async delete(id: string | number): Promise<void> {
     await this.repo.delete(id);
+  }
+
+  count(criteria?: Partial<T>): Promise<number> {
+    return this.repo.count({ where: criteria });
+  }
+
+  save(entity: T): Promise<T> {
+    return this.repo.save(entity);
   }
 }
