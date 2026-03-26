@@ -1,6 +1,7 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SqlRepository } from './repository';
 
 @Global()
 @Module({
@@ -39,6 +40,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
           }),
         ]
       : []),
-    ]
+    ],
+  providers: [
+    ...(process.env.DB_TYPE !== 'mongodb' ? [SqlRepository] : []),
+  ],
+  exports: [
+    ...(process.env.DB_TYPE !== 'mongodb' ? [TypeOrmModule, SqlRepository] : []),
+  ],
 })
 export class SqlDatabaseModule {}

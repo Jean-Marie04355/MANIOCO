@@ -2,6 +2,7 @@
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Global, Module } from '@nestjs/common';
+import { NoSqlRepository } from './repository';
 
 @Global()
 @Module({
@@ -23,8 +24,11 @@ import { Global, Module } from '@nestjs/common';
         ]
       : []),
   ],
+  providers: [
+    ...(process.env.DB_TYPE === 'mongodb' ? [NoSqlRepository] : []),
+  ],
   exports: [
-    ...(process.env.DB_TYPE === 'mongodb' ? [MongooseModule] : []),
+    ...(process.env.DB_TYPE === 'mongodb' ? [MongooseModule, NoSqlRepository] : []),
   ],
 })
 export class NoSqlDatabaseModule {}

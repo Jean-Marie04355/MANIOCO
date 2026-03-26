@@ -4,13 +4,12 @@ import { IBaseRepository } from '../../common/interfaces/base-repository.interfa
 export class SqlRepository<T extends { id: any }> implements IBaseRepository<T> {
   constructor(protected readonly repo: Repository<T>) {}
 
-  find(): Promise<T[]> {
-    return this.repo.find();
+  find(options?: any): Promise<T[]> {
+    return this.repo.find(options);
   }
 
-
   findOne(criteria: any): Promise<T | null> {
-    return this.repo.findOneBy(criteria);
+    return this.repo.findOne({ where: criteria });
   }
 
   async create(data: DeepPartial<T>): Promise<T> {
@@ -25,9 +24,10 @@ export class SqlRepository<T extends { id: any }> implements IBaseRepository<T> 
   async delete(id: any): Promise<void> {
     await this.repo.delete(id);
   }
-  async count(options: FindManyOptions<T>): Promise<number> {
-        return this.repo.count(options);
-    }
+
+  async count(options?: any): Promise<number> {
+    return this.repo.count(options);
+  }
 
   save(entity: T): Promise<T> {
     return this.repo.save(entity);

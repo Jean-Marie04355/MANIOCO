@@ -5,13 +5,12 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   constructor(protected readonly repo: Model<T & Document>) {}
 
   // 🔹 Récupérer un document par filtre
-  async findOne(filter: Partial<T>): Promise<T | null> {
-    return this.repo.findOne(filter as any).exec();
+  async find(filter?: any): Promise<T[]> {
+    return this.repo.find(filter || {}).exec();
   }
 
-  // 🔹 Récupérer plusieurs documents
-  async find(filter?: Partial<T>): Promise<T[]> {
-    return this.repo.find(filter || {}).exec();
+  async findOne(filter: any): Promise<T | null> {
+    return this.repo.findOne(filter).exec();
   }
 
   // 🔹 Créer un document
@@ -26,17 +25,15 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   // 🔹 Mettre à jour un document par id
-  async update(id: string, data: any): Promise<void> {
+  async update(id: any, data: any): Promise<void> {
     await this.repo.findByIdAndUpdate(id, data).exec();
   }
 
-  // 🔹 Supprimer un document par id
-  async delete(id: string): Promise<void> {
-    await this.repo.deleteOne({ _id: new Types.ObjectId(id) }).exec();
+  async delete(id: any): Promise<void> {
+    await this.repo.deleteOne({ _id: id }).exec();
   }
 
-  // 🔹 Compter les documents
-  async count(filter?: Partial<T>): Promise<number> {
+  async count(filter?: any): Promise<number> {
     return this.repo.countDocuments(filter || {}).exec();
   }
 }

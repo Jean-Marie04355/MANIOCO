@@ -15,13 +15,13 @@ export class AbstractRepository<T extends { id: any }> implements IBaseRepositor
   }
 
   async create(data: DeepPartial<T>): Promise<T> {
-    const entity = this.repo.create(data);
-    return await this.repo.save(entity);
+    const entity = this.repo.create(data as any);
+    return await this.repo.save(entity as any);
   }
 
   async createMany(data: DeepPartial<T>[]): Promise<T[]> {
-    const entities = this.repo.create(data);
-    return await this.repo.save(entities);
+    const entities = (this.repo as any).create(data);
+    return await (this.repo as any).save(entities);
   }
 
   async update(id: string | number, data: DeepPartial<T>): Promise<void> {

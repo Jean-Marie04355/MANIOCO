@@ -10,103 +10,54 @@ import { hashPassword } from '../../common/helpers/hash.helper';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { IBaseRepository } from '../../database';
+import { IBaseRepository } from '../../database/index';
 
 @Injectable()
 export class UsersService {
-  private isMongo: boolean;
-
   constructor(
-    private readonly configService: ConfigService,
-
-    @InjectRepository(User)
-    private readonly sqlRepository: Repository<User>,
-
     @Inject('USER_REPOSITORY')
-    private readonly mongoRepository: IBaseRepository<any>,
-  ) {
-    this.isMongo = this.configService.get<string>('DB_TYPE') === 'mongodb';
-  }
-
-  private get repo() {
-    return this.isMongo ? this.mongoRepository : this.sqlRepository;
-  }
+    private readonly userRepository: IBaseRepository<User>,
+  ) {}
 
   async findByEmail(email: string) {
-    if (this.isMongo) {
-      return this.mongoRepository.findOneBy({ email });
-    }
-    return this.sqlRepository.findOneBy({ email });
+    return this.userRepository.findOne({ email });
   }
 
   async findAll() {
-    if (this.isMongo) {
-      return this.mongoRepository.findAll();
-    }
-    return this.sqlRepository.find();
+    return this.userRepository.find();
   }
 
   async create(createUserDto: CreateUserDto) {
     const existing = await this.findByEmail(createUserDto.email);
-
     if (existing) {
       throw new ConflictException('This email is already in use.');
     }
 
     const hashedPassword = await hashPassword(createUserDto.password);
-
-    if (this.isMongo) {
-      return this.mongoRepository.create({
-        ...createUserDto,
-        password: hashedPassword,
-      });
-    }
-
-    return this.sqlRepository.save({
+    return this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
     });
   }
 
   async findOne(id: number) {
-    let user;
-
-    if (this.isMongo) {
-      user = await this.mongoRepository.findById(id);
-    } else {
-      user = await this.sqlRepository.findOneBy({ id });
-    }
-
+    const user = await this.userRepository.findOne({ id });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
-
     return user;
   }
 
   async remove(id: number) {
     await this.findOne(id);
-
-    if (this.isMongo) {
-      return this.mongoRepository.delete(id);
-    }
-
-    return this.sqlRepository.delete(id);
+    return this.userRepository.delete(id);
   }
 
   async update(id: number, updateUserDto: Partial<CreateUserDto>) {
     await this.findOne(id);
-
     if (updateUserDto.password) {
-      updateUserDto.password = await hashPassword(
-        updateUserDto.password,
-      );
+      updateUserDto.password = await hashPassword(updateUserDto.password);
     }
-
-    if (this.isMongo) {
-      return this.mongoRepository.update(id, updateUserDto);
-    }
-
-    return this.sqlRepository.update(id, updateUserDto);
+    return this.userRepository.update(id, updateUserDto);
   }
-}
+}

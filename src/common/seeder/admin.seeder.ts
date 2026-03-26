@@ -25,7 +25,7 @@ export class AdminSeeder {
 
         this.logger.log('Initial admin created successfully!');
       } else {
-        this.logger.log('Admin already exists, seeding skipped.');
+        this.logger.log(`Admin ${adminEmail} already exists, seeding skipped.`);
       }
     } catch (error) {
       this.logger.error('Error during seeding: ' + error.message);

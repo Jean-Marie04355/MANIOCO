@@ -1,9 +1,9 @@
 export interface IBaseRepository<T> {
-  find(options: any): Promise<any | null>;
-  findOne(criteria: any): Promise<any | null>;
-  create(data: any): Promise<any>;
+  find(options?: any): Promise<T[]>;
+  findOne(criteria: any): Promise<T | null>;
+  create(data: any): Promise<T>;
   update(id: any, data: any): Promise<void>;
   delete(id: any): Promise<void>;
-  count(options: any): Promise<number>;
-  save(entity: any): Promise<any>;
+  count(options?: any): Promise<number>;
+  save(entity: T): Promise<T>;
 }

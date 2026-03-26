@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { MongooseModule, InjectModel } from '@nestjs/mongoose';
+import { MongooseModule, getModelToken } from '@nestjs/mongoose';
+import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Model } from 'mongoose';
 
@@ -9,10 +10,13 @@ import { UsersController } from './users.controller';
 
 import { User } from './user.entity';
 import { User as MongoUser, UserDocument, UserSchema } from './schemas/user.schema';
-import { BaseRepository } from 'src/database/repositories/base.repository';
+import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
+import { SqlRepository } from 'src/lib/sql-database/repository';
+import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
 
-
-const dbType = process.env.DB_TYPE;
+import * as dotenv from 'dotenv';
+dotenv.config();
+const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
@@ -27,15 +31,12 @@ const dbType = process.env.DB_TYPE;
       provide: 'USER_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb' ? [InjectModel(MongoUser.name)] : []),
+        ...(dbType === 'mongodb' ? [getModelToken(MongoUser.name)] : [getRepositoryToken(User)]),
       ],
-      useFactory: (config: ConfigService, mongoModel?: Model<UserDocument>) => {
-        if (config.get<string>('DB_TYPE') === 'mongodb') {
-          return new BaseRepository<UserDocument>({ mongoModel });
-        } else {
-          
-          return null; 
-        }
+      useFactory: (config: ConfigService, engine: any) => {
+        return config.get('DB_TYPE') === 'mongodb'
+          ? new NoSqlRepository(engine)
+          : new SqlRepository(engine);
       },
     },
   ],
