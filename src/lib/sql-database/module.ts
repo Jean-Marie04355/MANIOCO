@@ -8,44 +8,36 @@ import { SqlRepository } from './repository';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
 
-    ...(process.env.DB_TYPE !== 'mongodb'
-      ? [
-          TypeOrmModule.forRootAsync({
-            imports: [ConfigModule],
-            inject: [ConfigService],
-            useFactory: (config: ConfigService) => {
-              const dbType = config.get<string>('DB_TYPE', 'sqlite');
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (config: ConfigService) => {
+        const dbType = config.get<string>('DB_TYPE', 'sqlite');
 
-              if (dbType === 'postgres') {
-                return {
-                  type: 'postgres',
-                  host: config.get<string>('DB_HOST'),
-                  port: parseInt(config.get<string>('DB_PORT') || '5432'),
-                  username: config.get<string>('DB_USER'),
-                  password: config.get<string>('DB_PASS'),
-                  database: config.get<string>('DB_NAME'),
-                  autoLoadEntities: true,
-                  synchronize: true,
-                };
-              }
+        if (dbType === 'postgres') {
+          return {
+            type: 'postgres',
+            host: config.get<string>('DB_HOST'),
+            port: parseInt(config.get<string>('DB_PORT') || '5432'),
+            username: config.get<string>('DB_USER'),
+            password: config.get<string>('DB_PASS'),
+            database: config.get<string>('DB_NAME'),
+            autoLoadEntities: true,
+            synchronize: true,
+          };
+        }
 
-              // SQLite fallback
-              return {
-                type: 'sqlite',
-                database: config.get<string>('SQLITE_DB', 'data/database.sqlite'),
-                autoLoadEntities: true,
-                synchronize: true,
-              };
-            },
-          }),
-        ]
-      : []),
-    ],
-  providers: [
-    ...(process.env.DB_TYPE !== 'mongodb' ? [SqlRepository] : []),
+        // SQLite fallback
+        return {
+          type: 'sqlite',
+          database: config.get<string>('SQLITE_DB', 'data/database.sqlite'),
+          autoLoadEntities: true,
+          synchronize: true,
+        };
+      },
+    }),
   ],
-  exports: [
-    ...(process.env.DB_TYPE !== 'mongodb' ? [TypeOrmModule, SqlRepository] : []),
-  ],
+  providers: [SqlRepository],
+  exports: [TypeOrmModule, SqlRepository],
 })
 export class SqlDatabaseModule {}
