@@ -7,9 +7,6 @@ import {
 import { CreateUserDto } from './dto/create-user.dto';
 import { User } from './user.entity';
 import { hashPassword } from '../../common/helpers/hash.helper';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
 import { IBaseRepository } from '../../database/index';
 
 @Injectable()
@@ -60,4 +57,4 @@ export class UsersService {
     }
     return this.userRepository.update(id, updateUserDto);
   }
-}
+}

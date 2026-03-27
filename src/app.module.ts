@@ -5,12 +5,14 @@ import { AppService } from './app.service';
 import { UsersModule } from './core/users/users.module';
 import { AdminSeeder } from './common/seeder/admin.seeder';
 import { DatabaseModule } from './lib/database/module';
+import { StoreModule } from './core/store/store.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule.register(),
     UsersModule,
+    StoreModule,
   ],
   controllers: [AppController],
   providers: [AppService, AdminSeeder],
