@@ -9,7 +9,7 @@ type JwtPayload = {
   sub: string; // email
   email: string;
   role: UserRole;
-  userId?: number;
+  userId?: string;
   iat?: number;
   exp?: number;
 };
@@ -17,7 +17,7 @@ type JwtPayload = {
 export type AuthenticatedUser = {
   email: string;
   role: UserRole;
-  userId?: number;
+  userId?: string;
 };
 
 @Injectable()

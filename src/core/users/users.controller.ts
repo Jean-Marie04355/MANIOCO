@@ -31,31 +31,31 @@ export class UsersController {
 
   @ApiOperation({ summary: 'Get a user by ID' })
   @ApiResponse({ status: 200, description: 'User retrieved' })
-  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'id', type: String })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(Number(id)); // important conversion
+    return this.usersService.findOne(id); // no conversion needed anymore
   }
 
   @ApiOperation({ summary: 'Delete a user' })
   @ApiResponse({ status: 200, description: 'User deleted' })
-  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'id', type: String })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(Number(id)); // conversion
+    return this.usersService.remove(id); // conversion removed
   }
 
   @ApiOperation({ summary: 'Update a user' })
   @ApiResponse({ status: 200, description: 'User updated' })
-  @ApiParam({ name: 'id', type: Number })
+  @ApiParam({ name: 'id', type: String })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Patch(':id')
   update(@Param('id') id: string, @Body() data: Partial<CreateUserDto>) {
-    return this.usersService.update(Number(id), data); // conversion + typing
+    return this.usersService.update(id, data); // conversion removed
   }
 }

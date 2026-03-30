@@ -11,7 +11,7 @@ import type { AuthenticatedUser } from './strategies/jwt.strategy';
 type LoginResponse = {
   accessToken: string;
   user: {
-    id?: number;
+    id?: string;
     name: string;
     email: string;
     role: UserRole;

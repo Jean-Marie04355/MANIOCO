@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { UserRole } from '../enum/role.enum';
 import { UsersService } from 'src/core/users/users.service';
 
@@ -6,11 +7,22 @@ import { UsersService } from 'src/core/users/users.service';
 export class AdminSeeder {
   private readonly logger = new Logger(AdminSeeder.name);
 
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly configService: ConfigService,
+  ) {}
 
   async seed() {
-    const adminEmail = 'admin@afrigari.com';
-    
+    const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
+    const adminPassword = this.configService.get<string>('ADMIN_PASSWORD');
+
+    if (!adminEmail || !adminPassword) {
+      this.logger.warn(
+        'ADMIN_EMAIL or ADMIN_PASSWORD not defined in environment, skipping seeding.',
+      );
+      return;
+    }
+
     try {
       // Check if an admin already exists by email
       const adminExists = await this.usersService.findByEmail(adminEmail);
@@ -19,7 +31,7 @@ export class AdminSeeder {
         await this.usersService.create({
           name: 'Admin Afrigari',
           email: adminEmail,
-          password: 'MotDePasseSecurise200',
+          password: adminPassword,
           role: UserRole.ADMIN,
         });
 

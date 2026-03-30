@@ -36,6 +36,10 @@ export class AbstractRepository<T extends { id: any }> implements IBaseRepositor
     return this.repo.count({ where: criteria });
   }
 
+  async softDelete(id: any): Promise<void> {
+    await this.repo.softDelete(id);
+  }
+
   save(entity: T): Promise<T> {
     return this.repo.save(entity);
   }

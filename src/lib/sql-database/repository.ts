@@ -29,6 +29,10 @@ export class SqlRepository<T extends { id: any }> implements IBaseRepository<T> 
     return this.repo.count(options);
   }
 
+  async softDelete(id: any): Promise<void> {
+    await this.repo.softDelete(id);
+  }
+
   save(entity: T): Promise<T> {
     return this.repo.save(entity);
   }

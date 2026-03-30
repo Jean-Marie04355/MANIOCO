@@ -34,15 +34,31 @@ export class UsersService {
       throw new ConflictException('This email is already in use.');
     }
 
+    // Check how many users already exist
+    const userCount = await this.userRepository.count();
+    
+    // Logic: First registered user becomes ADMIN
+    // Every other user becomes whatever is in the DTO (default to CLIENT)
+    let finalRole = createUserDto.role ?? UserRole.CLIENT;
+
+    if (userCount === 0) {
+      finalRole = UserRole.ADMIN;
+    }
+
     const hashedPassword = await hashPassword(createUserDto.password);
-    return this.userRepository.create({
+    const newUser = await this.userRepository.create({
       ...createUserDto,
       password: hashedPassword,
-      role: createUserDto.role ?? UserRole.CLIENT,
+      role: finalRole,
     });
+
+    return {
+      name: newUser.name,
+      email: newUser.email,
+    };
   }
 
-  async findOne(id: number) {
+  async findOne(id: string) {
     const user = await this.userRepository.findOne({ id });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
@@ -50,12 +66,12 @@ export class UsersService {
     return user;
   }
 
-  async remove(id: number) {
+  async remove(id: string) {
     await this.findOne(id);
-    return this.userRepository.delete(id);
+    return this.userRepository.softDelete(id);
   }
 
-  async update(id: number, updateUserDto: Partial<CreateUserDto>) {
+  async update(id: string, updateUserDto: Partial<CreateUserDto>) {
     await this.findOne(id);
     if (updateUserDto.password) {
       updateUserDto.password = await hashPassword(updateUserDto.password);

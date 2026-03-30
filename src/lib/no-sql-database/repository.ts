@@ -36,4 +36,8 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   async count(filter?: any): Promise<number> {
     return this.repo.countDocuments(filter || {}).exec();
   }
+
+  async softDelete(id: any): Promise<void> {
+    await this.repo.findByIdAndUpdate(id, { deletedAt: new Date() }).exec();
+  }
 }

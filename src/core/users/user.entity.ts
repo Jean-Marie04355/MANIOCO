@@ -1,11 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm';
 import { UserRole } from '../../common/enum/role.enum';
 
 @Entity('users')
 export class User {
 
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
   @Column()
   name: string;
@@ -20,4 +20,6 @@ export class User {
   @Column({ type: 'varchar', default: UserRole.CLIENT })
   role: UserRole;
 
+  @DeleteDateColumn({ nullable: true })
+  deletedAt: Date;
 }

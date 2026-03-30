@@ -1,12 +1,14 @@
-import { Module, OnApplicationBootstrap } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './core/users/users.module';
 import { AuthModule } from './core/auth/auth.module';
 import { FilesModule } from './core/files/files.module';
-import { AdminSeeder } from './common/seeder/admin.seeder';
+// import { AdminSeeder } from './common/seeder/admin.seeder';
 import { DatabaseModule } from './lib/database/module';
+import { CategoriesModule } from './core/categories/categories.module';
+import { ProductsModule } from './core/products/products.module';
 
 @Module({
   imports: [
@@ -15,14 +17,11 @@ import { DatabaseModule } from './lib/database/module';
     UsersModule,
     AuthModule,
     FilesModule,
+    CategoriesModule,
+    ProductsModule,
   ],
-  controllers: [AppController],
-  providers: [AppService, AdminSeeder],
-})
-export class AppModule implements OnApplicationBootstrap {
-  constructor(private readonly adminSeeder: AdminSeeder) {}
 
-  async onApplicationBootstrap() {
-    await this.adminSeeder.seed();
-  }
-}
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}

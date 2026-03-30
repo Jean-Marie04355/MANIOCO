@@ -18,8 +18,15 @@ export class User {
   @Prop({ type: String, enum: UserRole, default: UserRole.CLIENT })
   role: UserRole;
 
-  @Prop({ unique: true, required: false })
-  id: number;
+  @Prop()
+  deletedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+
+// Align the 'id' property with TypeORM
+UserSchema.virtual('id').get(function () {
+  return this._id.toHexString();
+});
+UserSchema.set('toJSON', { virtuals: true });
+UserSchema.set('toObject', { virtuals: true });
