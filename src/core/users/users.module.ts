@@ -13,6 +13,7 @@ import { User as MongoUser, UserDocument, UserSchema } from './schemas/user.sche
 import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
 import { SqlRepository } from 'src/lib/sql-database/repository';
 import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
+import { RolesGuard } from 'src/common/guards/roles.guard';
 
 import * as dotenv from 'dotenv';
 dotenv.config();
@@ -26,6 +27,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
   controllers: [UsersController],
   providers: [
     UsersService,
+    RolesGuard,
 
     {
       provide: 'USER_REPOSITORY',

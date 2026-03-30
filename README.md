@@ -1,93 +1,284 @@
-# Afrigari
+# Afrigari — Backend NestJS
 
+Backend NestJS (TypeScript) avec :
 
+- **Users** (SQL via TypeORM ou Mongo via Mongoose selon `DB_TYPE`)
+- **Files** (storage `json` / `mongo` / `postgres` selon `STORAGE_TYPE`)
+- **Authentification JWT** (login + guards + rôles)
 
-## Getting started
+## Démarrage rapide
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+### Prérequis
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+- Node.js + npm
+- Une base de données selon la config :
+  - MongoDB si `DB_TYPE=mongodb`
+  - SQLite/Postgres si `DB_TYPE` n’est pas `mongodb`
 
-## Add your files
+### Installation
 
-* [Create](https://docs.gitlab.com/user/project/repository/web_editor/#create-a-file) or [upload](https://docs.gitlab.com/user/project/repository/web_editor/#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
-
+```bash
+npm install
 ```
-cd existing_repo
-git remote add origin https://git.hwegbe.com/stagiairesgoroup/afrigari.git
-git branch -M main
-git push -uf origin main
+
+Si tu as un conflit de dépendances (peer-deps TypeORM/Mongo), tu peux utiliser :
+
+```bash
+npm install --legacy-peer-deps
 ```
 
-## Integrate with your tools
+### Lancer le serveur
 
-* [Set up project integrations](https://git.hwegbe.com/stagiairesgoroup/afrigari/-/settings/integrations)
+```bash
+npm run start:dev
+```
 
-## Collaborate with your team
+- **Swagger** : `http://localhost:3000/api`
 
-* [Invite team members and collaborators](https://docs.gitlab.com/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/user/project/merge_requests/creating_merge_requests/)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/user/project/issues/managing_issues/#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+## Variables d’environnement (principales)
 
-## Test and Deploy
+- **DB_TYPE** : `mongodb` (sinon SQL)
+- **MONGO_URI** : ex `mongodb://localhost:27017/afrigari`
+- **STORAGE_TYPE** : `json` (défaut), `mongo`, `postgres`
+- **JWT_SECRET** : secret de signature des JWT (**obligatoire en production**)
+- **JWT_EXPIRES_IN** : durée de vie du token (ex: `1d`, `12h`, `3600s`)
 
-Use the built-in continuous integration in GitLab.
+## Authentification (JWT) — explication détaillée du code
 
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/topics/autodevops/requirements/)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ci/environments/protected_environments/)
+Cette implémentation ajoute une authentification basée sur des **JSON Web Tokens (JWT)**.
 
-***
+### Objectif (ce que l’auth apporte concrètement)
 
-# Editing this README
+- Permettre la **connexion** avec `email + password` (vérification bcrypt côté serveur).
+- Retourner un **token JWT** (ici `accessToken`) au client.
+- Protéger des routes via un **guard JWT** (pas de token → accès refusé).
+- Restreindre certaines routes via un **contrôle de rôle** (RBAC) : ex `admin` uniquement.
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Notions essentielles (cours) : JWT / Passport / Guards / RBAC
 
-## Suggestions for a good README
+#### 1) JWT : structure et propriétés importantes
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+Un JWT est composé de 3 parties (séparées par des points) :
 
-## Name
-Choose a self-explaining name for your project.
+- **Header** : indique l’algo (ex: HS256).
+- **Payload** : contient des données (“claims”) comme `email`, `role`, `exp`…
+- **Signature** : permet au serveur de vérifier que le token n’a pas été modifié (grâce à `JWT_SECRET`).
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+Points importants :
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+- Un JWT **n’est pas chiffré** : il est seulement **signé**.
+  - Donc on ne doit jamais mettre de mot de passe, secret, ou données sensibles dans le payload.
+- Un JWT contient souvent des timestamps :
+  - `iat` (issued at)
+  - `exp` (expiration)
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+#### 2) Authentification vs autorisation
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+- **Authentification** : “Qui es-tu ?” → le token prouve ton identité.
+- **Autorisation** : “As-tu le droit ?” → le rôle (ou permissions) décide de l’accès.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+Dans notre code :
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+- Authentification = `JwtAuthGuard`
+- Autorisation = `RolesGuard` + `@Roles(...)`
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+#### 3) Pourquoi Passport ?
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+NestJS délègue l’auth à Passport (standard Node) :
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+- Un **Guard** déclenche une **Strategy**.
+- La Strategy valide le token et retourne un objet user.
+- Nest place cet objet dans `request.user`.
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+### Inventaire complet des fichiers (avec le rôle exact de chacun)
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+#### Auth (dans `src/core/auth/`)
 
-## License
-For open source projects, say how it is licensed.
+- **`src/core/auth/auth.module.ts`**
+  - Assemble le module Auth.
+  - Importe :
+    - `PassportModule` (support des stratégies)
+    - `UsersModule` (pour appeler `UsersService`)
+    - `JwtModule` configuré avec :
+      - `JWT_SECRET` (fallback : `dev_secret_change_me`)
+      - `JWT_EXPIRES_IN` (fallback : `1d`)
+  - Enregistre `AuthController`, `AuthService`, `JwtStrategy`.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+- **`src/core/auth/auth.controller.ts`**
+  - Déclare les endpoints :
+    - `POST /auth/login`
+    - `GET /auth/me` (protégé par `@UseGuards(JwtAuthGuard)`)
+
+- **`src/core/auth/dto/login.dto.ts`**
+  - Définit et valide le body de login :
+    - `email`: `@IsEmail()`
+    - `password`: `@IsNotEmpty()` + `@MinLength(6)`
+
+- **`src/core/auth/auth.service.ts`**
+  - `login(email, password)` :
+    - récupère l’utilisateur (`UsersService.findByEmail`)
+    - compare le mot de passe (`comparePassword` → bcrypt)
+    - signe un JWT (`JwtService.signAsync`)
+    - renvoie `{ accessToken, user }`
+  - `me(user)` :
+    - renvoie des infos dérivées de `request.user`
+
+- **`src/core/auth/guards/jwt-auth.guard.ts`**
+  - `JwtAuthGuard extends AuthGuard('jwt')`
+  - C’est lui qui “active” Passport + stratégie `jwt` sur une route.
+
+- **`src/core/auth/strategies/jwt.strategy.ts`**
+  - Utilise `passport-jwt`.
+  - Extrait le token depuis `Authorization: Bearer <token>`.
+  - Vérifie :
+    - signature avec `JWT_SECRET`
+    - expiration (car `ignoreExpiration: false`)
+  - `validate(payload)` :
+    - vérifie que `payload.email` et `payload.role` existent
+    - retourne `{ email, role, userId }` qui devient `request.user`
+
+#### Rôles / RBAC (dans `src/common/`)
+
+- **`src/common/enum/role.enum.ts`**
+  - Enum des rôles : `client`, `vendeur`, `livreur`, `admin`.
+
+- **`src/common/decorators/roles.decorator.ts`**
+  - `@Roles(...)` stocke une métadonnée `roles` sur la route.
+
+- **`src/common/guards/roles.guard.ts`**
+  - Lit la métadonnée `roles` via `Reflector`.
+  - Compare `request.user.role` aux rôles autorisés.
+  - Si rôle manquant → 403 “auth manquante”
+  - Si rôle insuffisant → 403 “role insuffisant”
+
+#### Impact sur les contrôleurs métiers
+
+- **`src/core/files/files.controller.ts`**
+  - `@UseGuards(JwtAuthGuard)` au niveau du contrôleur
+  - Donc toutes les routes `/files` sont accessibles uniquement avec un JWT valide.
+
+- **`src/core/users/users.controller.ts`**
+  - Routes admin :
+    - `GET /users`
+    - `GET /users/:id`
+    - `PATCH /users/:id`
+    - `DELETE /users/:id`
+    - protégées par `JwtAuthGuard` + `RolesGuard` + `@Roles(UserRole.ADMIN)`
+  - Route publique :
+    - `POST /users` (création user)
+
+- **`src/core/users/dto/create-user.dto.ts`**
+  - `role` est **optionnel** et limité à :
+    - `client`, `vendeur`, `livreur`
+  - `admin` est volontairement interdit à l’inscription publique.
+
+### Comment tout s’enchaîne (diagramme mental simple)
+
+1) `POST /auth/login` → vérifie password → retourne `accessToken`
+2) Sur une route protégée :
+   - `JwtAuthGuard` → appelle `JwtStrategy`
+   - `JwtStrategy.validate()` → remplit `request.user`
+3) Sur une route admin :
+   - `RolesGuard` → lit `@Roles(...)` → compare avec `request.user.role`
+
+### Flux d’exécution détaillé (pas à pas, comme en cours)
+
+#### A) Connexion : `POST /auth/login`
+
+1. Le client envoie `{ email, password }`.
+2. `AuthController.login()` appelle `AuthService.login(body.email, body.password)`.
+3. `AuthService` :
+   - récupère le user via `UsersService.findByEmail(email)`
+   - compare le password via `comparePassword(password, user.password)`
+   - construit le payload JWT :
+     - `sub = email`
+     - `email`
+     - `role`
+     - `userId`
+   - signe un token via `JwtService.signAsync(payload, { expiresIn })`
+4. Le serveur renvoie `{ accessToken, user }`.
+
+#### B) Accès à une route protégée (ex: `GET /files`)
+
+1. Le client envoie `Authorization: Bearer <accessToken>`.
+2. `JwtAuthGuard` déclenche Passport avec la stratégie `jwt`.
+3. `JwtStrategy` :
+   - extrait le token depuis le header
+   - valide signature + exp
+   - appelle `validate(payload)`
+4. `validate(payload)` retourne `{ email, role, userId }`.
+5. Nest attache cet objet à `request.user`.
+6. Le contrôleur s’exécute.
+
+#### C) Accès à une route admin (ex: `GET /users`)
+
+1. `JwtAuthGuard` valide et remplit `request.user`.
+2. `RolesGuard` lit la métadonnée posée par `@Roles(UserRole.ADMIN)`.
+3. `RolesGuard` vérifie `request.user.role === 'admin'`.
+4. Sinon → 403.
+
+### Tester (avec `curl`)
+
+#### 1) Login (admin seed)
+
+```bash
+curl -s -X POST http://localhost:3000/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@afrigari.com","password":"MotDePasseSecurise200"}'
+```
+
+#### 2) `/auth/me`
+
+```bash
+TOKEN="<COLLE_ICI_LE_accessToken>"
+curl -s http://localhost:3000/auth/me -H "Authorization: Bearer $TOKEN"
+```
+
+#### 3) `/files` (protégé)
+
+Sans token (doit échouer) :
+
+```bash
+curl -i http://localhost:3000/files
+```
+
+Avec token (doit fonctionner) :
+
+```bash
+TOKEN="<COLLE_ICI_LE_accessToken>"
+curl -s http://localhost:3000/files -H "Authorization: Bearer $TOKEN"
+```
+
+#### 4) `/users` (admin uniquement)
+
+```bash
+TOKEN="<COLLE_ICI_LE_accessToken>"
+curl -i http://localhost:3000/users -H "Authorization: Bearer $TOKEN"
+```
+
+### Codes d’erreur à connaître
+
+- **401** :
+  - mauvais email/password
+  - token absent/invalide/expiré sur route protégée
+- **403** :
+  - token valide mais rôle insuffisant sur route admin
+
+### Configuration production (très important)
+
+- Définir **`JWT_SECRET`** (fort et privé).
+- Choisir **`JWT_EXPIRES_IN`** selon le besoin (souvent plus court en prod).
+
+### Limites actuelles (V1) + pistes d’évolution (V2)
+
+Actuellement :
+
+- Pas de refresh token
+- Pas de logout serveur (blacklist)
+- Swagger n’a pas encore de bouton “Authorize” (schéma Bearer non ajouté dans `DocumentBuilder`)
+
+Évolutions possibles :
+
+- Ajouter `addBearerAuth()` dans `src/main.ts` (Swagger)
+- Implémenter refresh tokens (`/auth/refresh`) + rotation
+- Ajouter `/auth/logout` (invalidation refresh)
