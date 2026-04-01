@@ -6,4 +6,5 @@ export interface IFileStorage {
     create(data: CreateFileDto): Promise<FileResponse>;
     update(id: string, data: Partial<UpdateFileDto>): Promise<FileResponse | null>;
     delete(id: string): Promise<boolean>;
+    upload?(file: any): Promise<string>;
 }

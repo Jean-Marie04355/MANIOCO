@@ -25,6 +25,13 @@ export class FilesService {
     return this.storageProvider.update(id, data);
   }
 
+  async upload(file: any): Promise<string> {
+    if (this.storageProvider.upload) {
+      return this.storageProvider.upload(file);
+    }
+    throw new Error('Upload not supported by the current storage provider');
+  }
+
   async remove(id: string): Promise<boolean> {
     return this.storageProvider.delete(id);
   }
