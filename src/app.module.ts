@@ -9,6 +9,7 @@ import { FilesModule } from './core/files/files.module';
 import { DatabaseModule } from './lib/database/module';
 import { CategoriesModule } from './core/categories/categories.module';
 import { ProductsModule } from './core/products/products.module';
+import { StoreModule } from './core/store/store.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { ProductsModule } from './core/products/products.module';
     FilesModule,
     CategoriesModule,
     ProductsModule,
+    StoreModule,
   ],
 
   controllers: [AppController],
