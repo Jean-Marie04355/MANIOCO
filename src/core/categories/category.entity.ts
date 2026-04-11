@@ -1,15 +1,26 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Unique } from 'typeorm';
+import { Store } from '../store/store.entity';
 
 @Entity('categories')
+@Unique(['name', 'storeId'])
 export class Category {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
+
 
   @Column({ nullable: true })
   description: string;
+
+  @Column({ nullable: true })
+  storeId: string;
+
+  @ManyToOne(() => Store, { nullable: true })
+  @JoinColumn({ name: 'storeId' })
+  store: Store;
+
 
   @CreateDateColumn()
   createdAt: Date;
@@ -20,3 +31,4 @@ export class Category {
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
 }
+

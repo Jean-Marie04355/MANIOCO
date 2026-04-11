@@ -11,4 +11,10 @@ export class CreateCategoryDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiProperty({ example: 'uuid-du-store', description: 'ID du store associé' })
+  @IsString()
+  @IsNotEmpty()
+  storeId: string;
 }
+
