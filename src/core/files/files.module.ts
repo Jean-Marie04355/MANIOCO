@@ -20,10 +20,12 @@ import { FileEntity } from './entities/file.entity';
   controllers: [FilesController],
   providers: [
     JsonStorageProvider,
-    S3StorageProvider,
     ...(process.env.STORAGE_TYPE === 'mongo' 
         ? [MongoStorageProvider] 
         : [{ provide: MongoStorageProvider, useValue: {} }]),
+    ...(process.env.STORAGE_TYPE === 's3' 
+        ? [S3StorageProvider] 
+        : [{ provide: S3StorageProvider, useValue: {} }]),
     ...(process.env.STORAGE_TYPE === 'postgres' || process.env.STORAGE_TYPE === 's3' 
         ? [PostgresStorageProvider] 
         : [{ provide: PostgresStorageProvider, useValue: {} }]),

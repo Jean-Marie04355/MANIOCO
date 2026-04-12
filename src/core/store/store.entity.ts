@@ -26,6 +26,9 @@ export class Store {
 
   @OneToMany(() => Category, (category) => category.store)
   categories: Category[];
+
+  @Column({ nullable: true })
+  payoutAccountId: string;
 }
 
   

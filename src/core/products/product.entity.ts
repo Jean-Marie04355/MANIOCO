@@ -15,6 +15,9 @@ export class Product {
   @Column({ default: 'FCFA' })
   currency: string;
 
+  @Column({ type: 'int', default: 0 })
+  stock: number;
+
   @Column({ nullable: true })
   description: string;
 

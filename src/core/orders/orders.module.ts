@@ -1,0 +1,48 @@
+import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { MongooseModule, getModelToken } from '@nestjs/mongoose';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
+
+import { OrdersService } from './orders.service';
+import { OrdersController } from './orders.controller';
+
+import { Order } from './order.entity';
+import { Order as MongoOrder, OrderSchema } from './schemas/order.schema';
+import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
+import { SqlRepository } from 'src/lib/sql-database/repository';
+import { PaymentsModule } from '../payments/payments.module';
+import { StoreModule } from '../store/store.module';
+import { ProductsModule } from '../products/products.module';
+
+import * as dotenv from 'dotenv';
+dotenv.config();
+const dbType = process.env.DB_TYPE?.toLowerCase();
+
+@Module({
+  imports: [
+    ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Order])] : []),
+    ...(dbType === 'mongodb' ? [MongooseModule.forFeature([{ name: MongoOrder.name, schema: OrderSchema }])] : []),
+    PaymentsModule,
+    StoreModule,
+    ProductsModule,
+  ],
+  controllers: [OrdersController],
+  providers: [
+    OrdersService,
+    {
+      provide: 'ORDER_REPOSITORY',
+      inject: [
+        ConfigService,
+        ...(dbType === 'mongodb' ? [getModelToken(MongoOrder.name)] : [getRepositoryToken(Order)]),
+      ],
+      useFactory: (config: ConfigService, engine: any) => {
+        return config.get('DB_TYPE') === 'mongodb'
+          ? new NoSqlRepository(engine)
+          : new SqlRepository(engine);
+      },
+    },
+  ],
+  exports: [OrdersService, 'ORDER_REPOSITORY'],
+})
+export class OrdersModule {}

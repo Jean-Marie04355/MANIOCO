@@ -32,4 +32,9 @@ export class CreateStoreDto {
   @IsString()
   @Matches(/^\d+$/, { message: 'Phone number must contain only digits' })
   phone: string;
+
+  @ApiProperty({ description: 'ID de sous-compte FedaPay pour les reversements', required: false })
+  @IsString()
+  @IsNotEmpty()
+  payoutAccountId?: string;
 }

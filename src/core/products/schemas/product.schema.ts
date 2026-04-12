@@ -15,6 +15,9 @@ export class Product {
   @Prop({ default: 'FCFA' })
   currency: string;
 
+  @Prop({ default: 0 })
+  stock: number;
+
   @Prop()
   description: string;
 
