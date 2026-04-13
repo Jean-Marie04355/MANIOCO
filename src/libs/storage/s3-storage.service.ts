@@ -34,6 +34,7 @@ export class S3StorageService implements IStorageService {
                 secretAccessKey: secretAccessKey || '',
             },
             forcePathStyle: true,
+            
         });
     }
 
