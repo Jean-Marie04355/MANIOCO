@@ -10,6 +10,7 @@ import { MongoStorageProvider } from './providers/mongo-storage.provider';
 import { PostgresStorageProvider } from './providers/postgres-storage.provider';
 import { File, FileSchema } from './schemas/file.schema';
 import { FileEntity } from './entities/file.entity';
+import { S3StorageService } from '../../libs/storage/s3-storage.service';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { FileEntity } from './entities/file.entity';
   ],
   controllers: [FilesController],
   providers: [
+    S3StorageService,
     JsonStorageProvider,
     S3StorageProvider,
     ...(process.env.STORAGE_TYPE === 'mongo' 

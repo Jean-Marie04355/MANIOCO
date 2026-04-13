@@ -4,13 +4,16 @@ import { Repository } from 'typeorm';
 import { IFileStorage } from '../interfaces/file-storage.interface';
 import { FileEntity } from '../entities/file.entity';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
+import { S3StorageService } from '../../../libs/storage/s3-storage.service';
 
 @Injectable()
 export class PostgresStorageProvider implements IFileStorage {
   constructor(
     @InjectRepository(FileEntity)
     private readonly fileRepository: Repository<FileEntity>,
+    private readonly s3Service: S3StorageService,
   ) {}
+
   private mapToFileResponse(entity: FileEntity | null): FileResponse | null {
     if (!entity) return null;
     return {
@@ -22,6 +25,10 @@ export class PostgresStorageProvider implements IFileStorage {
       createdAt: entity.createdAt,
       updatedAt: entity.updatedAt,
     };
+  }
+
+  async upload(file: Express.Multer.File): Promise<string> {
+    return this.s3Service.uploadFile(file);
   }
 
   async findAll(): Promise<FileResponse[]> {
@@ -46,6 +53,10 @@ export class PostgresStorageProvider implements IFileStorage {
   }
 
   async delete(id: string): Promise<boolean> {
+    const file = await this.fileRepository.findOne({ where: { id } });
+    if (file) {
+      await this.s3Service.deleteFile(file.path);
+    }
     const result = await this.fileRepository.delete(id);
     return (result.affected ?? 0) > 0;
   }

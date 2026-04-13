@@ -4,12 +4,15 @@ import { Model } from 'mongoose';
 import { IFileStorage } from '../interfaces/file-storage.interface';
 import { File, FileDocument } from '../schemas/file.schema';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
+import { S3StorageService } from '../../../libs/storage/s3-storage.service';
 
 @Injectable()
 export class MongoStorageProvider implements IFileStorage {
   constructor(
     @InjectModel(File.name) private readonly fileModel: Model<FileDocument>,
+    private readonly s3Service: S3StorageService,
   ) {}
+
   private mapToFileResponse(doc: FileDocument | null): FileResponse | null {
     if (!doc) return null;
     return {
@@ -19,6 +22,10 @@ export class MongoStorageProvider implements IFileStorage {
       mimetype: String(doc.mimetype),
       size: Number(doc.size),
     };
+  }
+
+  async upload(file: Express.Multer.File): Promise<string> {
+    return this.s3Service.uploadFile(file);
   }
 
   async findAll(): Promise<FileResponse[]> {
@@ -43,6 +50,10 @@ export class MongoStorageProvider implements IFileStorage {
   }
 
   async delete(id: string): Promise<boolean> {
+    const file = await this.fileModel.findById(id).exec();
+    if (file) {
+      await this.s3Service.deleteFile(file.path);
+    }
     const result = await this.fileModel.findByIdAndDelete(id).exec();
     return result !== null;
   }
