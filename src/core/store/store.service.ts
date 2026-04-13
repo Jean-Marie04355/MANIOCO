@@ -9,7 +9,7 @@ import { CreateStoreDto } from './dto/create-store.dto';
 import { Store } from './store.entity';
 import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
 import { Types } from 'mongoose';
-import { getDistance } from 'src/common/helpers/location.helper';
+import { LocationService } from 'src/core/location/location.service';
 
 @Injectable()
 export class StoreService {
@@ -20,6 +20,7 @@ export class StoreService {
     @Inject('USER_REPOSITORY')
     private readonly userRepository: IBaseRepository<any>,
     private readonly configService: ConfigService,
+    private readonly locationService: LocationService,
   ) { }
 
   async create(createStoreDto: CreateStoreDto) {
@@ -80,7 +81,7 @@ export class StoreService {
       .map(store => {
         if (!store.latitude || !store.longitude) return null;
         
-        const distance = getDistance(lat, lng, store.latitude, store.longitude);
+        const distance = this.locationService.getDistance(lat, lng, store.latitude, store.longitude);
         
         return {
           ...this.mapToPublic(store),
@@ -102,12 +103,8 @@ export class StoreService {
       };
     }
 
-    const distance = getDistance(clientLat, clientLng, store.latitude, store.longitude);
-    
-    // Logique de tarification : 500 FCFA base + 100 FCFA par KM
-    const baseFee = 500;
-    const perKmFee = 100;
-    const totalFee = Math.round(baseFee + (distance * perKmFee));
+    const distance = this.locationService.getDistance(clientLat, clientLng, store.latitude, store.longitude);
+    const totalFee = this.locationService.calculateDeliveryFee(distance);
 
     return {
       distance: Math.round(distance * 100) / 100, // Arrondi à 2 décimales
