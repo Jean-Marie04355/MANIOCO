@@ -12,6 +12,7 @@ import { Types } from 'mongoose';
 
 @Injectable()
 export class StoreService {
+  storeModel: any;
   constructor(
     @Inject('STORE_REPOSITORY')
     private readonly storeRepository: IBaseRepository<Store>,
@@ -67,4 +68,6 @@ export class StoreService {
     await this.findOne(id);
     return this.storeRepository.delete(id);
   }
+
 }
+
