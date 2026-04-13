@@ -18,8 +18,17 @@ export class Store {
   @Column({ nullable: true })
   description: string;
 
-  @Column()
-  localisation: string;
+  @Column({ type: 'double precision', nullable: true })
+  latitude: number;
+
+  @Column({ type: 'double precision', nullable: true })
+  longitude: number;
+
+  @Column({ nullable: true })
+  address: string;
+
+  @Column({ nullable: true })
+  city: string;
 
   @Column({ nullable: true })
   phone: string;
@@ -31,4 +40,4 @@ export class Store {
   payoutAccountId: string;
 }
 
-  
+
