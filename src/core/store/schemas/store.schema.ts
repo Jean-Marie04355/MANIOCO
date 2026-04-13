@@ -22,6 +22,9 @@ export class Store {
 
   @Prop({ required: false })
   phone: string;
+
+  @Prop({ required: false })
+  payoutAccountId: string;
 }
 
 export const StoreSchema = SchemaFactory.createForClass(Store);

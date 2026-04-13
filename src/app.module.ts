@@ -11,6 +11,8 @@ import { CategoriesModule } from './core/categories/categories.module';
 import { ProductsModule } from './core/products/products.module';
 import { StoreModule } from './core/store/store.module';
 import { StorageModule } from './libs/storage/storage.module';
+import { OrdersModule } from './core/orders/orders.module';
+import { PaymentsModule } from './core/payments/payments.module';
 
 @Module({
   imports: [
@@ -23,6 +25,8 @@ import { StorageModule } from './libs/storage/storage.module';
     CategoriesModule,
     ProductsModule,
     StoreModule,
+    OrdersModule,
+    PaymentsModule,
   ],
 
   controllers: [AppController],

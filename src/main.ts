@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  app.enableCors(); // Activation nécessaire pour les tests locaux
 
   // Swagger Configuration
   const config = new DocumentBuilder()
