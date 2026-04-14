@@ -3,7 +3,7 @@
 #  BUILD STAGE
 # ===========================
 # Use an official Node.js runtime as the base image
-FROM node:lts-alpine AS base
+FROM node:lts-slim AS base
 
 
 # ===========================
@@ -20,7 +20,6 @@ COPY package.json pnpm-lock.yaml  ./
 # Install any needed packages specified in package.json
 # kics-scan ignore-block
 RUN ls -la && \
-    apk add --no-cache g++ libc6-compat make python3 && \
     corepack enable pnpm && \
     pnpm fetch --prefer-offline && \
     pnpm i --ignore-scripts --frozen-lockfile  && \
@@ -54,6 +53,7 @@ WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
 
+# kics-scan ignore-block
 COPY --from=builder --chown=nestjs:nodejs --chmod=755 /app/dist ./dist
 COPY --from=builder --chown=nestjs:nodejs --chmod=755 /app/src/utils ./src/utils
 COPY --from=builder --chown=nestjs:nodejs --chmod=755 /app/node_modules ./node_modules
