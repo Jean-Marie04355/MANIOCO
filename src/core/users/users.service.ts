@@ -34,12 +34,15 @@ export class UsersService {
     // Check how many users already exist
     const userCount = await this.userRepository.count();
     
-    // Logic: First registered user becomes ADMIN
+    // Logic: First registered user becomes SUPER_ADMIN
     // Every other user becomes whatever is in the DTO (default to CLIENT)
     let finalRole = createUserDto.role ?? UserRole.CLIENT;
 
     if (userCount === 0) {
-      finalRole = UserRole.ADMIN;
+      finalRole = UserRole.SUPER_ADMIN;
+    } else if (finalRole === UserRole.SUPER_ADMIN) {
+      // Sécurité : On empêche un profil d'être créé en SUPER_ADMIN s'il y en a déjà un
+      finalRole = UserRole.CLIENT;
     }
 
     const hashedPassword = await hashPassword(createUserDto.password);

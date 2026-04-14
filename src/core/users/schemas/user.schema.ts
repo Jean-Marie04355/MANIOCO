@@ -18,6 +18,12 @@ export class User {
   @Prop({ type: String, enum: UserRole, default: UserRole.CLIENT })
   role: UserRole;
 
+  @Prop({ default: null })
+  otpCode: string;
+
+  @Prop({ default: null })
+  otpExpiresAt: Date;
+
   @Prop()
   deletedAt: Date;
 }
