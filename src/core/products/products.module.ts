@@ -8,7 +8,7 @@ import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
 import { Product } from './product.entity';
 import { Product as MongoProduct, ProductSchema } from './schemas/product.schema';
-import { CategoriesModule } from '../categories/categories.module';
+import { ProductCategoriesModule } from '../product-categories/product-categories.module';
 
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../lib/no-sql-database/repository';
@@ -21,7 +21,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
   imports: [
     ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Product])] : []),
     ...(dbType === 'mongodb' ? [MongooseModule.forFeature([{ name: MongoProduct.name, schema: ProductSchema }])] : []),
-    CategoriesModule,
+    ProductCategoriesModule,
   ],
   controllers: [ProductsController],
   providers: [
