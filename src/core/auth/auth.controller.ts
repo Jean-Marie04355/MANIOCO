@@ -13,7 +13,7 @@ export class AuthController {
 
   @Post('login')
   @ApiOperation({ summary: 'Connexion (email + password) -> JWT' })
-  @ApiResponse({ status: 201, description: 'Token JWT retourné' })
+  @ApiResponse({ status: 201, description: 'Token JWT retourné avec succès' })
   login(@Body() body: LoginDto) {
     return this.authService.login(body.email, body.password);
   }
