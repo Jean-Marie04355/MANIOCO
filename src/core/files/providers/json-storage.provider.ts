@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import * as fs from 'fs';
-import * as path from 'path';
 import { IFileStorage } from '../interfaces/file-storage.interface';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
 import { S3StorageService } from '../../../libs/storage/s3-storage.service';
