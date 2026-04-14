@@ -4,19 +4,10 @@ import { MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 
-<<<<<<< HEAD:src/core/categories/categories.module.ts
-import { CategoriesService } from './categories.service';
-import { CategoriesController } from './categories.controller';
-import { Category } from './category.entity';
-import { Category as MongoCategory, CategorySchema } from './schemas/category.schema';
-=======
 import { ProductCategoriesService } from './product-categories.service';
 import { ProductCategoriesController } from './product-categories.controller';
 import { ProductCategory } from './product-category.entity';
 import { ProductCategory as MongoProductCategory, ProductCategorySchema } from './schemas/product-category.schema';
-import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
-import { SqlRepository } from 'src/lib/sql-database/repository';
->>>>>>> dev:src/core/product-categories/product-categories.module.ts
 
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../lib/no-sql-database/repository';
