@@ -42,7 +42,7 @@ trivy_filesystem:
   SO_BRANCH_NAME: $CI_COMMIT_REF_NAME
 
 trivy_misconfig:
-  SCANNER: trivy_config
+  SCANNER: trivy_misconfig
   RUN_DIRECTORY: "."
   TARGET: "."
   REPORT_NAME: "trivy_misconfig.json"
