@@ -224,7 +224,7 @@ NestJS délègue l’auth à Passport (standard Node) :
 ```bash
 curl -s -X POST http://localhost:3000/auth/login \
   -H 'Content-Type: application/json' \
-  -d '{"email":"admin@afrigari.com","password":"MotDePasseSecurise200"}'
+  -d '{"email":"admin@afrigari.com","password":"PLACEHOLDER"}'
 ```
 
 #### 2) `/auth/me`
