@@ -27,7 +27,8 @@ export class LocationService {
    */
   calculateDeliveryFee(distanceKm: number): number {
     const baseFee = Number(this.configService.get('DELIVERY_BASE_FEE')) || 500;
-    const perKmFee = Number(this.configService.get('DELIVERY_PER_KM_FEE')) || 100;
-    return Math.round(baseFee + (distanceKm * perKmFee));
+    const perKmFee =
+      Number(this.configService.get('DELIVERY_PER_KM_FEE')) || 100;
+    return Math.round(baseFee + distanceKm * perKmFee);
   }
 }

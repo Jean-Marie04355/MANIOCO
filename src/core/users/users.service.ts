@@ -33,7 +33,7 @@ export class UsersService {
 
     // Check how many users already exist
     const userCount = await this.userRepository.count();
-    
+
     // Logic: First registered user becomes ADMIN
     // Every other user becomes whatever is in the DTO (default to CLIENT)
     let finalRole = createUserDto.role ?? UserRole.CLIENT;

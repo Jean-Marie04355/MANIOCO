@@ -1,4 +1,5 @@
-import { Model, Document, Types } from 'mongoose';
+/* eslint-disable @typescript-eslint/require-await */
+import { Model, Document } from 'mongoose';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 export class NoSqlRepository<T> implements IBaseRepository<T> {
   constructor(protected readonly repo: Model<T & Document>) {}

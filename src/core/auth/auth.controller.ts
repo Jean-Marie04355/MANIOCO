@@ -12,7 +12,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @ApiOperation({ summary: "Connexion (email + password) -> JWT" })
+  @ApiOperation({ summary: 'Connexion (email + password) -> JWT' })
   @ApiResponse({ status: 201, description: 'Token JWT retourné' })
   login(@Body() body: LoginDto) {
     return this.authService.login(body.email, body.password);
@@ -25,4 +25,3 @@ export class AuthController {
     return this.authService.me(req.user);
   }
 }
-

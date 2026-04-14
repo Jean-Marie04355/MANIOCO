@@ -15,16 +15,13 @@ export class ProductCategory {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Store', required: false })
   storeId: string;
 
-
-
   @Prop()
   deletedAt: Date;
-
 }
 
-export const ProductCategorySchema = SchemaFactory.createForClass(ProductCategory);
+export const ProductCategorySchema =
+  SchemaFactory.createForClass(ProductCategory);
 ProductCategorySchema.index({ name: 1, storeId: 1 }, { unique: true });
-
 
 // Align the 'id' property with TypeORM
 ProductCategorySchema.virtual('id').get(function () {

@@ -40,11 +40,11 @@ export class AuthService {
     const payload = {
       sub: user.email,
       email: user.email,
-      role: user.role as UserRole,
+      role: user.role,
       userId: user.id,
     };
 
-    const expiresIn = (this.configService.get('JWT_EXPIRES_IN') as any) || '1d';
+    const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '1d';
     const accessToken = await this.jwtService.signAsync(payload, { expiresIn });
 
     return {
@@ -53,7 +53,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role as UserRole,
+        role: user.role,
       },
     };
   }
@@ -66,4 +66,3 @@ export class AuthService {
     };
   }
 }
-

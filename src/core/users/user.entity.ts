@@ -1,9 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, DeleteDateColumn } from 'typeorm';
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  DeleteDateColumn,
+} from 'typeorm';
 import { UserRole } from '../../common/enum/role.enum';
 
 @Entity('users')
 export class User {
-
   @PrimaryGeneratedColumn('uuid')
   id: string;
 

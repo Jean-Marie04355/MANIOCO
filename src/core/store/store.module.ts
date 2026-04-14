@@ -8,7 +8,11 @@ import { StoreService } from './store.service';
 import { StoreController } from './store.controller';
 
 import { Store } from './store.entity';
-import { Store as MongoStore, StoreDocument, StoreSchema } from './schemas/store.schema';
+import {
+  Store as MongoStore,
+  StoreDocument,
+  StoreSchema,
+} from './schemas/store.schema';
 import { NoSqlRepository } from '../../lib/no-sql-database/repository';
 import { SqlRepository } from '../../lib/sql-database/repository';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
@@ -22,8 +26,14 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
 @Module({
   imports: [
     ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Store])] : []),
-    ...(dbType === 'mongodb' ? [MongooseModule.forFeature([{ name: MongoStore.name, schema: StoreSchema }])] : []),
-    UsersModule, 
+    ...(dbType === 'mongodb'
+      ? [
+          MongooseModule.forFeature([
+            { name: MongoStore.name, schema: StoreSchema },
+          ]),
+        ]
+      : []),
+    UsersModule,
     LocationModule,
   ],
   controllers: [StoreController],
@@ -33,9 +43,14 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'STORE_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb' ? [getModelToken(MongoStore.name)] : [getRepositoryToken(Store)]),
+        ...(dbType === 'mongodb'
+          ? [getModelToken(MongoStore.name)]
+          : [getRepositoryToken(Store)]),
       ],
-      useFactory: (config: ConfigService, engine: any): IBaseRepository<Store> => {
+      useFactory: (
+        config: ConfigService,
+        engine: any,
+      ): IBaseRepository<Store> => {
         return config.get('DB_TYPE') === 'mongodb'
           ? new NoSqlRepository(engine)
           : new SqlRepository(engine);

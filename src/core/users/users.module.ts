@@ -9,7 +9,11 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 
 import { User } from './user.entity';
-import { User as MongoUser, UserDocument, UserSchema } from './schemas/user.schema';
+import {
+  User as MongoUser,
+  UserDocument,
+  UserSchema,
+} from './schemas/user.schema';
 
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../lib/no-sql-database/repository';
@@ -21,7 +25,13 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
 @Module({
   imports: [
     ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([User])] : []),
-    ...(dbType === 'mongodb' ? [MongooseModule.forFeature([{ name: MongoUser.name, schema: UserSchema }])] : []),
+    ...(dbType === 'mongodb'
+      ? [
+          MongooseModule.forFeature([
+            { name: MongoUser.name, schema: UserSchema },
+          ]),
+        ]
+      : []),
   ],
   controllers: [UsersController],
   providers: [
@@ -32,7 +42,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'USER_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb' ? [getModelToken(MongoUser.name)] : [getRepositoryToken(User)]),
+        ...(dbType === 'mongodb'
+          ? [getModelToken(MongoUser.name)]
+          : [getRepositoryToken(User)]),
       ],
       useFactory: (config: ConfigService, engine: any) => {
         return config.get('DB_TYPE') === 'mongodb'

@@ -2,9 +2,13 @@ import { Repository, DeepPartial } from 'typeorm';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Inject } from '@nestjs/common';
 
-export class AbstractRepository<T extends { id: any }> implements IBaseRepository<T> {
-  constructor(@Inject('DATABASE_REPOSITORY')
-        private readonly repo: IBaseRepository<T>,) {}
+export class AbstractRepository<
+  T extends { id: any },
+> implements IBaseRepository<T> {
+  constructor(
+    @Inject('DATABASE_REPOSITORY')
+    private readonly repo: IBaseRepository<T>,
+  ) {}
 
   find(options: any): Promise<T[]> {
     return this.repo.find(options);

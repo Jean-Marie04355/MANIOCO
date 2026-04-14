@@ -8,7 +8,10 @@ import { PaymentsService } from './payments.service';
 import { PaymentsController } from './payments.controller';
 
 import { Transaction } from './transaction.entity';
-import { Transaction as MongoTransaction, TransactionSchema } from './schemas/transaction.schema';
+import {
+  Transaction as MongoTransaction,
+  TransactionSchema,
+} from './schemas/transaction.schema';
 
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../lib/no-sql-database/repository';
@@ -19,7 +22,13 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
 @Module({
   imports: [
     ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Transaction])] : []),
-    ...(dbType === 'mongodb' ? [MongooseModule.forFeature([{ name: MongoTransaction.name, schema: TransactionSchema }])] : []),
+    ...(dbType === 'mongodb'
+      ? [
+          MongooseModule.forFeature([
+            { name: MongoTransaction.name, schema: TransactionSchema },
+          ]),
+        ]
+      : []),
   ],
   controllers: [PaymentsController],
   providers: [
@@ -28,7 +37,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'TRANSACTION_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb' ? [getModelToken(MongoTransaction.name)] : [getRepositoryToken(Transaction)]),
+        ...(dbType === 'mongodb'
+          ? [getModelToken(MongoTransaction.name)]
+          : [getRepositoryToken(Transaction)]),
       ],
       useFactory: (config: ConfigService, engine: any) => {
         return config.get('DB_TYPE') === 'mongodb'

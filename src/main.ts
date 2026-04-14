@@ -9,7 +9,9 @@ async function bootstrap() {
   // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('Afrigari API')
-    .setDescription('API to manage clients, sellers, delivery personnel, and products')
+    .setDescription(
+      'API to manage clients, sellers, delivery personnel, and products',
+    )
     .setVersion('1.0')
     .addBearerAuth()
     .build();
@@ -17,6 +19,6 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document); // accessible via /api
 
-  await app.listen(3000)
+  await app.listen(3000);
 }
-bootstrap();
+void bootstrap();

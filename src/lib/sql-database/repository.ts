@@ -1,7 +1,9 @@
-import { Repository, DeepPartial, FindManyOptions } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
-export class SqlRepository<T extends { id: any }> implements IBaseRepository<T> {
+export class SqlRepository<
+  T extends { id: any },
+> implements IBaseRepository<T> {
   constructor(protected readonly repo: Repository<T>) {}
 
   find(options?: any): Promise<T[]> {

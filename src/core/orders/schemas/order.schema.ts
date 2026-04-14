@@ -22,12 +22,17 @@ export class Order {
   })
   status: OrderStatus;
 
-  @Prop({ type: [{
-    productId: String,
-    productName: String,
-    quantity: Number,
-    price: Number,
-  }], default: [] })
+  @Prop({
+    type: [
+      {
+        productId: String,
+        productName: String,
+        quantity: Number,
+        price: Number,
+      },
+    ],
+    default: [],
+  })
   items: any[];
 }
 

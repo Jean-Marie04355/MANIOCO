@@ -30,7 +30,7 @@ export class MongoStorageProvider implements IFileStorage {
 
   async findAll(): Promise<FileResponse[]> {
     const docs = await this.fileModel.find().exec();
-    return docs.map(doc => this.mapToFileResponse(doc) as FileResponse);
+    return docs.map((doc) => this.mapToFileResponse(doc));
   }
 
   async findOne(id: string): Promise<FileResponse | null> {
@@ -41,11 +41,16 @@ export class MongoStorageProvider implements IFileStorage {
   async create(data: CreateFileDto): Promise<FileResponse> {
     const createdFile = new this.fileModel(data);
     const doc = await createdFile.save();
-    return this.mapToFileResponse(doc) as FileResponse;
+    return this.mapToFileResponse(doc);
   }
 
-  async update(id: string, data: Partial<UpdateFileDto>): Promise<FileResponse | null> {
-    const doc = await this.fileModel.findByIdAndUpdate(id, data, { new: true }).exec();
+  async update(
+    id: string,
+    data: Partial<UpdateFileDto>,
+  ): Promise<FileResponse | null> {
+    const doc = await this.fileModel
+      .findByIdAndUpdate(id, data, { new: true })
+      .exec();
     return this.mapToFileResponse(doc);
   }
 

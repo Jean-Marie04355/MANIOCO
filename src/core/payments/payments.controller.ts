@@ -1,4 +1,12 @@
-import { Controller, Post, Body, Headers, Logger, HttpStatus, Res } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Headers,
+  Logger,
+  HttpStatus,
+  Res,
+} from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { Response } from 'express';
@@ -12,20 +20,17 @@ export class PaymentsController {
 
   @Post('webhook')
   @ApiOperation({ summary: 'Entry point for FedaPay notifications' })
-  async handleWebhook(
-    @Body() payload: any,
-    @Res() res: Response
-  ) {
+  async handleWebhook(@Body() payload: any, @Res() res: Response) {
     this.logger.log('FedaPay payment notification received');
-    
+
     try {
       // Note: Ideally, signature verification should be implemented here
       // if FedaPay provides it for better security.
       await this.paymentsService.handleWebhook(payload);
-      
+
       return res.status(HttpStatus.OK).send('OK');
     } catch (error) {
-       this.logger.error(`Webhook Error: ${error.message}`);
+      this.logger.error(`Webhook Error: ${error.message}`);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error');
     }
   }

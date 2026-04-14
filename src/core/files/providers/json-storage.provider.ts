@@ -49,18 +49,21 @@ export class JsonStorageProvider implements IFileStorage {
 
   async create(item: CreateFileDto): Promise<FileResponse> {
     const data = this.readData();
-    const newItem = { 
-      ...item, 
+    const newItem = {
+      ...item,
       id: Date.now().toString(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
     data.push(newItem as any);
     this.writeData(data);
     return newItem as any;
   }
 
-  async update(id: string, item: Partial<UpdateFileDto>): Promise<FileResponse | null> {
+  async update(
+    id: string,
+    item: Partial<UpdateFileDto>,
+  ): Promise<FileResponse | null> {
     const data = this.readData();
     const index = data.findIndex((i) => i.id === id);
     if (index === -1) return null;

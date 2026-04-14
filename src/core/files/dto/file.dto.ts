@@ -7,12 +7,17 @@ export class CreateFileDto {
   @IsNotEmpty()
   filename: string;
 
-  @ApiProperty({ description: 'The absolute or relative path to the stored file' })
+  @ApiProperty({
+    description: 'The absolute or relative path to the stored file',
+  })
   @IsString()
   @IsNotEmpty()
   path: string;
 
-  @ApiProperty({ description: 'The MIME type of the file', example: 'application/pdf' })
+  @ApiProperty({
+    description: 'The MIME type of the file',
+    example: 'application/pdf',
+  })
   @IsString()
   @IsNotEmpty()
   mimetype: string;

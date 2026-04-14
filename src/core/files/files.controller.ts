@@ -1,9 +1,25 @@
-import { Body, Controller, Delete, Get, Patch, Param, Post, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Param,
+  Post,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FilesService } from './files.service';
 import { CreateFileDto, UpdateFileDto } from './dto/file.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { ApiBearerAuth, ApiConsumes, ApiBody, ApiOperation } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiConsumes,
+  ApiBody,
+  ApiOperation,
+} from '@nestjs/swagger';
 
 @ApiBearerAuth()
 @UseGuards(JwtAuthGuard)
@@ -55,7 +71,10 @@ export class FilesController {
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateFileData: Partial<UpdateFileDto>) {
+  update(
+    @Param('id') id: string,
+    @Body() updateFileData: Partial<UpdateFileDto>,
+  ) {
     return this.filesService.update(id, updateFileData);
   }
 

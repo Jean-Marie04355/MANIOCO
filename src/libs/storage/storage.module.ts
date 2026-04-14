@@ -4,14 +4,14 @@ import { S3StorageService } from './s3-storage.service';
 
 @Global()
 @Module({
-    imports: [ConfigModule],
-    providers: [
-        {
-            provide: 'IStorageService',
-            useClass: S3StorageService,
-        },
-        S3StorageService,
-    ],
-    exports: ['IStorageService', S3StorageService],
+  imports: [ConfigModule],
+  providers: [
+    {
+      provide: 'IStorageService',
+      useClass: S3StorageService,
+    },
+    S3StorageService,
+  ],
+  exports: ['IStorageService', S3StorageService],
 })
 export class StorageModule {}

@@ -39,9 +39,10 @@ export class AdminSeeder {
       } else {
         this.logger.log(`Admin ${adminEmail} already exists, seeding skipped.`);
       }
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : String(error);
-      this.logger.error('Error during seeding: ' + message);
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Error during seeding: ${errorMessage}`);
     }
   }
 }
