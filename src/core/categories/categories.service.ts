@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
-import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
 import { Category } from './category.entity';
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
 @Injectable()
 export class CategoriesService {

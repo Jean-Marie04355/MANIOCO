@@ -98,9 +98,13 @@ export class PaymentsService {
         url: tokenInfo.url,
       };
     } catch (error) {
-      this.logger.error(`FedaPay Error: ${error.message}`);
-      throw error;
-    }
+  if (error instanceof Error) {
+    this.logger.error(`FedaPay Error: ${error.message}`);
+  } else {
+    this.logger.error(`FedaPay Error: ${error}`);
+  }
+  throw error;
+}
   }
 
   async findByOrderId(orderId: string): Promise<Transaction | null> {

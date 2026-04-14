@@ -8,10 +8,10 @@ import { CategoriesService } from './categories.service';
 import { CategoriesController } from './categories.controller';
 import { Category } from './category.entity';
 import { Category as MongoCategory, CategorySchema } from './schemas/category.schema';
-import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
-import { SqlRepository } from 'src/lib/sql-database/repository';
 
 import * as dotenv from 'dotenv';
+import { NoSqlRepository } from '../../lib/no-sql-database/repository';
+import { SqlRepository } from '../../lib/sql-database/repository';
 dotenv.config();
 
 const dbType = process.env.DB_TYPE?.toLowerCase();

@@ -8,11 +8,11 @@ import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
 import { Product } from './product.entity';
 import { Product as MongoProduct, ProductSchema } from './schemas/product.schema';
-import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
-import { SqlRepository } from 'src/lib/sql-database/repository';
 import { CategoriesModule } from '../categories/categories.module';
 
 import * as dotenv from 'dotenv';
+import { NoSqlRepository } from '../../lib/no-sql-database/repository';
+import { SqlRepository } from '../../lib/sql-database/repository';
 dotenv.config();
 
 const dbType = process.env.DB_TYPE?.toLowerCase();

@@ -9,10 +9,10 @@ import { PaymentsController } from './payments.controller';
 
 import { Transaction } from './transaction.entity';
 import { Transaction as MongoTransaction, TransactionSchema } from './schemas/transaction.schema';
-import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
-import { SqlRepository } from 'src/lib/sql-database/repository';
 
 import * as dotenv from 'dotenv';
+import { NoSqlRepository } from '../../lib/no-sql-database/repository';
+import { SqlRepository } from '../../lib/sql-database/repository';
 dotenv.config();
 const dbType = process.env.DB_TYPE?.toLowerCase();
 

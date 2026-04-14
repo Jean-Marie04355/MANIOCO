@@ -10,12 +10,11 @@ import { UsersController } from './users.controller';
 
 import { User } from './user.entity';
 import { User as MongoUser, UserDocument, UserSchema } from './schemas/user.schema';
-import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
-import { SqlRepository } from 'src/lib/sql-database/repository';
-import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
-import { RolesGuard } from 'src/common/guards/roles.guard';
 
 import * as dotenv from 'dotenv';
+import { NoSqlRepository } from '../../lib/no-sql-database/repository';
+import { SqlRepository } from '../../lib/sql-database/repository';
+import { RolesGuard } from '../../common/guards/roles.guard';
 dotenv.config();
 const dbType = process.env.DB_TYPE?.toLowerCase();
 

@@ -1,6 +1,5 @@
 import { Model, Document, Types } from 'mongoose';
-import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
-
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 export class NoSqlRepository<T> implements IBaseRepository<T> {
   constructor(protected readonly repo: Model<T & Document>) {}
 
