@@ -26,7 +26,7 @@ export class RolesGuard implements CanActivate {
     const user = request.user as { role?: UserRole } | undefined;
 
     if (!user || !user.role) {
-      throw new ForbiddenException('Acces refuse (auth manquante).');
+      throw new ForbiddenException('Acces refuse.');
     }
 
     if (!requiredRoles.includes(user.role)) {
