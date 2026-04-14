@@ -13,6 +13,7 @@ import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
 import { SqlRepository } from 'src/lib/sql-database/repository';
 import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
 import { UsersModule } from '../users/users.module'; // ← IMPORTANT pour USER_REPOSITORY
+import { LocationModule } from '../location/location.module';
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -22,7 +23,8 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
   imports: [
     ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Store])] : []),
     ...(dbType === 'mongodb' ? [MongooseModule.forFeature([{ name: MongoStore.name, schema: StoreSchema }])] : []),
-    UsersModule, // ← à ajouter
+    UsersModule, 
+    LocationModule,
   ],
   controllers: [StoreController],
   providers: [

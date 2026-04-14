@@ -2,10 +2,10 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { Store } from '../../store/schemas/store.schema';
 
-export type CategoryDocument = Category & Document;
+export type ProductCategoryDocument = ProductCategory & Document;
 
 @Schema({ timestamps: true })
-export class Category {
+export class ProductCategory {
   @Prop({ required: true })
   name: string;
 
@@ -22,13 +22,13 @@ export class Category {
 
 }
 
-export const CategorySchema = SchemaFactory.createForClass(Category);
-CategorySchema.index({ name: 1, storeId: 1 }, { unique: true });
+export const ProductCategorySchema = SchemaFactory.createForClass(ProductCategory);
+ProductCategorySchema.index({ name: 1, storeId: 1 }, { unique: true });
 
 
 // Align the 'id' property with TypeORM
-CategorySchema.virtual('id').get(function () {
+ProductCategorySchema.virtual('id').get(function () {
   return this._id.toHexString();
 });
-CategorySchema.set('toJSON', { virtuals: true });
-CategorySchema.set('toObject', { virtuals: true });
+ProductCategorySchema.set('toJSON', { virtuals: true });
+ProductCategorySchema.set('toObject', { virtuals: true });

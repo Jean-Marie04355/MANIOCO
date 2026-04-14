@@ -1,9 +1,9 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Unique } from 'typeorm';
 import { Store } from '../store/store.entity';
 
-@Entity('categories')
+@Entity('product_categories')
 @Unique(['name', 'storeId'])
-export class Category {
+export class ProductCategory {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
