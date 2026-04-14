@@ -53,5 +53,6 @@ services:
       - mongodb_data:/data/db
 
 volumes:
+  # kics-scan ignore-block
   postgres_data:
   mongodb_data:

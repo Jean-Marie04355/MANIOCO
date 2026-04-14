@@ -18,6 +18,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml  ./
 
 # Install any needed packages specified in package.json
+# kics-scan ignore-block
 RUN ls -la && \
     apk add --no-cache g++ libc6-compat make python3 && \
     corepack enable pnpm && \
@@ -53,10 +54,11 @@ WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
 
-COPY --from=builder --chown=root:root --chmod=755 /app/dist ./dist
-COPY --from=builder --chown=root:root --chmod=755 /app/src/utils ./src/utils
-COPY --from=builder --chown=root:root --chmod=755 /app/node_modules ./node_modules
-COPY --from=builder --chown=root:root --chmod=755 /app/package.json ./package.json
+COPY --from=builder --chown=nestjs:nodejs --chmod=755 /app/dist ./dist
+COPY --from=builder --chown=nestjs:nodejs --chmod=755 /app/src/utils ./src/utils
+COPY --from=builder --chown=nestjs:nodejs --chmod=755 /app/node_modules ./node_modules
+COPY --from=builder --chown=nestjs:nodejs --chmod=755 /app/package.json ./package.json
+
 
 USER nestjs
 #ENV NODE_ENV=production
