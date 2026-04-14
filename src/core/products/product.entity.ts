@@ -1,5 +1,5 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, DeleteDateColumn } from 'typeorm';
-import { Category } from '../categories/category.entity';
+import { ProductCategory } from '../product-categories/product-category.entity';
 
 @Entity('products')
 export class Product {
@@ -24,9 +24,9 @@ export class Product {
   @Column()
   categoryId: string;
 
-  @ManyToOne(() => Category, { eager: true, nullable: false })
+  @ManyToOne(() => ProductCategory, { eager: true, nullable: false })
   @JoinColumn({ name: 'categoryId' })
-  category: Category;
+  category: ProductCategory;
 
   @CreateDateColumn()
   createdAt: Date;
