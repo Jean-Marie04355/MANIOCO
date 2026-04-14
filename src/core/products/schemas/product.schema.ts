@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
-import { Category } from '../../categories/schemas/category.schema';
+import { ProductCategory } from '../../product-categories/schemas/product-category.schema';
 
 export type ProductDocument = Product & Document;
 
@@ -21,8 +21,8 @@ export class Product {
   @Prop()
   description: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Category', required: true })
-  category: Category;
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'ProductCategory', required: true })
+  category: ProductCategory;
 
   @Prop()
   deletedAt: Date;
