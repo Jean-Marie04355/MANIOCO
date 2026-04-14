@@ -11,7 +11,13 @@ describe('ProductsController', () => {
       providers: [
         {
           provide: ProductsService,
-          useValue: { findAll: jest.fn(), findOne: jest.fn(), create: jest.fn(), update: jest.fn(), remove: jest.fn() },
+          useValue: {
+            findAll: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            remove: jest.fn(),
+          },
         },
       ],
     }).compile();

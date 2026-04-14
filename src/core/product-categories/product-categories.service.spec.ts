@@ -8,7 +8,16 @@ describe('ProductCategoriesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductCategoriesService,
-        { provide: 'PRODUCT_CATEGORY_REPOSITORY', useValue: { find: jest.fn(), findOne: jest.fn(), create: jest.fn(), update: jest.fn(), delete: jest.fn() } },
+        {
+          provide: 'PRODUCT_CATEGORY_REPOSITORY',
+          useValue: {
+            find: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            delete: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

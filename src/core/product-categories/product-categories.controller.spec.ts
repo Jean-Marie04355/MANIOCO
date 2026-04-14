@@ -11,12 +11,20 @@ describe('ProductCategoriesController', () => {
       providers: [
         {
           provide: ProductCategoriesService,
-          useValue: { findAll: jest.fn(), findOne: jest.fn(), create: jest.fn(), update: jest.fn(), remove: jest.fn() },
+          useValue: {
+            findAll: jest.fn(),
+            findOne: jest.fn(),
+            create: jest.fn(),
+            update: jest.fn(),
+            remove: jest.fn(),
+          },
         },
       ],
     }).compile();
 
-    controller = module.get<ProductCategoriesController>(ProductCategoriesController);
+    controller = module.get<ProductCategoriesController>(
+      ProductCategoriesController,
+    );
   });
 
   it('should be defined', () => {

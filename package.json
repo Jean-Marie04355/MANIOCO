@@ -41,11 +41,13 @@
     "mongoose": "^9.3.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "path-to-regexp": "^8.4.2",
     "pg": "^8.20.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "sqlite3": "^5.1.7",
+    "sqlite3": "^6.0.1",
     "swagger-ui-express": "^5.0.1",
+    "tar": "^7.5.13",
     "typeorm": "^0.3.28"
   },
   "devDependencies": {
