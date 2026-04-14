@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 
 import { PaymentsService } from './payments.service';
@@ -41,7 +40,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
           ? [getModelToken(MongoTransaction.name)]
           : [getRepositoryToken(Transaction)]),
       ],
-      useFactory: (config: ConfigService, engine: any) => {
+      useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'
           ? new NoSqlRepository(engine)
           : new SqlRepository(engine);

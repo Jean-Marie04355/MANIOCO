@@ -5,7 +5,6 @@ import {
   Body,
   Patch,
   Param,
-  UseGuards,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';

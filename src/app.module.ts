@@ -5,7 +5,6 @@ import { AppService } from './app.service';
 import { UsersModule } from './core/users/users.module';
 import { AuthModule } from './core/auth/auth.module';
 import { FilesModule } from './core/files/files.module';
-// import { AdminSeeder } from './common/seeder/admin.seeder';
 import { DatabaseModule } from './lib/database/module';
 import { ProductCategoriesModule } from './core/product-categories/product-categories.module';
 import { ProductsModule } from './core/products/products.module';

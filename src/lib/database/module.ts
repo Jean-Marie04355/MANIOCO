@@ -1,5 +1,5 @@
 import { DynamicModule, Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
 
 import { SqlDatabaseModule } from '../sql-database/module';
 import { NoSqlDatabaseModule } from '../no-sql-database/module';

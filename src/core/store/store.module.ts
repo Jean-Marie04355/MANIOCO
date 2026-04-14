@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 
 import { StoreService } from './store.service';
@@ -10,7 +9,6 @@ import { StoreController } from './store.controller';
 import { Store } from './store.entity';
 import {
   Store as MongoStore,
-  StoreDocument,
   StoreSchema,
 } from './schemas/store.schema';
 import { NoSqlRepository } from '../../lib/no-sql-database/repository';
@@ -49,7 +47,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       ],
       useFactory: (
         config: ConfigService,
-        engine: any,
+        engine: unknown,
       ): IBaseRepository<Store> => {
         return config.get('DB_TYPE') === 'mongodb'
           ? new NoSqlRepository(engine)

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 
 import { ProductCategoriesService } from './product-categories.service';
@@ -42,7 +41,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
           ? [getModelToken(MongoProductCategory.name)]
           : [getRepositoryToken(ProductCategory)]),
       ],
-      useFactory: (config: ConfigService, engine: any) => {
+      useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'
           ? new NoSqlRepository(engine)
           : new SqlRepository(engine);

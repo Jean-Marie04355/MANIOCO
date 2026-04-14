@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as fs from 'fs';
+import * as fs from 'node:fs';
+import * as crypto from 'node:crypto';
 import { IFileStorage } from '../interfaces/file-storage.interface';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
 import { S3StorageService } from '../../../libs/storage/s3-storage.service';
@@ -48,7 +49,7 @@ export class JsonStorageProvider implements IFileStorage {
     const data = this.readData();
     const newItem = {
       ...item,
-      id: Date.now().toString(),
+      id: crypto.randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };

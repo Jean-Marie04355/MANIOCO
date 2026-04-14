@@ -1,4 +1,4 @@
-import * as crypto from 'crypto';
+import * as crypto from 'node:crypto';
 import {
   Injectable,
   UnauthorizedException,
@@ -33,12 +33,12 @@ export class AuthService {
   async login(email: string, password: string): Promise<LoginResponse> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Identifiants invalides.');
+      throw new UnauthorizedException();
     }
 
     const ok = await comparePassword(password, user.password);
     if (!ok) {
-      throw new UnauthorizedException('Identifiants invalides.');
+      throw new UnauthorizedException();
     }
 
     const payload = {
@@ -65,16 +65,16 @@ export class AuthService {
   async adminLogin(email: string, password: string): Promise<{ message: string; email: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Identifiants invalides.');
+      throw new UnauthorizedException();
     }
 
     if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
-      throw new UnauthorizedException('Accès réservé aux administrateurs.');
+      throw new UnauthorizedException();
     }
 
     const ok = await comparePassword(password, user.password);
     if (!ok) {
-      throw new UnauthorizedException('Identifiants invalides.');
+      throw new UnauthorizedException();
     }
 
     const otpCode = crypto.randomInt(100000, 999999).toString();
@@ -95,15 +95,15 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     
     if (!user || !user.otpCode || !user.otpExpiresAt) {
-      throw new UnauthorizedException('Aucune session OTP en cours.');
+      throw new UnauthorizedException();
     }
 
     if (new Date() > user.otpExpiresAt) {
-      throw new UnauthorizedException('Code OTP expiré.');
+      throw new UnauthorizedException();
     }
 
     if (user.otpCode !== otpCode) {
-      throw new UnauthorizedException('Code OTP invalide.');
+      throw new UnauthorizedException();
     }
 
     await this.usersService.update(user.id, {

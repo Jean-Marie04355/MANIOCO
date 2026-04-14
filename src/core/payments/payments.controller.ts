@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  Headers,
   Logger,
   HttpStatus,
   Res,

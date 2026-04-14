@@ -43,7 +43,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
           ? [getModelToken(MongoUser.name)]
           : [getRepositoryToken(User)]),
       ],
-      useFactory: (config: ConfigService, engine: any) => {
+      useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'
           ? new NoSqlRepository(engine)
           : new SqlRepository(engine);

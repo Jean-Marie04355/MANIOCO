@@ -36,7 +36,7 @@ export class StoreService {
       } else {
         owner = await this.userRepository.findOne({ id: ownerId });
       }
-    } catch (error) {
+    } catch (_error) {
       throw new NotFoundException(
         `User with ID ${ownerId} not found or invalid format.`,
       );

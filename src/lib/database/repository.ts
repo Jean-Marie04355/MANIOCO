@@ -1,6 +1,6 @@
-import { Repository, DeepPartial } from 'typeorm';
-import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
+import { DeepPartial } from 'typeorm';
 import { Inject } from '@nestjs/common';
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
 export class AbstractRepository<
   T extends { id: any },
