@@ -1,15 +1,22 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { CategoriesController } from './categories.controller';
+import { ProductCategoriesController } from './product-categories.controller';
+import { ProductCategoriesService } from './product-categories.service';
 
-describe('CategoriesController', () => {
-  let controller: CategoriesController;
+describe('ProductCategoriesController', () => {
+  let controller: ProductCategoriesController;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      controllers: [CategoriesController],
+      controllers: [ProductCategoriesController],
+      providers: [
+        {
+          provide: ProductCategoriesService,
+          useValue: { findAll: jest.fn(), findOne: jest.fn(), create: jest.fn(), update: jest.fn(), remove: jest.fn() },
+        },
+      ],
     }).compile();
 
-    controller = module.get<CategoriesController>(CategoriesController);
+    controller = module.get<ProductCategoriesController>(ProductCategoriesController);
   });
 
   it('should be defined', () => {
