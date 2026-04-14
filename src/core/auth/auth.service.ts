@@ -58,7 +58,7 @@ export class AuthService {
     };
   }
 
-  async adminLogin(email: string, password: string) {
+  async adminLogin(email: string, password: string): Promise<{ message: string; email: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Identifiants invalides.');
@@ -84,15 +84,8 @@ export class AuthService {
       otpExpiresAt,
     } as any);
 
-    // Simulation d'envoi d'email (LOG CONSOLE)
-    console.log('-----------------------------------------');
-    console.log(`[OTP] Pour l'admin : ${email}`);
-    console.log(`[OTP] CODE : ${otpCode}`);
-    console.log(`[OTP] Expiration : ${otpExpiresAt}`);
-    console.log('-----------------------------------------');
-
     return {
-      message: 'Un code OTP a été généré et "envoyé" (voir console).',
+      message: 'Un code OTP a été généré et envoyé par email.',
       email: user.email,
     };
   }
