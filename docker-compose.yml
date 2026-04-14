@@ -27,7 +27,7 @@ services:
     ports:
       - "127.0.0.1:5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - ./data/postgres:/var/lib/postgresql/data
   mongodb:
     image: mongo:6
     security_opt:
@@ -50,9 +50,4 @@ services:
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
-      - mongodb_data:/data/db
-
-volumes:
-  # kics-scan ignore-block
-  postgres_data:
-  mongodb_data:
+      - ./data/mongo:/data/db
