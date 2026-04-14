@@ -56,6 +56,6 @@ trivy_secrets:
   SO_BRANCH_NAME: $CI_COMMIT_REF_NAME
 
 importer:
-  SO_UPLOAD: "true"
+  SO_UPLOAD: "false"
   SO_API_BASE_URL: https://obsbk.hwegbe.com
   SO_PRODUCT_NAME: $CI_PROJECT_NAME
