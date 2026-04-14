@@ -24,6 +24,12 @@ export class User {
   @Column({ type: 'varchar', default: UserRole.CLIENT })
   role: UserRole;
 
+  @Column({ nullable: true })
+  otpCode: string;
+
+  @Column({ type: 'datetime', nullable: true })
+  otpExpiresAt: Date;
+
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
 }
