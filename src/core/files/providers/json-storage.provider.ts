@@ -19,18 +19,18 @@ export class JsonStorageProvider implements IFileStorage {
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    if (!fs.existsSync(this.filePath)) {
-      fs.writeFileSync(this.filePath, JSON.stringify([], null, 2));
+    if (!fs.existsSync('data/files.json')) {
+      fs.writeFileSync('data/files.json', JSON.stringify([], null, 2));
     }
   }
 
   private readData(): FileResponse[] {
-    const rawData = fs.readFileSync(this.filePath, 'utf8');
+    const rawData = fs.readFileSync('data/files.json', 'utf8');
     return JSON.parse(rawData);
   }
 
   private writeData(data: FileResponse[]) {
-    fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2));
+    fs.writeFileSync('data/files.json', JSON.stringify(data, null, 2));
   }
 
   async upload(file: Express.Multer.File): Promise<string> {

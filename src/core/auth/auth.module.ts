@@ -15,11 +15,10 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret:
-          configService.get<string>('JWT_SECRET') || 'dev_secret_change_me',
+        secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
           // @nestjs/jwt accepte `number | StringValue` pour `expiresIn`
-          expiresIn: configService.get('JWT_EXPIRES_IN') || '1d',
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
         },
       }),
     }),
