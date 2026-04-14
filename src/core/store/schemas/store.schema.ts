@@ -17,8 +17,17 @@ export class Store {
   @Prop({ required: false })
   description: string;
 
-  @Prop({ required: true })
-  localisation: string;
+  @Prop({ type: Number, required: false })
+  latitude: number;
+
+  @Prop({ type: Number, required: false })
+  longitude: number;
+
+  @Prop({ required: false })
+  address: string;
+
+  @Prop({ required: false })
+  city: string;
 
   @Prop({ required: false })
   phone: string;

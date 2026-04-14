@@ -17,13 +17,24 @@ export class CreateStoreDto {
   @IsNotEmpty()
   profilePhoto?: string;
 
-  @ApiProperty({ description: 'Area or neighborhood' })
+  @ApiProperty({ description: 'GPS Latitude', required: false })
+  latitude?: number;
+
+  @ApiProperty({ description: 'GPS Longitude', required: false })
+  longitude?: number;
+
+  @ApiProperty({ description: 'Full physical address' })
   @IsNotEmpty()
   @IsString()
-  localisation: string;
+  address: string;
 
-   @ApiProperty({ description: 'Description of the store' })
-   @IsNotEmpty()
+  @ApiProperty({ description: 'City name (for filtering)' })
+  @IsNotEmpty()
+  @IsString()
+  city: string;
+
+  @ApiProperty({ description: 'Description of the store' })
+  @IsNotEmpty()
   @IsString()
   description: string;
 

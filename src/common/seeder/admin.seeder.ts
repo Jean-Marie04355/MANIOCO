@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from '../enum/role.enum';
-import { UsersService } from 'src/core/users/users.service';
+import { UsersService } from '../../core/users/users.service';
 
 @Injectable()
 export class AdminSeeder {
@@ -40,9 +40,8 @@ export class AdminSeeder {
         this.logger.log(`Admin ${adminEmail} already exists, seeding skipped.`);
       }
     } catch (error: unknown) {
-  const message = error instanceof Error ? error.message : String(error);
-
-  this.logger.error('Error during seeding: ' + message);
-}
+      const message = error instanceof Error ? error.message : String(error);
+      this.logger.error('Error during seeding: ' + message);
+    }
   }
 }

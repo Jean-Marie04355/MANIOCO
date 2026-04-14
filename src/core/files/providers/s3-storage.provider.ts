@@ -1,44 +1,18 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { IFileStorage } from '../interfaces/file-storage.interface';
 import { FileEntity } from '../entities/file.entity';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
+import { S3StorageService } from '../../../libs/storage/s3-storage.service';
 
 @Injectable()
 export class S3StorageProvider implements IFileStorage {
-  private readonly logger = new Logger(S3StorageProvider.name);
-  private readonly s3Client: S3Client;
-  private readonly bucketName: string;
-  private readonly endpoint: string;
-
   constructor(
-    private readonly configService: ConfigService,
     @InjectRepository(FileEntity)
     private readonly fileRepository: Repository<FileEntity>,
-  ) {
-    this.endpoint = this.configService.get<string>('S3_ENDPOINT', 'http://127.0.0.1:3900');
-    this.bucketName = this.configService.get<string>('S3_BUCKET_NAME', 'nextcloud-bucket');
-
-    const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>('S3_SECRET_ACCESS_KEY');
-
-    if (!accessKeyId || !secretAccessKey) {
-      this.logger.error('S3 credentials are missing in environment variables');
-    }
-
-    this.s3Client = new S3Client({
-      region: this.configService.get<string>('S3_REGION', 'garage'),
-      endpoint: this.endpoint,
-      credentials: {
-        accessKeyId: accessKeyId || '',
-        secretAccessKey: secretAccessKey || '',
-      },
-      forcePathStyle: true, // Necessary for Garage/Minio
-    });
-  }
+    private readonly s3Service: S3StorageService,
+  ) {}
 
   private mapToFileResponse(entity: FileEntity | null): FileResponse | null {
     if (!entity) return null;
@@ -54,24 +28,7 @@ export class S3StorageProvider implements IFileStorage {
   }
 
   async upload(file: Express.Multer.File): Promise<string> {
-    const key = `${Date.now()}-${file.originalname}`;
-    
-    try {
-      await this.s3Client.send(
-        new PutObjectCommand({
-          Bucket: this.bucketName,
-          Key: key,
-          Body: file.buffer,
-          ContentType: file.mimetype,
-        }),
-      );
-
-      // Return the public URL for the file
-      return `${this.endpoint}/${this.bucketName}/${key}`;
-    } catch (error) {
-      this.logger.error(`Error uploading to S3: ${error.message}`);
-      throw error;
-    }
+    return this.s3Service.uploadFile(file);
   }
 
   async findAll(): Promise<FileResponse[]> {
@@ -97,25 +54,10 @@ export class S3StorageProvider implements IFileStorage {
 
   async delete(id: string): Promise<boolean> {
     const file = await this.fileRepository.findOne({ where: { id } });
-    if (!file) return false;
-
-    try {
-      // Extract key from path (URL)
-      const key = file.path.split('/').pop();
-      if (key) {
-        await this.s3Client.send(
-          new DeleteObjectCommand({
-            Bucket: this.bucketName,
-            Key: key,
-          }),
-        );
-      }
-
-      const result = await this.fileRepository.delete(id);
-      return (result.affected ?? 0) > 0;
-    } catch (error) {
-      this.logger.error(`Error deleting from S3: ${error.message}`);
-      return false;
+    if (file) {
+      await this.s3Service.deleteFile(file.path);
     }
+    const result = await this.fileRepository.delete(id);
+    return (result.affected ?? 0) > 0;
   }
 }
