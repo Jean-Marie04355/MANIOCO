@@ -95,7 +95,7 @@ export class AuthService {
   async verifyAdminOtp(email: string, otpCode: string): Promise<LoginResponse> {
     const user = await this.usersService.findByEmail(email);
     
-    if (!user || !user.otpCode || !user.otpExpiresAt) {
+    if (user === null || user === undefined || user.otpCode === null || user.otpCode === undefined || user.otpExpiresAt === null || user.otpExpiresAt === undefined) {
       throw new UnauthorizedException();
     }
 

@@ -27,7 +27,7 @@ export class AdminSeeder {
       // Check if an admin already exists by email
       const adminExists = await this.usersService.findByEmail(adminEmail);
 
-      if (!adminExists) {
+      if (adminExists === null || adminExists === undefined) {
         await this.usersService.create({
           name: 'Admin Afrigari',
           email: adminEmail,

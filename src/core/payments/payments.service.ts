@@ -136,7 +136,7 @@ export class PaymentsService {
       event === 'transaction.approved' ||
       event === 'transaction.successful'
     ) {
-      const externalId = `${entity.id}`;
+      const externalId = String(entity.id as string | number);
       const transaction = await this.transactionRepository.findOne({
         externalId,
       });
@@ -144,7 +144,7 @@ export class PaymentsService {
       if (transaction) {
         await this.transactionRepository.update(transaction.id, {
           status: 'APPROVED',
-          paymentMethod: `${entity.mode}`,
+          paymentMethod: String(entity.mode as string | number),
         });
         this.logger.log(`Payment approved for transaction ${externalId}`);
       }

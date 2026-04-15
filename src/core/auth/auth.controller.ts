@@ -15,21 +15,21 @@ export class AuthController {
   @Post('login')
   @ApiOperation({ summary: 'Connexion (email + password) -> JWT' })
   @ApiResponse({ status: 201, description: 'Token JWT retourné avec succès' })
-  login(@Body() body: LoginDto): Promise<any> {
+  login(@Body() body: LoginDto): Promise<Record<string, unknown>> {
     return this.authService.login(body.email, body.password);
   }
 
   @Post('admin/login')
   @ApiOperation({ summary: "Connexion Admin Étape 1 (email + password) -> Envoi OTP" })
   @ApiResponse({ status: 201, description: 'OTP généré et affiché en console' })
-  adminLogin(@Body() body: LoginDto): Promise<any> {
+  adminLogin(@Body() body: LoginDto): Promise<Record<string, unknown>> {
     return this.authService.adminLogin(body.email, body.password);
   }
 
   @Post('admin/verify-otp')
   @ApiOperation({ summary: "Connexion Admin Étape 2 (email + otp) -> JWT" })
   @ApiResponse({ status: 201, description: 'Token JWT retourné après validation OTP' })
-  verifyOtp(@Body() body: VerifyOtpDto): Promise<any> {
+  verifyOtp(@Body() body: VerifyOtpDto): Promise<Record<string, unknown>> {
     return this.authService.verifyAdminOtp(body.email, body.otpCode);
   }
 

@@ -47,15 +47,15 @@ export class JsonStorageProvider implements IFileStorage {
 
   async create(item: CreateFileDto): Promise<FileResponse> {
     const data = this.readData();
-    const newItem = {
+    const newItem: FileResponse = {
       ...item,
       id: crypto.randomUUID(),
       createdAt: new Date(),
       updatedAt: new Date(),
     };
-    data.push(newItem as any);
+    data.push(newItem);
     this.writeData(data);
-    return newItem as any;
+    return newItem;
   }
 
   async update(
