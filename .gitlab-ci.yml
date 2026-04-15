@@ -2,3 +2,10 @@ include:
   - project: 'devopsTeam/devopstemplatefiles'
     file: 'svcitemplate.yml'
     ref: 'main'
+
+sonarqube-checker:
+  services: [] # Désactivé car le runner semble déjà avoir l'accès Docker (conflit de socket dind)
+  variables:
+    SONAR_SCANNER_OPTS: "-Xmx4096m" # Augmenté pour éviter les crashs sur gros projets
+    SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true" # Accélère le démarrage
+

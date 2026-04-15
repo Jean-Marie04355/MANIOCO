@@ -1,10 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import * as crypto from 'node:crypto';
+import {
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 import { UsersService } from '../users/users.service';
 import { comparePassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
+import { User } from '../users/user.entity';
 
 import type { AuthenticatedUser } from './strategies/jwt.strategy';
 
@@ -29,22 +34,22 @@ export class AuthService {
   async login(email: string, password: string): Promise<LoginResponse> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Identifiants invalides.');
+      throw new UnauthorizedException();
     }
 
     const ok = await comparePassword(password, user.password);
     if (!ok) {
-      throw new UnauthorizedException('Identifiants invalides.');
+      throw new UnauthorizedException();
     }
 
     const payload = {
       sub: user.email,
       email: user.email,
-      role: user.role as UserRole,
+      role: user.role,
       userId: user.id,
     };
 
-    const expiresIn = (this.configService.get('JWT_EXPIRES_IN') as any) || '1d';
+    const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '1d';
     const accessToken = await this.jwtService.signAsync(payload, { expiresIn });
 
     return {
@@ -53,7 +58,7 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role as UserRole,
+        role: user.role,
       },
     };
   }
@@ -64,7 +69,6 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides.');
     }
 
-    // Vérifier si c'est bien un admin ou super_admin
     if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
       throw new UnauthorizedException('Accès réservé aux administrateurs.');
     }
@@ -74,15 +78,13 @@ export class AuthService {
       throw new UnauthorizedException('Identifiants invalides.');
     }
 
-    // Génération d'un OTP à 6 chiffres
-    const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
-    const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000); // Expire dans 15 mins (plus confortable pour les tests)
+    const otpCode = crypto.randomInt(100000, 999999).toString();
+    const otpExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
-    // Sauvegarde en BDD
     await this.usersService.update(user.id, {
       otpCode,
       otpExpiresAt,
-    } as any);
+    } as Partial<User>);
 
     return {
       message: 'Un code OTP a été généré et envoyé par email.',
@@ -93,35 +95,31 @@ export class AuthService {
   async verifyAdminOtp(email: string, otpCode: string): Promise<LoginResponse> {
     const user = await this.usersService.findByEmail(email);
     
-    if (!user || !user.otpCode || !user.otpExpiresAt) {
-      throw new UnauthorizedException('Aucune session OTP en cours. Veuillez générer un nouveau code.');
+    if (user?.otpCode == null || user?.otpExpiresAt == null) {
+      throw new UnauthorizedException('Aucune session OTP en cours.');
     }
 
-    // Vérifier l'expiration
     if (new Date() > user.otpExpiresAt) {
       throw new UnauthorizedException('Code OTP expiré.');
     }
 
-    // Vérifier le code
     if (user.otpCode !== otpCode) {
       throw new UnauthorizedException('Code OTP invalide.');
     }
 
-    // Nettoyer l'OTP après usage
     await this.usersService.update(user.id, {
       otpCode: null,
       otpExpiresAt: null,
-    } as any);
+    } as Partial<User>);
 
-    // Générer le token final directement ici
     const payload = {
       sub: user.email,
       email: user.email,
-      role: user.role as UserRole,
+      role: user.role,
       userId: user.id,
     };
 
-    const expiresIn = (this.configService.get('JWT_EXPIRES_IN') as any) || '1d';
+    const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '1d';
     const accessToken = await this.jwtService.signAsync(payload, { expiresIn });
 
     return {
@@ -130,17 +128,12 @@ export class AuthService {
         id: user.id,
         name: user.name,
         email: user.email,
-        role: user.role as UserRole,
+        role: user.role,
       },
     };
   }
 
-  me(user: AuthenticatedUser) {
-    return {
-      email: user.email,
-      role: user.role,
-      userId: user.userId,
-    };
+  me(user: AuthenticatedUser): AuthenticatedUser {
+    return user;
   }
 }
-

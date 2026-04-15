@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Patch, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Patch,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
@@ -11,7 +20,6 @@ import { UserRole } from '../../common/enum/role.enum';
 @ApiBearerAuth() // INDISPENSABLE pour Swagger
 @Controller('users')
 export class UsersController {
-
   constructor(private readonly usersService: UsersService) {}
 
   @ApiOperation({ summary: 'List of all users' })

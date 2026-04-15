@@ -1,4 +1,3 @@
-
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Global, Module } from '@nestjs/common';
@@ -15,7 +14,7 @@ import { NoSqlRepository } from './repository';
       useFactory: (config: ConfigService) => ({
         uri: config.get<string>(
           'MONGO_URI',
-          'mongodb://localhost:27017/afrigari'
+          'mongodb://localhost:27017/afrigari',
         ),
       }),
     }),

@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import * as fs from 'fs';
-import * as path from 'path';
+import * as fs from 'node:fs';
+import * as crypto from 'node:crypto';
 import { IFileStorage } from '../interfaces/file-storage.interface';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
 import { S3StorageService } from '../../../libs/storage/s3-storage.service';
@@ -8,29 +8,27 @@ import { S3StorageService } from '../../../libs/storage/s3-storage.service';
 @Injectable()
 export class JsonStorageProvider implements IFileStorage {
   private readonly logger = new Logger(JsonStorageProvider.name);
-  private readonly filePath = path.resolve(process.cwd(), 'data/files.json');
 
   constructor(private readonly s3Service: S3StorageService) {
     this.ensureDirectoryExists();
   }
 
   private ensureDirectoryExists() {
-    const dir = path.dirname(this.filePath);
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
+    if (!fs.existsSync('data')) {
+      fs.mkdirSync('data', { recursive: true });
     }
-    if (!fs.existsSync(this.filePath)) {
-      fs.writeFileSync(this.filePath, JSON.stringify([], null, 2));
+    if (!fs.existsSync('data/files.json')) {
+      fs.writeFileSync('data/files.json', JSON.stringify([], null, 2));
     }
   }
 
   private readData(): FileResponse[] {
-    const rawData = fs.readFileSync(this.filePath, 'utf8');
+    const rawData = fs.readFileSync('data/files.json', 'utf8');
     return JSON.parse(rawData);
   }
 
   private writeData(data: FileResponse[]) {
-    fs.writeFileSync(this.filePath, JSON.stringify(data, null, 2));
+    fs.writeFileSync('data/files.json', JSON.stringify(data, null, 2));
   }
 
   async upload(file: Express.Multer.File): Promise<string> {
@@ -44,23 +42,26 @@ export class JsonStorageProvider implements IFileStorage {
   async findOne(id: string): Promise<FileResponse | null> {
     const data = this.readData();
     const result = data.find((item) => item.id === id);
-    return result ? result : null;
+    return result ?? null;
   }
 
   async create(item: CreateFileDto): Promise<FileResponse> {
     const data = this.readData();
-    const newItem = { 
-      ...item, 
-      id: Date.now().toString(),
+    const newItem: FileResponse = {
+      ...item,
+      id: crypto.randomUUID(),
       createdAt: new Date(),
-      updatedAt: new Date()
+      updatedAt: new Date(),
     };
-    data.push(newItem as any);
+    data.push(newItem);
     this.writeData(data);
-    return newItem as any;
+    return newItem;
   }
 
-  async update(id: string, item: Partial<UpdateFileDto>): Promise<FileResponse | null> {
+  async update(
+    id: string,
+    item: Partial<UpdateFileDto>,
+  ): Promise<FileResponse | null> {
     const data = this.readData();
     const index = data.findIndex((i) => i.id === id);
     if (index === -1) return null;

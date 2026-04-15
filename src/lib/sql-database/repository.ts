@@ -1,35 +1,37 @@
-import { Repository, DeepPartial, FindManyOptions } from 'typeorm';
+import { Repository, FindManyOptions, FindOptionsWhere } from 'typeorm';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
-export class SqlRepository<T extends { id: any }> implements IBaseRepository<T> {
+export class SqlRepository<T extends { id: string | number }>
+  implements IBaseRepository<T>
+{
   constructor(protected readonly repo: Repository<T>) {}
 
-  find(options?: any): Promise<T[]> {
-    return this.repo.find(options);
+  find(options?: object): Promise<T[]> {
+    return this.repo.find(options as FindManyOptions<T>);
   }
 
-  findOne(criteria: any): Promise<T | null> {
-    return this.repo.findOne({ where: criteria });
+  findOne(criteria: object): Promise<T | null> {
+    return this.repo.findOne({ where: criteria as FindOptionsWhere<T> });
   }
 
-  async create(data: DeepPartial<T>): Promise<T> {
-    const entity = this.repo.create(data);
+  async create(data: Partial<T>): Promise<T> {
+    const entity = this.repo.create(data as object as T);
     return await this.repo.save(entity);
   }
 
-  async update(id: any, data: any): Promise<void> {
-    await this.repo.update(id, data);
+  async update(id: string | number, data: Partial<T>): Promise<void> {
+    await this.repo.update(id, data as object);
   }
 
-  async delete(id: any): Promise<void> {
+  async delete(id: string | number): Promise<void> {
     await this.repo.delete(id);
   }
 
-  async count(options?: any): Promise<number> {
-    return this.repo.count(options);
+  async count(options?: object): Promise<number> {
+    return this.repo.count(options as FindManyOptions<T>);
   }
 
-  async softDelete(id: any): Promise<void> {
+  async softDelete(id: string | number): Promise<void> {
     await this.repo.softDelete(id);
   }
 

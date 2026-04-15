@@ -1,17 +1,18 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 
 import { ProductsService } from './products.service';
 import { ProductsController } from './products.controller';
 import { Product } from './product.entity';
-import { Product as MongoProduct, ProductSchema } from './schemas/product.schema';
+import {
+  Product as MongoProduct,
+  ProductSchema,
+} from './schemas/product.schema';
 import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
 import { SqlRepository } from 'src/lib/sql-database/repository';
 import { ProductCategoriesModule } from '../product-categories/product-categories.module';
-
 import * as dotenv from 'dotenv';
 dotenv.config();
 
@@ -19,8 +20,11 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
-    ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Product])] : []),
-    ...(dbType === 'mongodb' ? [MongooseModule.forFeature([{ name: MongoProduct.name, schema: ProductSchema }])] : []),
+    dbType === 'mongodb'
+      ? MongooseModule.forFeature([
+          { name: MongoProduct.name, schema: ProductSchema },
+        ])
+      : TypeOrmModule.forFeature([Product]),
     ProductCategoriesModule,
   ],
   controllers: [ProductsController],
@@ -30,12 +34,14 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'PRODUCT_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb' ? [getModelToken(MongoProduct.name)] : [getRepositoryToken(Product)]),
+        dbType === 'mongodb'
+          ? getModelToken(MongoProduct.name)
+          : getRepositoryToken(Product),
       ],
-      useFactory: (config: ConfigService, engine: any) => {
+      useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'
-          ? new NoSqlRepository(engine)
-          : new SqlRepository(engine);
+          ? new NoSqlRepository(engine as never)
+          : new SqlRepository(engine as never);
       },
     },
   ],

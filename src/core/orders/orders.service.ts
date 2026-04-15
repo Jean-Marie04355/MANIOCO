@@ -1,9 +1,16 @@
-import { Injectable, Inject, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { Store } from '../store/store.entity';
+import { Product } from '../products/product.entity';
+import { OrderStatus } from '../../common/enum/order-status.enum';
 
 @Injectable()
 export class OrdersService {
@@ -13,49 +20,67 @@ export class OrdersService {
     @Inject('STORE_REPOSITORY')
     private readonly storeRepository: IBaseRepository<Store>,
     @Inject('PRODUCT_REPOSITORY')
-    private readonly productRepository: IBaseRepository<any>,
+    private readonly productRepository: IBaseRepository<Product>,
     private readonly paymentsService: PaymentsService,
   ) {}
 
-  async create(createOrderDto: CreateOrderDto): Promise<{ order: Order; paymentUrl: string }> {
+  async create(
+    createOrderDto: CreateOrderDto,
+  ): Promise<{ order: Order; paymentUrl: string }> {
     // 1. Check if the store exists and has a payout account
-    const store = await this.storeRepository.findOne({ id: createOrderDto.storeId });
+    const store = await this.storeRepository.findOne({
+      id: createOrderDto.storeId,
+    });
     if (!store) {
       throw new NotFoundException(`Store not found`);
     }
-    
+
     if (!store.payoutAccountId) {
-      throw new BadRequestException(`This store is not yet configured to receive payments.`);
+      throw new BadRequestException(
+        `This store is not yet configured to receive payments.`,
+      );
     }
 
     // 2. Validate products and recalculate the actual total amount
     let validatedTotalAmount = 0;
-    const validatedItems: any[] = [];
-
+    const validatedItems: {
+      productId: string;
+      productName: string;
+      quantity: number;
+      price: number;
+    }[] = [];
     for (const item of createOrderDto.items) {
-      const product = await this.productRepository.findOne({ id: item.productId });
-      
+      const product = await this.productRepository.findOne({
+        id: item.productId,
+      });
+
       if (!product) {
-        throw new BadRequestException(`Product with ID ${item.productId} does not exist.`);
+        throw new BadRequestException(
+          `Product with ID ${item.productId} does not exist.`,
+        );
       }
 
       // Check if the product belongs to the store
       if (product.category?.storeId !== createOrderDto.storeId) {
-        throw new BadRequestException(`The product ${product.name} does not belong to this store.`);
+        throw new BadRequestException(
+          `The product ${product.name} does not belong to this store.`,
+        );
       }
 
       // Check stock
       if (product.stock < item.quantity) {
-        throw new BadRequestException(`Insufficient stock for product ${product.name} (Available: ${product.stock})`);
+        throw new BadRequestException(
+          `Insufficient stock for product ${product.name} (Available: ${product.stock})`,
+        );
       }
 
       const unitPrice = Number(product.price);
       validatedTotalAmount += unitPrice * item.quantity;
-      
+
       validatedItems.push({
         ...item,
         productName: product.name, // Secure the name
-        price: unitPrice,           // Secure the price
+        price: unitPrice, // Secure the price
       });
     }
 
@@ -71,15 +96,20 @@ export class OrdersService {
 
     // 4. Update stocks (Decrement)
     for (const item of validatedItems) {
-      const product = await this.productRepository.findOne({ id: item.productId });
-      await this.productRepository.update(product.id, { 
-        stock: product.stock - item.quantity 
+      const product = await this.productRepository.findOne({
+        id: item.productId,
+      });
+      await this.productRepository.update(product.id, {
+        stock: product.stock - item.quantity,
       });
     }
 
     try {
       // 5. Initiate FedaPay transaction
-      const fedaTx = await this.paymentsService.createFedaPayTransaction(order, store.payoutAccountId);
+      const fedaTx = await this.paymentsService.createFedaPayTransaction(
+        order,
+        store.payoutAccountId,
+      );
 
       return {
         order,
@@ -87,7 +117,9 @@ export class OrdersService {
       };
     } catch (error) {
       // If payment initiation fails, we could cancel the order here
-      throw new BadRequestException(`Unable to initiate payment: ${error.message}`);
+      throw new BadRequestException(
+        `Unable to initiate payment: ${error.message}`,
+      );
     }
   }
 
@@ -111,7 +143,7 @@ export class OrdersService {
     return this.orderRepository.find({ storeId });
   }
 
-  async updateStatus(id: string, status: any): Promise<Order | null> {
+  async updateStatus(id: string, status: OrderStatus): Promise<Order | null> {
     await this.orderRepository.update(id, { status });
     return this.findOne(id);
   }

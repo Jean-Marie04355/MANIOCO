@@ -15,25 +15,37 @@ import { S3StorageService } from '../../libs/storage/s3-storage.service';
 @Module({
   imports: [
     ConfigModule,
-    ...(process.env.STORAGE_TYPE === 'mongo' ? [MongooseModule.forFeature([{ name: File.name, schema: FileSchema }])] : []),
-    ...(process.env.STORAGE_TYPE === 'postgres' || process.env.STORAGE_TYPE === 's3' ? [TypeOrmModule.forFeature([FileEntity])] : []),
+    ...(process.env.STORAGE_TYPE === 'mongo'
+      ? [MongooseModule.forFeature([{ name: File.name, schema: FileSchema }])]
+      : []),
+    ...(process.env.STORAGE_TYPE === 'postgres' ||
+    process.env.STORAGE_TYPE === 's3'
+      ? [TypeOrmModule.forFeature([FileEntity])]
+      : []),
   ],
   controllers: [FilesController],
   providers: [
     S3StorageService,
     JsonStorageProvider,
-    ...(process.env.STORAGE_TYPE === 'mongo' 
-        ? [MongoStorageProvider] 
-        : [{ provide: MongoStorageProvider, useValue: {} }]),
-    ...(process.env.STORAGE_TYPE === 's3' 
-        ? [S3StorageProvider] 
-        : [{ provide: S3StorageProvider, useValue: {} }]),
-    ...(process.env.STORAGE_TYPE === 'postgres' || process.env.STORAGE_TYPE === 's3' 
-        ? [PostgresStorageProvider] 
-        : [{ provide: PostgresStorageProvider, useValue: {} }]),
+    ...(process.env.STORAGE_TYPE === 'mongo'
+      ? [MongoStorageProvider]
+      : [{ provide: MongoStorageProvider, useValue: {} }]),
+    ...(process.env.STORAGE_TYPE === 's3'
+      ? [S3StorageProvider]
+      : [{ provide: S3StorageProvider, useValue: {} }]),
+    ...(process.env.STORAGE_TYPE === 'postgres' ||
+    process.env.STORAGE_TYPE === 's3'
+      ? [PostgresStorageProvider]
+      : [{ provide: PostgresStorageProvider, useValue: {} }]),
     {
       provide: 'FILE_STORAGE_PROVIDER',
-      inject: [ConfigService, JsonStorageProvider, MongoStorageProvider, PostgresStorageProvider, S3StorageProvider],
+      inject: [
+        ConfigService,
+        JsonStorageProvider,
+        MongoStorageProvider,
+        PostgresStorageProvider,
+        S3StorageProvider,
+      ],
       useFactory: (
         configService: ConfigService,
         jsonProvider: JsonStorageProvider,

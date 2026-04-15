@@ -1,5 +1,20 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, UseGuards, Query } from '@nestjs/common';
-import { ApiTags, ApiResponse, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
+import {
+  ApiTags,
+  ApiResponse,
+  ApiOperation,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { StoreService } from './store.service';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { Store } from './store.entity';
@@ -15,7 +30,11 @@ export class StoreController {
 
   @Get()
   @ApiOperation({ summary: 'Get all stores (can be filtered by city)' })
-  @ApiResponse({ status: 200, description: 'List of stores retrieved successfully.', type: [Store] })
+  @ApiResponse({
+    status: 200,
+    description: 'List of stores retrieved successfully.',
+    type: [Store],
+  })
   findAll(@Query('city') city?: string) {
     return this.storeService.findAll(city);
   }
@@ -27,11 +46,17 @@ export class StoreController {
     @Query('lng') lng: number,
     @Query('radius') radius?: number,
   ) {
-    return this.storeService.findNearby(Number(lat), Number(lng), radius ? Number(radius) : 10);
+    return this.storeService.findNearby(
+      Number(lat),
+      Number(lng),
+      radius ? Number(radius) : 10,
+    );
   }
 
   @Get(':id/delivery-fee')
-  @ApiOperation({ summary: 'Calculate delivery fee from store to client position' })
+  @ApiOperation({
+    summary: 'Calculate delivery fee from store to client position',
+  })
   getDeliveryFee(
     @Param('id') id: string,
     @Query('lat') lat: number,
@@ -42,7 +67,11 @@ export class StoreController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a store by ID' })
-  @ApiResponse({ status: 200, description: 'Store retrieved successfully.', type: Store })
+  @ApiResponse({
+    status: 200,
+    description: 'Store retrieved successfully.',
+    type: Store,
+  })
   @ApiResponse({ status: 404, description: 'Store not found.' })
   findOne(@Param('id') id: string) {
     return this.storeService.findOne(id);
@@ -53,7 +82,11 @@ export class StoreController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.VENDEUR)
   @ApiOperation({ summary: 'Create a new store' })
-  @ApiResponse({ status: 201, description: 'Store created successfully.', type: Store })
+  @ApiResponse({
+    status: 201,
+    description: 'Store created successfully.',
+    type: Store,
+  })
   @ApiResponse({ status: 400, description: 'Invalid input.' })
   create(@Body() createStoreDto: CreateStoreDto) {
     return this.storeService.create(createStoreDto);
@@ -64,9 +97,16 @@ export class StoreController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.VENDEUR)
   @ApiOperation({ summary: 'Update a store by ID' })
-  @ApiResponse({ status: 200, description: 'Store updated successfully.', type: Store })
+  @ApiResponse({
+    status: 200,
+    description: 'Store updated successfully.',
+    type: Store,
+  })
   @ApiResponse({ status: 404, description: 'Store not found.' })
-  update(@Param('id') id: string, @Body() updateStoreDto: Partial<CreateStoreDto>) {
+  update(
+    @Param('id') id: string,
+    @Body() updateStoreDto: Partial<CreateStoreDto>,
+  ) {
     return this.storeService.update(id, updateStoreDto);
   }
 

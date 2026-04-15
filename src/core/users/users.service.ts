@@ -17,11 +17,11 @@ export class UsersService {
     private readonly userRepository: IBaseRepository<User>,
   ) {}
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({ email });
   }
 
-  async findAll() {
+  async findAll(): Promise<User[]> {
     return this.userRepository.find();
   }
 
@@ -33,7 +33,7 @@ export class UsersService {
 
     // Check how many users already exist
     const userCount = await this.userRepository.count();
-    
+
     // Logic: First registered user becomes SUPER_ADMIN
     // Every other user becomes whatever is in the DTO (default to CLIENT)
     let finalRole = createUserDto.role ?? UserRole.CLIENT;

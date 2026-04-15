@@ -3,25 +3,30 @@ import {
   Inject,
   NotFoundException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateStoreDto } from './dto/create-store.dto';
 import { Store } from './store.entity';
-import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Types } from 'mongoose';
-import { LocationService } from 'src/core/location/location.service';
+import { LocationService } from '../../core/location/location.service';
+
+import { User } from '../users/user.entity';
 
 @Injectable()
 export class StoreService {
+  private readonly logger = new Logger(StoreService.name);
+
   constructor(
     @Inject('STORE_REPOSITORY')
     private readonly storeRepository: IBaseRepository<Store>,
 
     @Inject('USER_REPOSITORY')
-    private readonly userRepository: IBaseRepository<any>,
+    private readonly userRepository: IBaseRepository<User>,
     private readonly configService: ConfigService,
     private readonly locationService: LocationService,
-  ) { }
+  ) {}
 
   async create(createStoreDto: CreateStoreDto) {
     const { ownerId } = createStoreDto;
@@ -35,8 +40,13 @@ export class StoreService {
       } else {
         owner = await this.userRepository.findOne({ id: ownerId });
       }
-    } catch (error) {
-      throw new NotFoundException(`User with ID ${ownerId} not found or invalid format.`);
+    } catch (_error) {
+      if (_error instanceof Error) {
+        this.logger.error(`Error looking for user: ${_error.message}`);
+      }
+      throw new NotFoundException(
+        `User with ID ${ownerId} not found or invalid format.`,
+      );
     }
 
     if (!owner)
@@ -71,45 +81,55 @@ export class StoreService {
     } else {
       stores = await this.storeRepository.find();
     }
-    return stores.map(s => this.mapToPublic(s));
+    return stores.map((s) => this.mapToPublic(s));
   }
 
   async findNearby(lat: number, lng: number, radiusKm: number = 10) {
     const allStores = await this.storeRepository.find();
-    
+
     return allStores
-      .map(store => {
+      .map((store) => {
         if (!store.latitude || !store.longitude) return null;
-        
-        const distance = this.locationService.getDistance(lat, lng, store.latitude, store.longitude);
-        
+
+        const distance = this.locationService.getDistance(
+          lat,
+          lng,
+          store.latitude,
+          store.longitude,
+        );
+
         return {
           ...this.mapToPublic(store),
-          distance: Math.round(distance * 100) / 100
+          distance: Math.round(distance * 100) / 100,
         };
       })
-      .filter(store => store !== null && store.distance <= radiusKm)
+      .filter((store) => store !== null && store.distance <= radiusKm)
       .sort((a, b) => (a?.distance || 0) - (b?.distance || 0));
   }
 
   async getDeliveryFee(id: string, clientLat: number, clientLng: number) {
     const store = await this.findOne(id);
-    
+
     if (!store.latitude || !store.longitude) {
-      return { 
-        distance: null, 
+      return {
+        distance: null,
         fee: 1000, // Tarif forfaitaire si le magasin n'a pas de GPS
-        message: 'Store GPS missing, using flat rate' 
+        message: 'Store GPS missing, using flat rate',
       };
     }
 
-    const distance = this.locationService.getDistance(clientLat, clientLng, store.latitude, store.longitude);
+    const distance = this.locationService.getDistance(
+      clientLat,
+      clientLng,
+      store.latitude,
+      store.longitude,
+    );
     const totalFee = this.locationService.calculateDeliveryFee(distance);
 
     return {
       distance: Math.round(distance * 100) / 100, // Arrondi à 2 décimales
       fee: totalFee,
-      currency: 'FCFA'
+      currency: 'FCFA',
     };
   }
 

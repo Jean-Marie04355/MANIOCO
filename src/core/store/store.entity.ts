@@ -39,5 +39,3 @@ export class Store {
   @Column({ nullable: true })
   payoutAccountId: string;
 }
-
-

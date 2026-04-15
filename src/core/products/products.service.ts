@@ -1,8 +1,8 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
-import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
 import { Product } from './product.entity';
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
 @Injectable()
 export class ProductsService {
@@ -12,7 +12,7 @@ export class ProductsService {
   ) {}
 
   async create(createProductDto: CreateProductDto) {
-    return this.repo.create(createProductDto as any);
+    return this.repo.create(createProductDto);
   }
 
   async findAll() {
@@ -20,11 +20,11 @@ export class ProductsService {
   }
 
   async findOne(id: string) {
-    return this.repo.findOne({ id } as any);
+    return this.repo.findOne({ id } as object);
   }
 
   async update(id: string, updateProductDto: UpdateProductDto) {
-    return this.repo.update(id, updateProductDto as any);
+    return this.repo.update(id, updateProductDto);
   }
 
   async remove(id: string) {

@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Transaction } from './transaction.entity';
 import { ConfigService } from '@nestjs/config';
+import { Order } from '../orders/order.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -14,22 +15,34 @@ export class PaymentsService {
     private readonly transactionRepository: IBaseRepository<Transaction>,
     private readonly configService: ConfigService,
   ) {
-    const env = this.configService.get<string>('FEDAPAY_ENVIRONMENT', 'sandbox');
-    this.fedapayUrl = env === 'live' 
-      ? 'https://api.fedapay.com/v1' 
-      : 'https://sandbox-api.fedapay.com/v1';
+    const env = this.configService.get<string>(
+      'FEDAPAY_ENVIRONMENT',
+      'sandbox',
+    );
+    this.fedapayUrl =
+      env === 'live'
+        ? 'https://api.fedapay.com/v1'
+        : 'https://sandbox-api.fedapay.com/v1';
     this.secretKey = this.configService.get<string>('FEDAPAY_SECRET_KEY', '');
   }
 
   /**
    * Creates a transaction with split-payment on FedaPay
    */
-  async createFedaPayTransaction(order: any, sellerPayoutAccountId: string): Promise<any> {
-    const commissionPercent = this.configService.get<number>('PLATFORM_COMMISSION_PERCENT', 10);
+  async createFedaPayTransaction(
+    order: Order,
+    sellerPayoutAccountId: string,
+  ): Promise<{ transactionId: string; url: string }> {
+    const commissionPercent = this.configService.get<number>(
+      'PLATFORM_COMMISSION_PERCENT',
+      10,
+    );
     const amount = Number(order.totalAmount);
     const platformCommission = Math.round((amount * commissionPercent) / 100);
 
-    this.logger.log(`Initiating FedaPay payment: Amount=${amount}, Commission=${platformCommission}, Seller=${sellerPayoutAccountId}`);
+    this.logger.log(
+      `Initiating FedaPay payment: Amount=${amount}, Commission=${platformCommission}, Seller=${sellerPayoutAccountId}`,
+    );
 
     // Create local transaction record
     const localTx = await this.transactionRepository.create({
@@ -42,17 +55,19 @@ export class PaymentsService {
       const response = await fetch(`${this.fedapayUrl}/transactions`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.secretKey}`,
+          Authorization: `Bearer ${this.secretKey}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           amount: amount,
           description: `Afrigari Order #${order.id}`,
           currency: { iso: 'XOF' },
-          callback_url: this.configService.get('FRONTEND_URL', 'http://localhost:3000') + `/payment-callback?orderId=${order.id}`,
+          callback_url:
+            this.configService.get('FRONTEND_URL', 'http://localhost:3000') +
+            `/payment-callback?orderId=${order.id}`,
           subaccount: { id: sellerPayoutAccountId },
           commission: platformCommission,
-          include: 'payouts'
+          include: 'payouts',
         }),
       });
 
@@ -83,13 +98,16 @@ export class PaymentsService {
       }
 
       // Otherwise, generate a token
-      const tokenResponse = await fetch(`${this.fedapayUrl}/transactions/${transactionData.id}/token`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.secretKey}`,
-          'Content-Type': 'application/json',
+      const tokenResponse = await fetch(
+        `${this.fedapayUrl}/transactions/${transactionData.id}/token`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${this.secretKey}`,
+            'Content-Type': 'application/json',
+          },
         },
-      });
+      );
       const tokenData = await tokenResponse.json();
       const tokenInfo = tokenData['v1/token'] || tokenData['token'];
 
@@ -98,7 +116,11 @@ export class PaymentsService {
         url: tokenInfo.url,
       };
     } catch (error) {
-      this.logger.error(`FedaPay Error: ${error.message}`);
+      if (error instanceof Error) {
+        this.logger.error(`FedaPay Error: ${error.message}`);
+      } else {
+        this.logger.error(`FedaPay Error: ${String(error)}`);
+      }
       throw error;
     }
   }
@@ -107,17 +129,22 @@ export class PaymentsService {
     return this.transactionRepository.findOne({ orderId });
   }
 
-  async handleWebhook(payload: any): Promise<void> {
-    const { entity, event } = payload;
-    
-    if (event === 'transaction.approved' || event === 'transaction.successful') {
-      const externalId = String(entity.id);
-      const transaction = await this.transactionRepository.findOne({ externalId });
-      
+  async handleWebhook(payload: Record<string, unknown>): Promise<void> {
+    const { entity, event } = payload as { entity: Record<string, unknown>; event: string };
+
+    if (
+      event === 'transaction.approved' ||
+      event === 'transaction.successful'
+    ) {
+      const externalId = String(entity.id as string | number);
+      const transaction = await this.transactionRepository.findOne({
+        externalId,
+      });
+
       if (transaction) {
-        await this.transactionRepository.update(transaction.id, { 
+        await this.transactionRepository.update(transaction.id, {
           status: 'APPROVED',
-          paymentMethod: entity.mode
+          paymentMethod: String(entity.mode as string | number),
         });
         this.logger.log(`Payment approved for transaction ${externalId}`);
       }

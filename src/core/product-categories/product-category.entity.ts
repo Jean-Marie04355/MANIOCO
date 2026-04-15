@@ -1,4 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, DeleteDateColumn, ManyToOne, JoinColumn, Unique } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  CreateDateColumn,
+  UpdateDateColumn,
+  DeleteDateColumn,
+  ManyToOne,
+  JoinColumn,
+  Unique,
+} from 'typeorm';
 import { Store } from '../store/store.entity';
 
 @Entity('product_categories')
@@ -10,7 +20,6 @@ export class ProductCategory {
   @Column()
   name: string;
 
-
   @Column({ nullable: true })
   description: string;
 
@@ -21,7 +30,6 @@ export class ProductCategory {
   @JoinColumn({ name: 'storeId' })
   store: Store;
 
-
   @CreateDateColumn()
   createdAt: Date;
 
@@ -31,4 +39,3 @@ export class ProductCategory {
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
 }
-

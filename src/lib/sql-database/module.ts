@@ -18,7 +18,7 @@ import { SqlRepository } from './repository';
           return {
             type: 'postgres',
             host: config.get<string>('DB_HOST'),
-            port: parseInt(config.get<string>('DB_PORT') || '5432'),
+            port: Number.parseInt(config.get<string>('DB_PORT') || '5432'),
             username: config.get<string>('DB_USER'),
             password: config.get<string>('DB_PASS'),
             database: config.get<string>('DB_NAME'),

@@ -21,7 +21,11 @@ export class Product {
   @Prop()
   description: string;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'ProductCategory', required: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'ProductCategory',
+    required: true,
+  })
   category: ProductCategory;
 
   @Prop()

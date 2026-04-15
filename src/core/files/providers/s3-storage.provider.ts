@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IFileStorage } from '../interfaces/file-storage.interface';
@@ -33,7 +33,7 @@ export class S3StorageProvider implements IFileStorage {
 
   async findAll(): Promise<FileResponse[]> {
     const list = await this.fileRepository.find();
-    return list.map(entity => this.mapToFileResponse(entity) as FileResponse);
+    return list.map((entity) => this.mapToFileResponse(entity));
   }
 
   async findOne(id: string): Promise<FileResponse | null> {
@@ -44,10 +44,13 @@ export class S3StorageProvider implements IFileStorage {
   async create(data: CreateFileDto): Promise<FileResponse> {
     const newFile = this.fileRepository.create(data as Partial<FileEntity>);
     const saved = await this.fileRepository.save(newFile);
-    return this.mapToFileResponse(saved) as FileResponse;
+    return this.mapToFileResponse(saved);
   }
 
-  async update(id: string, data: Partial<UpdateFileDto>): Promise<FileResponse | null> {
+  async update(
+    id: string,
+    data: Partial<UpdateFileDto>,
+  ): Promise<FileResponse | null> {
     await this.fileRepository.update(id, data);
     return this.findOne(id);
   }

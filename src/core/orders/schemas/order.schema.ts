@@ -1,8 +1,15 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, Schema as MongooseSchema } from 'mongoose';
+import { Document } from 'mongoose';
 import { OrderStatus } from '../../../common/enum/order-status.enum';
 
 export type OrderDocument = Order & Document;
+
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+}
 
 @Schema({ timestamps: true, collection: 'orders' })
 export class Order {
@@ -22,13 +29,18 @@ export class Order {
   })
   status: OrderStatus;
 
-  @Prop({ type: [{
-    productId: String,
-    productName: String,
-    quantity: Number,
-    price: Number,
-  }], default: [] })
-  items: any[];
+  @Prop({
+    type: [
+      {
+        productId: String,
+        productName: String,
+        quantity: Number,
+        price: Number,
+      },
+    ],
+    default: [],
+  })
+  items: OrderItem[];
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

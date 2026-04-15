@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { UserRole } from '../enum/role.enum';
-import { UsersService } from 'src/core/users/users.service';
+import { UsersService } from '../../core/users/users.service';
 
 @Injectable()
 export class AdminSeeder {
@@ -27,7 +27,7 @@ export class AdminSeeder {
       // Check if an admin already exists by email
       const adminExists = await this.usersService.findByEmail(adminEmail);
 
-      if (!adminExists) {
+      if (adminExists === null || adminExists === undefined) {
         await this.usersService.create({
           name: 'Admin Afrigari',
           email: adminEmail,
@@ -39,8 +39,10 @@ export class AdminSeeder {
       } else {
         this.logger.log(`Admin ${adminEmail} already exists, seeding skipped.`);
       }
-    } catch (error) {
-      this.logger.error('Error during seeding: ' + error.message);
+    } catch (err: unknown) {
+      // eslint-disable-next-line @typescript-eslint/no-base-to-string
+      const errorMessage = err instanceof Error ? err.message : String(err);
+      this.logger.error(`Error during seeding: ${errorMessage}`);
     }
   }
 }

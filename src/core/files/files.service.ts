@@ -21,11 +21,14 @@ export class FilesService {
     return this.storageProvider.create(data);
   }
 
-  async update(id: string, data: Partial<UpdateFileDto>): Promise<FileResponse | null> {
+  async update(
+    id: string,
+    data: Partial<UpdateFileDto>,
+  ): Promise<FileResponse | null> {
     return this.storageProvider.update(id, data);
   }
 
-  async upload(file: any): Promise<string> {
+  async upload(file: unknown): Promise<string> {
     if (this.storageProvider.upload) {
       return this.storageProvider.upload(file);
     }
