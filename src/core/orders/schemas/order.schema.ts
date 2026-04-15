@@ -4,6 +4,13 @@ import { OrderStatus } from '../../../common/enum/order-status.enum';
 
 export type OrderDocument = Order & Document;
 
+export interface OrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+}
+
 @Schema({ timestamps: true, collection: 'orders' })
 export class Order {
   @Prop({ type: String, required: true })
@@ -33,7 +40,7 @@ export class Order {
     ],
     default: [],
   })
-  items: any[];
+  items: OrderItem[];
 }
 
 export const OrderSchema = SchemaFactory.createForClass(Order);

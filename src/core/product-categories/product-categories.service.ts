@@ -12,7 +12,7 @@ export class ProductCategoriesService {
   ) {}
 
   async create(createDto: CreateProductCategoryDto) {
-    return this.repo.create(createDto as any);
+    return this.repo.create(createDto);
   }
 
   async findAll() {
@@ -20,11 +20,11 @@ export class ProductCategoriesService {
   }
 
   async findOne(id: string) {
-    return this.repo.findOne({ id } as any);
+    return this.repo.findOne({ id } as object);
   }
 
   async update(id: string, updateDto: UpdateProductCategoryDto) {
-    return this.repo.update(id, updateDto as any);
+    return this.repo.update(id, updateDto);
   }
 
   async remove(id: string) {

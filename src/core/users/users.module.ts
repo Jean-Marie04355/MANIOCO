@@ -14,10 +14,11 @@ import {
 
 import { NoSqlRepository } from '../../lib/no-sql-database/repository';
 import { SqlRepository } from '../../lib/sql-database/repository';
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { RolesGuard } from '../../common/guards/roles.guard';
 
 // dbType calculé via env (NestJS s'occupe de charger le .env via ConfigModule globalement)
-const dbType = process.env.DB_TYPE?.toLowerCase();
+const dbType: string | undefined = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
@@ -45,8 +46,8 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       ],
       useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'
-          ? new NoSqlRepository(engine)
-          : new SqlRepository(engine);
+          ? new NoSqlRepository(engine as never)
+          : new SqlRepository(engine as never);
       },
     },
   ],

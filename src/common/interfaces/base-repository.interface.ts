@@ -1,10 +1,11 @@
+// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IBaseRepository<T> {
-  find(options?: any): Promise<T[]>;
-  findOne(criteria: any): Promise<T | null>;
-  create(data: any): Promise<T>;
-  update(id: any, data: any): Promise<void>;
-  delete(id: any): Promise<void>;
-  count(options?: any): Promise<number>;
-  softDelete(id: any): Promise<void>;
+  find(options?: object): Promise<T[]>;
+  findOne(criteria: object): Promise<T | null>;
+  create(data: Partial<T>): Promise<T>;
+  update(id: string | number, data: Partial<T>): Promise<void>;
+  delete(id: string | number): Promise<void>;
+  count(options?: object): Promise<number>;
+  softDelete(id: string | number): Promise<void>;
   save(entity: T): Promise<T>;
 }

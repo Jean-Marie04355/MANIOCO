@@ -9,6 +9,8 @@ import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { Store } from '../store/store.entity';
+import { Product } from '../products/product.entity';
+import { OrderStatus } from '../../common/enum/order-status.enum';
 
 @Injectable()
 export class OrdersService {
@@ -18,7 +20,7 @@ export class OrdersService {
     @Inject('STORE_REPOSITORY')
     private readonly storeRepository: IBaseRepository<Store>,
     @Inject('PRODUCT_REPOSITORY')
-    private readonly productRepository: IBaseRepository<any>,
+    private readonly productRepository: IBaseRepository<Product>,
     private readonly paymentsService: PaymentsService,
   ) {}
 
@@ -41,8 +43,12 @@ export class OrdersService {
 
     // 2. Validate products and recalculate the actual total amount
     let validatedTotalAmount = 0;
-    const validatedItems: any[] = [];
-
+    const validatedItems: {
+      productId: string;
+      productName: string;
+      quantity: number;
+      price: number;
+    }[] = [];
     for (const item of createOrderDto.items) {
       const product = await this.productRepository.findOne({
         id: item.productId,
@@ -137,7 +143,7 @@ export class OrdersService {
     return this.orderRepository.find({ storeId });
   }
 
-  async updateStatus(id: string, status: any): Promise<Order | null> {
+  async updateStatus(id: string, status: OrderStatus): Promise<Order | null> {
     await this.orderRepository.update(id, { status });
     return this.findOne(id);
   }

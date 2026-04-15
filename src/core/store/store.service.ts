@@ -11,15 +11,16 @@ import { IBaseRepository } from '../../common/interfaces/base-repository.interfa
 import { Types } from 'mongoose';
 import { LocationService } from '../../core/location/location.service';
 
+import { User } from '../users/user.entity';
+
 @Injectable()
 export class StoreService {
-  storeModel: any;
   constructor(
     @Inject('STORE_REPOSITORY')
     private readonly storeRepository: IBaseRepository<Store>,
 
     @Inject('USER_REPOSITORY')
-    private readonly userRepository: IBaseRepository<any>,
+    private readonly userRepository: IBaseRepository<User>,
     private readonly configService: ConfigService,
     private readonly locationService: LocationService,
   ) {}

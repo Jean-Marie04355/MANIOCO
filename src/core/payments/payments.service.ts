@@ -2,6 +2,7 @@ import { Injectable, Inject, Logger } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Transaction } from './transaction.entity';
 import { ConfigService } from '@nestjs/config';
+import { Order } from '../orders/order.entity';
 
 @Injectable()
 export class PaymentsService {
@@ -29,9 +30,9 @@ export class PaymentsService {
    * Creates a transaction with split-payment on FedaPay
    */
   async createFedaPayTransaction(
-    order: any,
+    order: Order,
     sellerPayoutAccountId: string,
-  ): Promise<any> {
+  ): Promise<{ transactionId: string; url: string }> {
     const commissionPercent = this.configService.get<number>(
       'PLATFORM_COMMISSION_PERCENT',
       10,
@@ -128,8 +129,8 @@ export class PaymentsService {
     return this.transactionRepository.findOne({ orderId });
   }
 
-  async handleWebhook(payload: any): Promise<void> {
-    const { entity, event } = payload;
+  async handleWebhook(payload: Record<string, unknown>): Promise<void> {
+    const { entity, event } = payload as { entity: Record<string, unknown>; event: string };
 
     if (
       event === 'transaction.approved' ||
@@ -143,7 +144,7 @@ export class PaymentsService {
       if (transaction) {
         await this.transactionRepository.update(transaction.id, {
           status: 'APPROVED',
-          paymentMethod: entity.mode,
+          paymentMethod: String(entity.mode),
         });
         this.logger.log(`Payment approved for transaction ${externalId}`);
       }

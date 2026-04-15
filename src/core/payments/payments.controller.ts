@@ -19,7 +19,7 @@ export class PaymentsController {
 
   @Post('webhook')
   @ApiOperation({ summary: 'Entry point for FedaPay notifications' })
-  async handleWebhook(@Body() payload: any, @Res() res: Response) {
+  async handleWebhook(@Body() payload: Record<string, unknown>, @Res() res: Response) {
     this.logger.log('FedaPay payment notification received');
 
     try {

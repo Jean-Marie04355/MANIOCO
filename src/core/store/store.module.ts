@@ -50,8 +50,8 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
         engine: unknown,
       ): IBaseRepository<Store> => {
         return config.get('DB_TYPE') === 'mongodb'
-          ? new NoSqlRepository(engine)
-          : new SqlRepository(engine);
+          ? new NoSqlRepository(engine as never)
+          : new SqlRepository(engine as never);
       },
     },
   ],

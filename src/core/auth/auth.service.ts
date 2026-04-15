@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { UsersService } from '../users/users.service';
 import { comparePassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
+import { User } from '../users/user.entity';
 
 import type { AuthenticatedUser } from './strategies/jwt.strategy';
 
@@ -83,7 +84,7 @@ export class AuthService {
     await this.usersService.update(user.id, {
       otpCode,
       otpExpiresAt,
-    } as any);
+    } as Partial<User>);
 
     return {
       message: 'Un code OTP a été généré et envoyé par email.',
@@ -109,7 +110,7 @@ export class AuthService {
     await this.usersService.update(user.id, {
       otpCode: null,
       otpExpiresAt: null,
-    });
+    } as Partial<User>);
 
     const payload = {
       sub: user.email,
@@ -118,8 +119,8 @@ export class AuthService {
       userId: user.id,
     };
 
-    const expiresIn = this.configService.get<string>('JWT_EXPIRES_IN') || '1d';
-    const accessToken = await this.jwtService.signAsync(payload, { expiresIn });
+    const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '1d';
+    const accessToken = this.jwtService.sign(payload, { expiresIn });
 
     return {
       accessToken,
@@ -132,7 +133,7 @@ export class AuthService {
     };
   }
 
-  me(user: AuthenticatedUser): any {
+  me(user: AuthenticatedUser): AuthenticatedUser {
     return user;
   }
 }

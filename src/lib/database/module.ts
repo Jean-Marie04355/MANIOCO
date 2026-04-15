@@ -5,6 +5,7 @@ import { SqlDatabaseModule } from '../sql-database/module';
 import { NoSqlDatabaseModule } from '../no-sql-database/module';
 import { NoSqlRepository } from '../no-sql-database/repository';
 import { SqlRepository } from '../sql-database/repository';
+import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
 /**
  * Universally repaired Database Module from dev3 branch.
@@ -24,7 +25,7 @@ export class DatabaseModule {
         {
           provide: 'DATABASE_REPOSITORY',
           inject: [ConfigService, isMongo ? NoSqlRepository : SqlRepository],
-          useFactory: (configService: ConfigService, repository: any) => {
+          useFactory: (configService: ConfigService, repository: IBaseRepository<unknown>) => {
             return repository;
           },
         },

@@ -45,8 +45,8 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       ],
       useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'
-          ? new NoSqlRepository(engine)
-          : new SqlRepository(engine);
+          ? new NoSqlRepository(engine as never)
+          : new SqlRepository(engine as never);
       },
     },
   ],

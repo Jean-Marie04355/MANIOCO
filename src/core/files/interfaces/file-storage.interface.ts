@@ -9,5 +9,5 @@ export interface IFileStorage {
     data: Partial<UpdateFileDto>,
   ): Promise<FileResponse | null>;
   delete(id: string): Promise<boolean>;
-  upload?(file: any): Promise<string>;
+  upload?(file: unknown): Promise<string>;
 }

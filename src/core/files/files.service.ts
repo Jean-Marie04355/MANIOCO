@@ -28,7 +28,7 @@ export class FilesService {
     return this.storageProvider.update(id, data);
   }
 
-  async upload(file: any): Promise<string> {
+  async upload(file: unknown): Promise<string> {
     if (this.storageProvider.upload) {
       return this.storageProvider.upload(file);
     }

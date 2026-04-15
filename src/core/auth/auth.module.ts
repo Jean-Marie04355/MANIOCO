@@ -18,7 +18,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
           // @nestjs/jwt accepte `number | StringValue` pour `expiresIn`
-          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as any,
+          expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as '1d',
         },
       }),
     }),

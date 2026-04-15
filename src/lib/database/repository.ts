@@ -1,34 +1,38 @@
-import { DeepPartial } from 'typeorm';
 import { Inject } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
-export class AbstractRepository<
-  T extends { id: any },
-> implements IBaseRepository<T> {
+export class AbstractRepository<T extends { id: string | number }>
+  implements IBaseRepository<T>
+{
   constructor(
     @Inject('DATABASE_REPOSITORY')
     private readonly repo: IBaseRepository<T>,
   ) {}
 
-  find(options: any): Promise<T[]> {
+  find(options?: object): Promise<T[]> {
     return this.repo.find(options);
   }
 
-  findOne(criteria: Partial<T>): Promise<T | null> {
-    return this.repo.findOne({ where: criteria });
+  findOne(criteria: object): Promise<T | null> {
+    return this.repo.findOne(criteria);
   }
 
-  async create(data: DeepPartial<T>): Promise<T> {
-    const entity = this.repo.create(data as any);
-    return await this.repo.save(entity as any);
+  async create(data: Partial<T>): Promise<T> {
+    const entity = await this.repo.create(data);
+    return await this.repo.save(entity);
   }
 
-  async createMany(data: DeepPartial<T>[]): Promise<T[]> {
-    const entities = (this.repo as any).create(data);
-    return await (this.repo as any).save(entities);
+  async createMany(data: Partial<T>[]): Promise<T[]> {
+    const entities: T[] = [];
+    for (const item of data) {
+      const entity = await this.repo.create(item);
+      const savedEntity = await this.repo.save(entity);
+      entities.push(savedEntity);
+    }
+    return entities;
   }
 
-  async update(id: string | number, data: DeepPartial<T>): Promise<void> {
+  async update(id: string | number, data: Partial<T>): Promise<void> {
     await this.repo.update(id, data);
   }
 
@@ -36,11 +40,11 @@ export class AbstractRepository<
     await this.repo.delete(id);
   }
 
-  count(criteria?: Partial<T>): Promise<number> {
-    return this.repo.count({ where: criteria });
+  count(criteria?: object): Promise<number> {
+    return this.repo.count(criteria);
   }
 
-  async softDelete(id: any): Promise<void> {
+  async softDelete(id: string | number): Promise<void> {
     await this.repo.softDelete(id);
   }
 
