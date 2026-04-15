@@ -17,6 +17,7 @@ import { OrdersModule } from './core/orders/orders.module';
 import { PaymentsModule } from './core/payments/payments.module';
 import { RealtimeModule } from './core/realtime/realtime.module';
 import { QueuesModule } from './libs/queues/queues.module';
+import { AdminSeeder } from './common/seeder/admin.seeder';
 
 @Module({
   imports: [
@@ -38,6 +39,6 @@ import { QueuesModule } from './libs/queues/queues.module';
   ],
 
   controllers: [AppController, InfraController],
-  providers: [AppService],
+  providers: [AppService, AdminSeeder],
 })
 export class AppModule {}

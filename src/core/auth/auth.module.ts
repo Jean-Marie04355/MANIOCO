@@ -7,11 +7,13 @@ import { UsersModule } from '../users/users.module';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { QueuesModule } from '../../libs/queues/queues.module';
 
 @Module({
   imports: [
     PassportModule,
     UsersModule,
+    QueuesModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({

@@ -18,7 +18,7 @@ export class DatabaseModule {
     return {
       module: DatabaseModule,
       imports: [
-        // Load only the one we need to avoid DataSource errors
+        // Chargement conditionnel pour éviter les crashs si un serveur (Mongo/Postgres) est absent
         isMongo ? NoSqlDatabaseModule : SqlDatabaseModule,
       ],
       providers: [

@@ -32,8 +32,9 @@ export class AdminSeeder {
           name: 'Admin Afrigari',
           email: adminEmail,
           password: adminPassword,
-          role: UserRole.ADMIN,
+          role: UserRole.SUPER_ADMIN,
         });
+
 
         this.logger.log('Initial admin created successfully!');
       } else {

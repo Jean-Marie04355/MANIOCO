@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
+import { AdminSeeder } from './common/seeder/admin.seeder';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,8 +15,12 @@ async function bootstrap() {
   app.enableCors({
     origin: process.env.FRONTEND_URL || 'http://localhost:3000',
     credentials: true,
-  }); // Fixed wildcard CORS
+  });
 
+  // Execute Seeders
+  const seeder = app.get(AdminSeeder);
+  await seeder.seed();
+  
   // Swagger Configuration
   const config = new DocumentBuilder()
     .setTitle('Afrigari API')

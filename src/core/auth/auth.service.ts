@@ -7,6 +7,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 import { UsersService } from '../users/users.service';
+import { BullMQService } from '../../libs/queues/bullmq.service';
 import { comparePassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
 import { User } from '../users/user.entity';
@@ -29,6 +30,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly bullMQService: BullMQService,
   ) {}
 
   async login(email: string, password: string): Promise<LoginResponse> {
@@ -41,6 +43,13 @@ export class AuthService {
     if (!ok) {
       throw new UnauthorizedException();
     }
+
+    if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
+      throw new UnauthorizedException(
+        "Les administrateurs doivent se connecter via le portail d'administration sécurisé (MFA).",
+      );
+    }
+
 
     const payload = {
       sub: user.email,
@@ -85,6 +94,10 @@ export class AuthService {
       otpCode,
       otpExpiresAt,
     } as Partial<User>);
+
+    // Put OTP job into the queue
+    const queue = this.bullMQService.getQueue(process.env.BULLMQ_QUEUE || 'default');
+    await queue.add('send-otp-email', { email: user.email, otpCode });
 
     return {
       message: 'Un code OTP a été généré et envoyé par email.',

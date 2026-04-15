@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Worker, type ConnectionOptions, type Job } from 'bullmq';
 
 function main() {
@@ -17,7 +18,18 @@ function main() {
   const worker = new Worker(
     queueName,
     async (job: Job) => {
-      // Infrastructure worker: tu pourras brancher ici les jobs OTP, S3, etc.
+      // Infrastructure worker: brancher ici les jobs OTP, S3, etc.
+      if (job.name === 'send-otp-email') {
+        const { email, otpCode } = job.data;
+        // eslint-disable-next-line no-console
+        console.log('\n==========================================');
+        console.log(`📧 [EMAIL SIMULÉ]`);
+        console.log(`Destinataire : ${email}`);
+        console.log(`Code OTP     : ${otpCode}`);
+        console.log('==========================================\n');
+        return { ok: true, emailSent: true };
+      }
+
       return { ok: true, name: job.name, data: job.data };
     },
     { connection },
