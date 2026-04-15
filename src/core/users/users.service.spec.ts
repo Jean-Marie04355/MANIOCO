@@ -97,6 +97,18 @@ describe('UsersService', () => {
         role: UserRole.CLIENT,
       }));
     });
+
+    it('should prevent creating a SUPER_ADMIN if one already exists', async () => {
+      const superAdminDto = { ...createUserDto, role: UserRole.SUPER_ADMIN };
+      repositoryMock.findOne.mockResolvedValue(null);
+      repositoryMock.count.mockResolvedValue(1);
+      repositoryMock.create.mockResolvedValue({ ...superAdminDto, id: '1', role: UserRole.CLIENT });
+
+      const result = await service.create(superAdminDto);
+      expect(repositoryMock.create).toHaveBeenCalledWith(expect.objectContaining({
+        role: UserRole.CLIENT,
+      }));
+    });
   });
 
   describe('findOne', () => {
@@ -130,6 +142,16 @@ describe('UsersService', () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1' });
       await service.update('1', { name: 'Updated' });
       expect(repositoryMock.update).toHaveBeenCalledWith('1', { name: 'Updated' });
+    });
+
+    it('should hash password if provided in update', async () => {
+      repositoryMock.findOne.mockResolvedValue({ id: '1' });
+      const updateDto = { password: 'newpassword' };
+      await service.update('1', updateDto);
+      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({
+        password: expect.any(String),
+      }));
+      expect(repositoryMock.update.mock.calls[0][1].password).not.toBe('newpassword');
     });
   });
 });
