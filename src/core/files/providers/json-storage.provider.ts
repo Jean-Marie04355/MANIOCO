@@ -42,7 +42,7 @@ export class JsonStorageProvider implements IFileStorage {
   async findOne(id: string): Promise<FileResponse | null> {
     const data = this.readData();
     const result = data.find((item) => item.id === id);
-    return result ? result : null;
+    return result ?? null;
   }
 
   async create(item: CreateFileDto): Promise<FileResponse> {

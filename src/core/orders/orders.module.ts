@@ -20,14 +20,11 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
-    ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Order])] : []),
-    ...(dbType === 'mongodb'
-      ? [
-          MongooseModule.forFeature([
-            { name: MongoOrder.name, schema: OrderSchema },
-          ]),
-        ]
-      : []),
+    dbType === 'mongodb'
+      ? MongooseModule.forFeature([
+          { name: MongoOrder.name, schema: OrderSchema },
+        ])
+      : TypeOrmModule.forFeature([Order]),
     PaymentsModule,
     StoreModule,
     ProductsModule,
@@ -39,9 +36,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'ORDER_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb'
-          ? [getModelToken(MongoOrder.name)]
-          : [getRepositoryToken(Order)]),
+        dbType === 'mongodb'
+          ? getModelToken(MongoOrder.name)
+          : getRepositoryToken(Order),
       ],
       useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'

@@ -23,14 +23,11 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
-    ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Store])] : []),
-    ...(dbType === 'mongodb'
-      ? [
-          MongooseModule.forFeature([
-            { name: MongoStore.name, schema: StoreSchema },
-          ]),
-        ]
-      : []),
+    dbType === 'mongodb'
+      ? MongooseModule.forFeature([
+          { name: MongoStore.name, schema: StoreSchema },
+        ])
+      : TypeOrmModule.forFeature([Store]),
     UsersModule,
     LocationModule,
   ],
@@ -41,9 +38,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'STORE_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb'
-          ? [getModelToken(MongoStore.name)]
-          : [getRepositoryToken(Store)]),
+        dbType === 'mongodb'
+          ? getModelToken(MongoStore.name)
+          : getRepositoryToken(Store),
       ],
       useFactory: (
         config: ConfigService,

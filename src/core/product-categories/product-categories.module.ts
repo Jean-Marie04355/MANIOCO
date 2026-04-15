@@ -19,16 +19,11 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
-    ...(dbType !== 'mongodb'
-      ? [TypeOrmModule.forFeature([ProductCategory])]
-      : []),
-    ...(dbType === 'mongodb'
-      ? [
-          MongooseModule.forFeature([
-            { name: MongoProductCategory.name, schema: ProductCategorySchema },
-          ]),
-        ]
-      : []),
+    dbType === 'mongodb'
+      ? MongooseModule.forFeature([
+          { name: MongoProductCategory.name, schema: ProductCategorySchema },
+        ])
+      : TypeOrmModule.forFeature([ProductCategory]),
   ],
   controllers: [ProductCategoriesController],
   providers: [
@@ -37,9 +32,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'PRODUCT_CATEGORY_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb'
-          ? [getModelToken(MongoProductCategory.name)]
-          : [getRepositoryToken(ProductCategory)]),
+        dbType === 'mongodb'
+          ? getModelToken(MongoProductCategory.name)
+          : getRepositoryToken(ProductCategory),
       ],
       useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'

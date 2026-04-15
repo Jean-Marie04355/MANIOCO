@@ -14,22 +14,18 @@ import {
 
 import { NoSqlRepository } from '../../lib/no-sql-database/repository';
 import { SqlRepository } from '../../lib/sql-database/repository';
-import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { RolesGuard } from '../../common/guards/roles.guard';
 
 // dbType calculé via env (NestJS s'occupe de charger le .env via ConfigModule globalement)
-const dbType: string | undefined = process.env.DB_TYPE?.toLowerCase();
+const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
-    ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([User])] : []),
-    ...(dbType === 'mongodb'
-      ? [
-          MongooseModule.forFeature([
-            { name: MongoUser.name, schema: UserSchema },
-          ]),
-        ]
-      : []),
+    dbType === 'mongodb'
+      ? MongooseModule.forFeature([
+          { name: MongoUser.name, schema: UserSchema },
+        ])
+      : TypeOrmModule.forFeature([User]),
   ],
   controllers: [UsersController],
   providers: [
@@ -40,9 +36,9 @@ const dbType: string | undefined = process.env.DB_TYPE?.toLowerCase();
       provide: 'USER_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb'
-          ? [getModelToken(MongoUser.name)]
-          : [getRepositoryToken(User)]),
+        dbType === 'mongodb'
+          ? getModelToken(MongoUser.name)
+          : getRepositoryToken(User),
       ],
       useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'

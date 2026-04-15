@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { CreateStoreDto } from './dto/create-store.dto';
@@ -15,6 +16,8 @@ import { User } from '../users/user.entity';
 
 @Injectable()
 export class StoreService {
+  private readonly logger = new Logger(StoreService.name);
+
   constructor(
     @Inject('STORE_REPOSITORY')
     private readonly storeRepository: IBaseRepository<Store>,
@@ -38,6 +41,9 @@ export class StoreService {
         owner = await this.userRepository.findOne({ id: ownerId });
       }
     } catch (_error) {
+      if (_error instanceof Error) {
+        this.logger.error(`Error looking for user: ${_error.message}`);
+      }
       throw new NotFoundException(
         `User with ID ${ownerId} not found or invalid format.`,
       );

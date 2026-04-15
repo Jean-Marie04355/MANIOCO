@@ -20,14 +20,11 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
-    ...(dbType !== 'mongodb' ? [TypeOrmModule.forFeature([Product])] : []),
-    ...(dbType === 'mongodb'
-      ? [
-          MongooseModule.forFeature([
-            { name: MongoProduct.name, schema: ProductSchema },
-          ]),
-        ]
-      : []),
+    dbType === 'mongodb'
+      ? MongooseModule.forFeature([
+          { name: MongoProduct.name, schema: ProductSchema },
+        ])
+      : TypeOrmModule.forFeature([Product]),
     ProductCategoriesModule,
   ],
   controllers: [ProductsController],
@@ -37,9 +34,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'PRODUCT_REPOSITORY',
       inject: [
         ConfigService,
-        ...(dbType === 'mongodb'
-          ? [getModelToken(MongoProduct.name)]
-          : [getRepositoryToken(Product)]),
+        dbType === 'mongodb'
+          ? getModelToken(MongoProduct.name)
+          : getRepositoryToken(Product),
       ],
       useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'

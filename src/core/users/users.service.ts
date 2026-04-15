@@ -17,11 +17,11 @@ export class UsersService {
     private readonly userRepository: IBaseRepository<User>,
   ) {}
 
-  async findByEmail(email: string) {
+  async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({ email });
   }
 
-  async findAll() {
+  async findAll(): Promise<User[]> {
     return this.userRepository.find();
   }
 
