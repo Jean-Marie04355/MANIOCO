@@ -19,6 +19,9 @@ export class AuthController {
     return this.authService.login(body.email, body.password);
   }
 
+  @Post('admin/login')
+  @ApiOperation({ summary: "Connexion Admin Étape 1 (email + password) -> Envoi OTP" })
+  @ApiResponse({ status: 201, description: 'OTP généré et affiché en console' })
   adminLogin(@Body() body: LoginDto): Promise<Record<string, unknown>> {
     return this.authService.adminLogin(body.email, body.password);
   }
