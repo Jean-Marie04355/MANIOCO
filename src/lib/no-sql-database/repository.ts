@@ -5,12 +5,22 @@ import { IBaseRepository } from '../../common/interfaces/base-repository.interfa
 export class NoSqlRepository<T> implements IBaseRepository<T> {
   constructor(protected readonly repo: Model<T & Document>) {}
 
-  async find(filter?: object): Promise<T[]> {
-    return this.repo.find(filter || {}).exec();
+  async find(filter?: any): Promise<T[]> {
+    const query = { ...(filter || {}) };
+    if (query.id) {
+      query._id = query.id;
+      delete query.id;
+    }
+    return this.repo.find(query).exec();
   }
 
-  async findOne(filter: object): Promise<T | null> {
-    return this.repo.findOne(filter).exec();
+  async findOne(filter: any): Promise<T | null> {
+    const query = { ...filter };
+    if (query.id) {
+      query._id = query.id;
+      delete query.id;
+    }
+    return this.repo.findOne(query).exec();
   }
 
   async create(data: Partial<T>): Promise<T> {
@@ -30,8 +40,13 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
     await this.repo.deleteOne({ _id: id } as object).exec();
   }
 
-  async count(filter?: object): Promise<number> {
-    return this.repo.countDocuments(filter || {}).exec();
+  async count(filter?: any): Promise<number> {
+    const query = { ...(filter || {}) };
+    if (query.id) {
+      query._id = query.id;
+      delete query.id;
+    }
+    return this.repo.countDocuments(query).exec();
   }
 
   async softDelete(id: string | number): Promise<void> {

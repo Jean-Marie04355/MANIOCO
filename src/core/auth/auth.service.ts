@@ -46,7 +46,7 @@ export class AuthService {
 
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
       throw new UnauthorizedException(
-        "Les administrateurs doivent se connecter via le portail d'administration sécurisé (MFA).",
+        "Administrators must log in via the secure administration portal (MFA).",
       );
     }
 
@@ -75,16 +75,16 @@ export class AuthService {
   async adminLogin(email: string, password: string): Promise<{ message: string; email: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Identifiants invalides.');
+      throw new UnauthorizedException('Invalid credentials.');
     }
 
     if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
-      throw new UnauthorizedException('Accès réservé aux administrateurs.');
+      throw new UnauthorizedException('Access reserved for administrators.');
     }
 
     const ok = await comparePassword(password, user.password);
     if (!ok) {
-      throw new UnauthorizedException('Identifiants invalides.');
+      throw new UnauthorizedException('Invalid credentials.');
     }
 
     const otpCode = crypto.randomInt(100000, 999999).toString();
@@ -100,7 +100,7 @@ export class AuthService {
     await queue.add('send-otp-email', { email: user.email, otpCode });
 
     return {
-      message: 'Un code OTP a été généré et envoyé par email.',
+      message: 'An OTP code has been generated and sent by email.',
       email: user.email,
     };
   }
@@ -109,15 +109,15 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     
     if (user?.otpCode == null || user?.otpExpiresAt == null) {
-      throw new UnauthorizedException('Aucune session OTP en cours.');
+      throw new UnauthorizedException('No active OTP session.');
     }
 
     if (new Date() > user.otpExpiresAt) {
-      throw new UnauthorizedException('Code OTP expiré.');
+      throw new UnauthorizedException('OTP code expired.');
     }
 
     if (user.otpCode !== otpCode) {
-      throw new UnauthorizedException('Code OTP invalide.');
+      throw new UnauthorizedException('Invalid OTP code.');
     }
 
     await this.usersService.update(user.id, {

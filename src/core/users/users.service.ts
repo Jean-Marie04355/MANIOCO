@@ -41,7 +41,7 @@ export class UsersService {
     if (userCount === 0) {
       finalRole = UserRole.SUPER_ADMIN;
     } else if (finalRole === UserRole.SUPER_ADMIN) {
-      // Sécurité : On empêche un profil d'être créé en SUPER_ADMIN s'il y en a déjà un
+      // Security: Prevent a profile from being created as SUPER_ADMIN if one already exists
       finalRole = UserRole.CLIENT;
     }
 
