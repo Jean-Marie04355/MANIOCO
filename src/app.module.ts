@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { InfraController } from './infra.controller';
 import { UsersModule } from './core/users/users.module';
 import { AuthModule } from './core/auth/auth.module';
 import { FilesModule } from './core/files/files.module';
@@ -10,15 +11,19 @@ import { ProductCategoriesModule } from './core/product-categories/product-categ
 import { ProductsModule } from './core/products/products.module';
 import { StoreModule } from './core/store/store.module';
 import { StorageModule } from './libs/storage/storage.module';
+import { CacheModule } from './libs/cache/cache.module';
 import { LocationModule } from './core/location/location.module';
 import { OrdersModule } from './core/orders/orders.module';
 import { PaymentsModule } from './core/payments/payments.module';
+import { RealtimeModule } from './core/realtime/realtime.module';
+import { QueuesModule } from './libs/queues/queues.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule.register(),
     StorageModule,
+    CacheModule,
     LocationModule,
     UsersModule,
     AuthModule,
@@ -28,9 +33,11 @@ import { PaymentsModule } from './core/payments/payments.module';
     StoreModule,
     OrdersModule,
     PaymentsModule,
+    RealtimeModule,
+    QueuesModule,
   ],
 
-  controllers: [AppController],
+  controllers: [AppController, InfraController],
   providers: [AppService],
 })
 export class AppModule {}

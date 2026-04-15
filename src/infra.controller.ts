@@ -1,0 +1,63 @@
+import { Controller, Get } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CacheService } from '../libs/cache/cache.service';
+import { BullMQService } from '../libs/queues/bullmq.service';
+import { S3StorageService } from '../libs/storage/s3-storage.service';
+import { InjectConnection } from '@nestjs/typeorm';
+import { Connection } from 'typeorm';
+import { InjectConnection as InjectMongoConnection } from '@nestjs/mongoose';
+import { Connection as MongoConnection } from 'mongoose';
+
+@ApiTags('Infrastructure')
+@Controller('infra')
+export class InfraController {
+  constructor(
+    private readonly cache: CacheService,
+    private readonly queues: BullMQService,
+    private readonly s3: S3StorageService,
+    @InjectConnection() private readonly postgres: Connection,
+    @InjectMongoConnection() private readonly mongo: MongoConnection,
+  ) {}
+
+  @Get('health')
+  @ApiOperation({ summary: 'Check infrastructure health' })
+  async health() {
+    const status = {
+      redis: 'down',
+      postgres: 'down',
+      mongodb: 'down',
+      s3: 'down',
+      timestamp: new Date().toISOString(),
+    };
+
+    // Check Redis
+    try {
+      const pong = await this.cache.ping();
+      if (pong === 'PONG') status.redis = 'up';
+    } catch {}
+
+    // Check Postgres
+    try {
+      const isConnected = this.postgres.isConnected;
+      if (isConnected) status.postgres = 'up';
+    } catch {}
+
+    // Check MongoDB
+    try {
+      if (this.mongo.readyState === 1) status.mongodb = 'up';
+    } catch {}
+
+    // Check S3
+    try {
+      await this.s3.listAllObjects();
+      status.s3 = 'up';
+    } catch {}
+
+    const isAllUp = Object.values(status).every((s) => s === 'up' || typeof s !== 'string' || s === 'up'); // simplified
+
+    return {
+      status: status.redis === 'up' && status.postgres === 'up' && status.mongodb === 'up' && status.s3 === 'up' ? 'healthy' : 'degraded',
+      details: status,
+    };
+  }
+}
