@@ -14,10 +14,12 @@ import {
 } from './schemas/transaction.schema';
 
 import * as dotenv from 'dotenv';
-import { NoSqlRepository } from '../../lib/no-sql-database/repository';
-import { SqlRepository } from '../../lib/sql-database/repository';
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
 dotenv.config();
 const dbType = process.env.DB_TYPE?.toLowerCase();
+
+import { FedaPayProvider } from '../../libs/payments/fedapay.provider';
 
 @Module({
   imports: [
@@ -30,6 +32,10 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
   controllers: [PaymentsController],
   providers: [
     PaymentsService,
+    {
+      provide: 'PAYMENT_PROVIDER',
+      useClass: FedaPayProvider,
+    },
     {
       provide: 'TRANSACTION_REPOSITORY',
       inject: [

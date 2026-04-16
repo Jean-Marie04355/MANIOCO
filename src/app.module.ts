@@ -6,7 +6,7 @@ import { InfraController } from './infra.controller';
 import { UsersModule } from './core/users/users.module';
 import { AuthModule } from './core/auth/auth.module';
 import { FilesModule } from './core/files/files.module';
-import { DatabaseModule } from './lib/database/module';
+import { DatabaseModule } from './libs/database/module';
 import { ProductCategoriesModule } from './core/product-categories/product-categories.module';
 import { ProductsModule } from './core/products/products.module';
 import { StoreModule } from './core/store/store.module';

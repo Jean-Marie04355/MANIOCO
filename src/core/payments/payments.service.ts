@@ -3,46 +3,28 @@ import { IBaseRepository } from '../../common/interfaces/base-repository.interfa
 import { Transaction } from './transaction.entity';
 import { ConfigService } from '@nestjs/config';
 import { Order } from '../orders/order.entity';
+import { IPaymentProvider } from '../../common/interfaces/payment-provider.interface';
 
 @Injectable()
 export class PaymentsService {
   private readonly logger = new Logger(PaymentsService.name);
-  private readonly fedapayUrl: string;
-  private readonly secretKey: string;
 
   constructor(
     @Inject('TRANSACTION_REPOSITORY')
     private readonly transactionRepository: IBaseRepository<Transaction>,
+    @Inject('PAYMENT_PROVIDER')
+    private readonly paymentProvider: IPaymentProvider,
     private readonly configService: ConfigService,
-  ) {
-    const env = this.configService.get<string>(
-      'FEDAPAY_ENVIRONMENT',
-      'sandbox',
-    );
-    this.fedapayUrl =
-      env === 'live'
-        ? 'https://api.fedapay.com/v1'
-        : 'https://sandbox-api.fedapay.com/v1';
-    this.secretKey = this.configService.get<string>('FEDAPAY_SECRET_KEY', '');
-  }
+  ) {}
 
   /**
-   * Creates a transaction with split-payment on FedaPay
+   * Creates a transaction with split-payment
    */
-  async createFedaPayTransaction(
+  async createTransaction(
     order: Order,
     sellerPayoutAccountId: string,
   ): Promise<{ transactionId: string; url: string }> {
-    const commissionPercent = this.configService.get<number>(
-      'PLATFORM_COMMISSION_PERCENT',
-      10,
-    );
     const amount = Number(order.totalAmount);
-    const platformCommission = Math.round((amount * commissionPercent) / 100);
-
-    this.logger.log(
-      `Initiating FedaPay payment: Amount=${amount}, Commission=${platformCommission}, Seller=${sellerPayoutAccountId}`,
-    );
 
     // Create local transaction record
     const localTx = await this.transactionRepository.create({
@@ -52,74 +34,33 @@ export class PaymentsService {
     });
 
     try {
-      const response = await fetch(`${this.fedapayUrl}/transactions`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${this.secretKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: amount,
-          description: `Afrigari Order #${order.id}`,
-          currency: { iso: 'XOF' },
-          callback_url:
-            this.configService.get('FRONTEND_URL', 'http://localhost:3000') +
-            `/payment-callback?orderId=${order.id}`,
-          subaccount: { id: sellerPayoutAccountId },
-          commission: platformCommission,
-          include: 'payouts',
-        }),
+      const callbackUrl =
+        this.configService.get('FRONTEND_URL', 'http://localhost:3000') +
+        `/payment-callback?orderId=${order.id}`;
+
+      // Delegate to external provider
+      const paymentResponse = await this.paymentProvider.createTransaction({
+        amount,
+        description: `Afrigari Order #${order.id}`,
+        callbackUrl,
+        sellerPayoutAccountId,
+        orderId: order.id,
       });
-
-      const data = await response.json();
-      this.logger.debug('FedaPay API Response: ' + JSON.stringify(data));
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Error creating FedaPay transaction');
-      }
-
-      // Extract transaction ID (key "v1/transaction" or "transaction")
-      const transactionData = data['v1/transaction'] || data['transaction'];
-      if (!transactionData) {
-        throw new Error('Unknown FedaPay response format');
-      }
 
       // Update with external reference
       await this.transactionRepository.update(localTx.id, {
-        externalId: String(transactionData.id),
+        externalId: paymentResponse.transactionId,
       });
 
-      // Return the payment URL directly if present (faster than requesting a token)
-      if (transactionData.payment_url) {
-        return {
-          transactionId: transactionData.id,
-          url: transactionData.payment_url,
-        };
-      }
-
-      // Otherwise, generate a token
-      const tokenResponse = await fetch(
-        `${this.fedapayUrl}/transactions/${transactionData.id}/token`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${this.secretKey}`,
-            'Content-Type': 'application/json',
-          },
-        },
-      );
-      const tokenData = await tokenResponse.json();
-      const tokenInfo = tokenData['v1/token'] || tokenData['token'];
-
       return {
-        transactionId: transactionData.id,
-        url: tokenInfo.url,
+        transactionId: paymentResponse.transactionId,
+        url: paymentResponse.url,
       };
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error(`FedaPay Error: ${error.message}`);
+        this.logger.error(`Payment Initiation Error: ${error.message}`);
       } else {
-        this.logger.error(`FedaPay Error: ${String(error)}`);
+        this.logger.error(`Payment Initiation Error: ${String(error)}`);
       }
       throw error;
     }
@@ -130,23 +71,19 @@ export class PaymentsService {
   }
 
   async handleWebhook(payload: Record<string, unknown>): Promise<void> {
-    const { entity, event } = payload as { entity: Record<string, unknown>; event: string };
+    const result = await this.paymentProvider.verifyNotification(payload);
 
-    if (
-      event === 'transaction.approved' ||
-      event === 'transaction.successful'
-    ) {
-      const externalId = String(entity.id as string | number);
+    if (result && result.status === 'APPROVED') {
       const transaction = await this.transactionRepository.findOne({
-        externalId,
+        externalId: result.externalId,
       });
 
       if (transaction) {
         await this.transactionRepository.update(transaction.id, {
           status: 'APPROVED',
-          paymentMethod: String(entity.mode as string | number),
+          paymentMethod: result.mode || 'unknown',
         });
-        this.logger.log(`Payment approved for transaction ${externalId}`);
+        this.logger.log(`Payment approved for transaction ${result.externalId}`);
       }
     }
   }

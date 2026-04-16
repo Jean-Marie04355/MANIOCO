@@ -105,15 +105,15 @@ export class OrdersService {
     }
 
     try {
-      // 5. Initiate FedaPay transaction
-      const fedaTx = await this.paymentsService.createFedaPayTransaction(
+      // 5. Initiate payment transaction
+      const paymentTx = await this.paymentsService.createTransaction(
         order,
         store.payoutAccountId,
       );
 
       return {
         order,
-        paymentUrl: fedaTx.url,
+        paymentUrl: paymentTx.url,
       };
     } catch (error) {
       // If payment initiation fails, we could cancel the order here

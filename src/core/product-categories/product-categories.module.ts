@@ -11,8 +11,8 @@ import {
   ProductCategory as MongoProductCategory,
   ProductCategorySchema,
 } from './schemas/product-category.schema';
-import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
-import { SqlRepository } from 'src/lib/sql-database/repository';
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
 import * as dotenv from 'dotenv';
 dotenv.config();
 

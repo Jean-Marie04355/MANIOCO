@@ -14,8 +14,8 @@ import { StoreModule } from '../store/store.module';
 import { ProductsModule } from '../products/products.module';
 
 import * as dotenv from 'dotenv';
-import { NoSqlRepository } from '../../lib/no-sql-database/repository';
-import { SqlRepository } from '../../lib/sql-database/repository';
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
 dotenv.config();
 const dbType = process.env.DB_TYPE?.toLowerCase();
 

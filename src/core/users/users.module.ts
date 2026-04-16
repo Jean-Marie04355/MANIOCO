@@ -13,8 +13,8 @@ import {
   UserSchema,
 } from './schemas/user.schema';
 
-import { NoSqlRepository } from '../../lib/no-sql-database/repository';
-import { SqlRepository } from '../../lib/sql-database/repository';
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
 import { RolesGuard } from '../../common/guards/roles.guard';
 
 // dbType calculated via env (NestJS handles loading the .env via ConfigModule globally)
