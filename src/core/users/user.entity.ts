@@ -27,8 +27,9 @@ export class User {
   @Column({ nullable: true })
   otpCode: string;
 
-  @Column({ type: 'datetime', nullable: true })
+  @Column({ nullable: true })
   otpExpiresAt: Date;
+
 
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
