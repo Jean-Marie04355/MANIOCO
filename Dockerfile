@@ -31,6 +31,7 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY nest-cli.json package.json sonar-project.properties tsconfig.build.json tsconfig.json ./
 COPY src ./src
+COPY data ./data
 
 # Build the app (NestJS, NextJS, or plain TS app)
 RUN ls -la && \
@@ -47,10 +48,12 @@ FROM base AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
+RUN chown -R nestjs:nodejs data
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/data ./data
 
 
 USER nestjs
