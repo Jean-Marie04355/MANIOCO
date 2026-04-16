@@ -30,6 +30,24 @@ function main() {
         return { ok: true, emailSent: true };
       }
 
+      if (job.name === 'send-order-confirmation') {
+        const { email, orderId, totalAmount, items } = job.data;
+        // eslint-disable-next-line no-console
+        console.log('\n==========================================');
+        console.log(`📧 [COMMANDE RÉUSSIE]`);
+        console.log(`Client       : ${email}`);
+        console.log(`Commande ID  : #${orderId}`);
+        console.log(`Montant Total: ${totalAmount} FCFA`);
+        console.log(`Articles     :`);
+        if (Array.isArray(items)) {
+          items.forEach((item: any) => {
+            console.log(` - ${item.productName} (x${item.quantity}) : ${item.price} FCFA`);
+          });
+        }
+        console.log('==========================================\n');
+        return { ok: true, emailSent: true };
+      }
+
       return { ok: true, name: job.name, data: job.data };
     },
     { connection },

@@ -6,7 +6,7 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   constructor(protected readonly repo: Model<T & Document>) {}
 
   async find(filter?: any): Promise<T[]> {
-    const query = { ...(filter || {}) };
+    const query = { ...(filter || {}), deletedAt: null };
     if (query.id) {
       query._id = query.id;
       delete query.id;
@@ -15,7 +15,7 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   async findOne(filter: any): Promise<T | null> {
-    const query = { ...filter };
+    const query = { ...filter, deletedAt: null };
     if (query.id) {
       query._id = query.id;
       delete query.id;
@@ -24,7 +24,14 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   async create(data: Partial<T>): Promise<T> {
-    const doc = new this.repo(data);
+    const preparedData = { ...data } as any;
+    
+    // Auto-map SQL-style relation IDs to Mongoose relation fields
+    if (preparedData.categoryId && !preparedData.category) {
+      preparedData.category = preparedData.categoryId;
+    }
+    
+    const doc = new this.repo(preparedData);
     return doc.save();
   }
 
@@ -32,8 +39,17 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
     return entity.save();
   }
 
-  async update(id: string | number, data: Partial<T>): Promise<void> {
-    await this.repo.findByIdAndUpdate(id, data as object).exec();
+  async update(id: string | number, data: Partial<T>): Promise<T | null> {
+    const preparedData = { ...data } as any;
+
+    // Auto-map SQL-style relation IDs to Mongoose relation fields
+    if (preparedData.categoryId && !preparedData.category) {
+      preparedData.category = preparedData.categoryId;
+    }
+
+    return this.repo
+      .findByIdAndUpdate(id, preparedData as object, { new: true })
+      .exec();
   }
 
   async delete(id: string | number): Promise<void> {
@@ -41,7 +57,7 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   async count(filter?: any): Promise<number> {
-    const query = { ...(filter || {}) };
+    const query = { ...(filter || {}), deletedAt: null };
     if (query.id) {
       query._id = query.id;
       delete query.id;

@@ -1,5 +1,4 @@
-import 'dotenv/config';
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -16,10 +15,12 @@ import {
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
+import { FedaPayProvider } from '../../libs/payments/fedapay.provider';
+import { OrdersModule } from '../orders/orders.module';
+import { QueuesModule } from '../../libs/queues/queues.module';
+import { UsersModule } from '../users/users.module';
 dotenv.config();
 const dbType = process.env.DB_TYPE?.toLowerCase();
-
-import { FedaPayProvider } from '../../libs/payments/fedapay.provider';
 
 @Module({
   imports: [
@@ -28,6 +29,9 @@ import { FedaPayProvider } from '../../libs/payments/fedapay.provider';
           { name: MongoTransaction.name, schema: TransactionSchema },
         ])
       : TypeOrmModule.forFeature([Transaction]),
+    forwardRef(() => OrdersModule),
+    QueuesModule,
+    UsersModule,
   ],
   controllers: [PaymentsController],
   providers: [

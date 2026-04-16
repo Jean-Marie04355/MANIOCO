@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   BadRequestException,
+  forwardRef,
 } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Order } from './order.entity';
@@ -21,6 +22,7 @@ export class OrdersService {
     private readonly storeRepository: IBaseRepository<Store>,
     @Inject('PRODUCT_REPOSITORY')
     private readonly productRepository: IBaseRepository<Product>,
+    @Inject(forwardRef(() => PaymentsService))
     private readonly paymentsService: PaymentsService,
   ) {}
 
@@ -61,7 +63,9 @@ export class OrdersService {
       }
 
       // Check if the product belongs to the store
-      if (product.category?.storeId !== createOrderDto.storeId) {
+      if (
+        String(product.category?.storeId) !== String(createOrderDto.storeId)
+      ) {
         throw new BadRequestException(
           `The product ${product.name} does not belong to this store.`,
         );
@@ -116,11 +120,46 @@ export class OrdersService {
         paymentUrl: paymentTx.url,
       };
     } catch (error) {
-      // If payment initiation fails, we could cancel the order here
+      // If payment initiation fails, we cancel the order and restore stock
+      await this.cancelOrder(order.id);
+      
+      const errorMessage = error instanceof Error ? error.message : String(error);
       throw new BadRequestException(
-        `Unable to initiate payment: ${error.message}`,
+        `Unable to initiate payment: ${errorMessage}. The order has been cancelled and stock restored.`,
       );
     }
+  }
+
+  /**
+   * Restores product stock for a given order
+   */
+  async restoreStock(orderId: string): Promise<void> {
+    const order = await this.findOne(orderId);
+    if (!order || !order.items) return;
+
+    for (const item of order.items) {
+      const product = await this.productRepository.findOne({
+        id: item.productId,
+      });
+      if (product) {
+        await this.productRepository.update(product.id, {
+          stock: product.stock + item.quantity,
+        });
+      }
+    }
+  }
+
+  /**
+   * Cancels an order and restores its stock
+   */
+  async cancelOrder(id: string): Promise<Order | null> {
+    const order = await this.findOne(id);
+    if (order.status === OrderStatus.CANCELLED) return order;
+
+    await this.orderRepository.update(id, { status: OrderStatus.CANCELLED });
+    await this.restoreStock(id);
+    
+    return this.findOne(id);
   }
 
   async findAll(): Promise<Order[]> {

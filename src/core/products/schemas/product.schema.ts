@@ -34,6 +34,11 @@ export class Product {
 
 export const ProductSchema = SchemaFactory.createForClass(Product);
 
+// Auto-populate category for NoSQL consistency with SQL eager loading
+ProductSchema.pre(['find', 'findOne'], function () {
+  this.populate('category');
+});
+
 // Align the 'id' property with TypeORM
 ProductSchema.virtual('id').get(function () {
   return this._id.toHexString();

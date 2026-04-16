@@ -17,6 +17,7 @@ import {
 } from '@nestjs/swagger';
 import { StoreService } from './store.service';
 import { CreateStoreDto } from './dto/create-store.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
 import { Store } from './store.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
@@ -105,7 +106,7 @@ export class StoreController {
   @ApiResponse({ status: 404, description: 'Store not found.' })
   update(
     @Param('id') id: string,
-    @Body() updateStoreDto: Partial<CreateStoreDto>,
+    @Body() updateStoreDto: UpdateStoreDto,
   ) {
     return this.storeService.update(id, updateStoreDto);
   }

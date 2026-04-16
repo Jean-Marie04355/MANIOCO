@@ -5,6 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.entity';
 import { hashPassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
@@ -72,11 +73,11 @@ export class UsersService {
     return this.userRepository.softDelete(id);
   }
 
-  async update(id: string, updateUserDto: Partial<CreateUserDto>) {
+  async update(id: string, updateUserDto: UpdateUserDto = {}) {
     await this.findOne(id);
-    if (updateUserDto.password) {
+    if (updateUserDto && updateUserDto.password) {
       updateUserDto.password = await hashPassword(updateUserDto.password);
     }
-    return this.userRepository.update(id, updateUserDto);
+    return this.userRepository.update(id, updateUserDto || {});
   }
 }

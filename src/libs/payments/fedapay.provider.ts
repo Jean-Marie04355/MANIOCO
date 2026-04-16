@@ -98,6 +98,18 @@ export class FedaPayProvider implements IPaymentProvider {
       };
     }
 
+    if (
+      event === 'transaction.canceled' ||
+      event === 'transaction.declined' ||
+      event === 'transaction.expired'
+    ) {
+      return {
+        externalId: String(entity.id),
+        status: 'DECLINED',
+        mode: String(entity.mode),
+      };
+    }
+
     return null;
   }
 }

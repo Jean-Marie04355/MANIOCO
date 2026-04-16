@@ -1,9 +1,12 @@
-import { Injectable, Inject, Logger } from '@nestjs/common';
+import { Injectable, Inject, Logger, forwardRef } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Transaction } from './transaction.entity';
 import { ConfigService } from '@nestjs/config';
 import { Order } from '../orders/order.entity';
+import { User } from '../users/user.entity';
 import { IPaymentProvider } from '../../common/interfaces/payment-provider.interface';
+import { OrdersService } from '../orders/orders.service';
+import { BullMQService } from '../../libs/queues/bullmq.service';
 
 @Injectable()
 export class PaymentsService {
@@ -12,9 +15,14 @@ export class PaymentsService {
   constructor(
     @Inject('TRANSACTION_REPOSITORY')
     private readonly transactionRepository: IBaseRepository<Transaction>,
+    @Inject('USER_REPOSITORY')
+    private readonly userRepository: IBaseRepository<User>,
     @Inject('PAYMENT_PROVIDER')
     private readonly paymentProvider: IPaymentProvider,
     private readonly configService: ConfigService,
+    private readonly bullMQService: BullMQService,
+    @Inject(forwardRef(() => OrdersService))
+    private readonly ordersService: OrdersService,
   ) {}
 
   /**
@@ -83,7 +91,46 @@ export class PaymentsService {
           status: 'APPROVED',
           paymentMethod: result.mode || 'unknown',
         });
+        
+        // Update order status to PAID
+        await this.ordersService.updateStatus(transaction.orderId, 'PAID' as any);
+        
+        // Fetch order details for notification
+        const order = await this.ordersService.findOne(transaction.orderId);
+        if (order) {
+          // Fetch customer email
+          const customer = await this.userRepository.findOne({ id: order.customerId });
+          if (customer) {
+            // Queue order confirmation email
+            const queueToken = process.env.BULLMQ_QUEUE || 'default';
+            const queue = this.bullMQService.getQueue(queueToken);
+            await queue.add('send-order-confirmation', {
+              email: customer.email,
+              orderId: order.id,
+              totalAmount: order.totalAmount,
+              items: order.items,
+            });
+            this.logger.log(`Order confirmation queued for ${customer.email}`);
+          }
+        }
+        
         this.logger.log(`Payment approved for transaction ${result.externalId}`);
+      }
+    } else if (result && result.status === 'DECLINED') {
+      const transaction = await this.transactionRepository.findOne({
+        externalId: result.externalId,
+      });
+
+      if (transaction) {
+        await this.transactionRepository.update(transaction.id, {
+          status: 'DECLINED',
+          paymentMethod: result.mode || 'unknown',
+        });
+        
+        // Cancel order and restore stock
+        await this.ordersService.cancelOrder(transaction.orderId);
+        
+        this.logger.warn(`Payment declined/canceled for transaction ${result.externalId}. Order cancelled.`);
       }
     }
   }
