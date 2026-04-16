@@ -3,7 +3,7 @@
 #  BUILD STAGE
 # ===========================
 # Use an official Node.js runtime as the base image
-FROM node:lts-slim AS base
+FROM node:24-slim AS base
 
 
 # ===========================
@@ -14,17 +14,15 @@ FROM node:lts-slim AS base
 FROM base AS deps
 WORKDIR /app
 
-# Copy package.json and pnpm-lock.yaml (if available) into the root directory of the container
-COPY package.json pnpm-lock.yaml  ./
+# Install build tools for native modules (e.g., sqlite3)
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
+# Copy package.json and package-lock.json (if available) into the root directory of the container
+COPY package*.json ./
 
 # Install any needed packages specified in package.json
-# kics-scan ignore-block
 RUN ls -la && \
-    corepack enable pnpm && \
-    pnpm fetch --prefer-offline && \
-    pnpm i --ignore-scripts --frozen-lockfile  && \
-    # Install any needed additional packages here
-    pnpm i --ignore-scripts nestjs-typeorm-paginate eventemitter3 stripe countries-and-timezones
+    npm ci
 
 
 # ===========================
@@ -33,16 +31,17 @@ RUN ls -la && \
 FROM base AS builder
 WORKDIR /app
 
-COPY --from=deps /app/node_modules ./node_modules 
-COPY nest-cli.json package.json pnpm-lock.yaml sonar-project.properties tsconfig.build.json tsconfig.json ./
-COPY /src ./src
+COPY --from=deps /app/node_modules ./node_modules
+COPY nest-cli.json package.json sonar-project.properties tsconfig.build.json tsconfig.json ./
+COPY src ./src
+COPY data ./data
 
 # Build the app (NestJS, NextJS, or plain TS app)
 RUN ls -la && \
-    corepack enable pnpm && pnpm run build && \
-    rm -rf node_modules && \
-    pnpm i --ignore-scripts --prod --no-optional && \
-    rm -rf /root/.pnpm-store node_modules/.store
+    npm run build && \
+    # Remove dev dependencies
+    npm prune --production --legacy-peer-deps && \
+    rm -rf /root/.npm
 
 
 # ===========================
@@ -53,19 +52,18 @@ WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
 
-# kics-scan ignore-block
-COPY --from=builder --chmod=755 /app/dist ./dist
-COPY --from=builder --chmod=755 /app/src/utils ./src/utils
-COPY --from=builder --chmod=755 /app/node_modules ./node_modules
-COPY --from=builder --chmod=755 /app/package.json ./package.json
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/data ./data
 
+RUN chown -R nestjs:nodejs data
 
 USER nestjs
-#ENV NODE_ENV=production
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget --spider -q http://localhost:3000/ping || exit 1
 
-CMD ["node", "dist/main.js"]
-
+CMD ["node", "dist/main.js"]   le nouveau dockerfile
