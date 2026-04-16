@@ -15,7 +15,7 @@ FROM base AS deps
 WORKDIR /app
 
 # Copy package.json and pnpm-lock.yaml (if available) into the root directory of the container
-COPY package.json pnpm-lock.yaml  ./
+COPY package.json  ./
 
 # Install any needed packages specified in package.json
 # kics-scan ignore-block
