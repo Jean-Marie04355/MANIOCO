@@ -48,7 +48,6 @@ FROM base AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
-RUN chown -R nestjs:nodejs data
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
@@ -57,6 +56,8 @@ COPY --from=builder /app/data ./data
 
 
 USER nestjs
+RUN chown -R nestjs:nodejs data
+
 #ENV NODE_ENV=production
 EXPOSE 3000
 
