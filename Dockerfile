@@ -34,7 +34,7 @@ FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules 
-COPY nest-cli.json package.json pnpm-lock.yaml sonar-project.properties tsconfig.build.json tsconfig.json ./
+COPY nest-cli.json package.json sonar-project.properties tsconfig.build.json tsconfig.json ./
 COPY /src ./src
 
 # Build the app (NestJS, NextJS, or plain TS app)
@@ -55,7 +55,6 @@ RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
 
 # kics-scan ignore-block
 COPY --from=builder --chmod=755 /app/dist ./dist
-COPY --from=builder --chmod=755 /app/src/utils ./src/utils
 COPY --from=builder --chmod=755 /app/node_modules ./node_modules
 COPY --from=builder --chmod=755 /app/package.json ./package.json
 
