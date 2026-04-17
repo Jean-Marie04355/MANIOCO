@@ -2,18 +2,20 @@ import 'dotenv/config';
 import { Worker, type ConnectionOptions, type Job } from 'bullmq';
 
 function main() {
-  const connection: ConnectionOptions = (() => {
-    const url = process.env.REDIS_URL;
-    if (url) return { url };
-
-    const host = process.env.REDIS_HOST ?? '127.0.0.1';
-    const port = Number(process.env.REDIS_PORT ?? 6379);
-    const password = process.env.REDIS_PASSWORD;
-    const db = Number(process.env.REDIS_DB ?? 0);
-    return { host, port, password: password || undefined, db };
-  })();
-
+  const REDIS_URL = process.env.REDIS_URL;
+  const REDIS_HOST = process.env.REDIS_HOST ?? '127.0.0.1';
+  const REDIS_PORT = Number(process.env.REDIS_PORT ?? 6379);
+  const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
+  const REDIS_DB = Number(process.env.REDIS_DB ?? 0);
   const queueName = process.env.BULLMQ_QUEUE ?? 'default';
+
+  const connection: ConnectionOptions = REDIS_URL ? { url: REDIS_URL } : {
+    host: REDIS_HOST,
+    port: REDIS_PORT,
+    password: REDIS_PASSWORD || undefined,
+    db: REDIS_DB,
+  };
+
 
   const worker = new Worker(
     queueName,

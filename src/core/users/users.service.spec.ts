@@ -4,6 +4,7 @@ import { ConflictException, NotFoundException } from '@nestjs/common';
 import { UserRole } from '../../common/enum/role.enum';
 
 describe('UsersService', () => {
+  jest.setTimeout(15000); // hash functions can be slow on CI
   let service: UsersService;
   let repositoryMock: any;
 

@@ -2,6 +2,8 @@ import * as bcrypt from 'bcrypt';
 import { hashPassword, comparePassword } from './hash.helper';
 
 describe('HashHelper', () => {
+  jest.setTimeout(15000); // bcrypt.hash can be slow in CI/Docker environments
+
   describe('hashPassword', () => {
     it('should hash a password', async () => {
       const pwd = 'test';

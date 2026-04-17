@@ -18,10 +18,8 @@ export class S3StorageService implements IStorageService {
   private readonly endpoint: string;
 
   constructor(private readonly configService: ConfigService) {
-    this.endpoint = this.configService.get<string>(
-      'S3_ENDPOINT',
-      'http://127.0.0.1:3900',
-    );
+    this.endpoint = this.configService.get<string>('S3_ENDPOINT');
+
     this.bucketName = this.configService.get<string>(
       'S3_BUCKET_NAME',
       'afrigari-bucket',

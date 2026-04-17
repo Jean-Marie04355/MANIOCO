@@ -16,9 +16,9 @@ async function bootstrap() {
   // Get ConfigService for configuration
   const configService = app.get(ConfigService);
 
-  // Enable CORS with ConfigService
+  // Enable CORS with ConfigService from config
   app.enableCors({
-    origin: configService.get<string>('FRONTEND_URL', 'http://localhost:3000'),
+    origin: configService.get<string | string[]>('FRONTEND_URL') ?? [],
     credentials: true,
   });
 
