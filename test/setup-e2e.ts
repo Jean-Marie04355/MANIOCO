@@ -1,14 +1,20 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 
 class E2EState {
-  public static mongod: MongoMemoryServer | undefined;
+  private static _mongod?: MongoMemoryServer;
+  public static get mongod(): MongoMemoryServer | undefined {
+    return this._mongod;
+  }
+  public static async init(): Promise<string> {
+    this._mongod = await MongoMemoryServer.create();
+    return this._mongod.getUri();
+  }
 }
 
 beforeAll(async () => {
   // Setup MongoDB Memory Server if needed
   if (process.env.DB_TYPE === 'mongodb') {
-    E2EState.mongod = await MongoMemoryServer.create();
-    const uri = E2EState.mongod.getUri();
+    const uri = await E2EState.init();
     process.env.MONGODB_URI = uri;
   }
 
