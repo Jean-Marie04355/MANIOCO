@@ -15,7 +15,8 @@ FROM base AS deps
 WORKDIR /app
 
 # Install build tools for native modules (e.g., sqlite3)
-RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+# hadolint ignore=DL3008
+RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 
 # Copy package.json and package-lock.json (if available) into the root directory of the container
 COPY package*.json ./
