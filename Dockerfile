@@ -16,7 +16,11 @@ WORKDIR /app
 
 # Install build tools for native modules (e.g., sqlite3)
 # hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3=3.11.2-1+b1 \
+    make=4.3-4.1 \
+    g++=4:12.2.0-3 \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copy package.json and package-lock.json (if available) into the root directory of the container
 COPY package*.json ./
