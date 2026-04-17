@@ -17,11 +17,13 @@ import { SqlRepository } from '../../libs/sql-database/repository';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { UsersModule } from '../users/users.module'; // ← IMPORTANT for USER_REPOSITORY
 import { LocationModule } from '../location/location.module';
+import { RolesModule } from '../roles/roles.module';
 
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
+    RolesModule,
     dbType === 'mongodb'
       ? MongooseModule.forFeature([
           { name: MongoStore.name, schema: StoreSchema },

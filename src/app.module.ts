@@ -18,11 +18,13 @@ import { PaymentsModule } from './core/payments/payments.module';
 import { RealtimeModule } from './core/realtime/realtime.module';
 import { QueuesModule } from './libs/queues/queues.module';
 import { AdminSeeder } from './common/seeder/admin.seeder';
+import { RolesModule } from './core/roles/roles.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     DatabaseModule.register(),
+    RolesModule,
     StorageModule,
     CacheModule,
     LocationModule,

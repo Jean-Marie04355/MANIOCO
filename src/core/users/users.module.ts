@@ -16,12 +16,14 @@ import {
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
 import { RolesGuard } from '../../common/guards/roles.guard';
+import { RolesModule } from '../roles/roles.module';
 
 // dbType calculated via env (NestJS handles loading the .env via ConfigModule globally)
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
+    RolesModule,
     dbType === 'mongodb'
       ? MongooseModule.forFeature([
           { name: MongoUser.name, schema: UserSchema },

@@ -14,13 +14,13 @@ import {
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
 import { ProductCategoriesModule } from '../product-categories/product-categories.module';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import { RolesModule } from '../roles/roles.module';
 
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
+    RolesModule,
     dbType === 'mongodb'
       ? MongooseModule.forFeature([
           { name: MongoProduct.name, schema: ProductSchema },

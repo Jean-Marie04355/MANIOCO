@@ -13,9 +13,6 @@ import {
 } from './schemas/product-category.schema';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
-import * as dotenv from 'dotenv';
-dotenv.config();
-
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
