@@ -1,8 +1,7 @@
 import 'dotenv/config';
 import { Global, Module, OnModuleInit } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
-import { getRepositoryToken } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import { RolesService } from './roles.service';

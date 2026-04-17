@@ -103,7 +103,7 @@ export class PaymentsService {
           const customer = await this.userRepository.findOne({ id: order.customerId });
           if (customer) {
             // Queue order confirmation email
-            const queueToken = process.env.QUEUE_NAME || 'default';
+            const queueToken = this.configService.get('QUEUE_NAME') || 'default';
             await this.queueService.addJob(queueToken, 'send-order-confirmation', {
               email: customer.email,
               orderId: order.id,

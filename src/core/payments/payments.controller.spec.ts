@@ -5,7 +5,7 @@ import { HttpStatus } from '@nestjs/common';
 
 describe('PaymentsController', () => {
   let controller: PaymentsController;
-  let serviceMock: any;
+  let serviceMock: jest.Mocked<Partial<PaymentsService>>;
 
   beforeEach(async () => {
     serviceMock = {
@@ -14,34 +14,38 @@ describe('PaymentsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PaymentsController],
-      providers: [{ provide: PaymentsService, useValue: serviceMock }],
+      providers: [
+        { provide: PaymentsService, useValue: serviceMock },
+      ],
     }).compile();
 
     controller = module.get<PaymentsController>(PaymentsController);
   });
 
-  describe('handleWebhook', () => {
-    it('should call service.handleWebhook and return OK', async () => {
-      const res = {
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
-      };
-      const payload = { event: 'test' };
+  it('should return 200 OK when webhook is processed successfully', async () => {
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    } as any;
 
-      await controller.handleWebhook(payload, res as any);
-      expect(serviceMock.handleWebhook).toHaveBeenCalledWith(payload);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
-    });
+    await controller.handleWebhook({ event: 'payment.success' }, res);
 
-    it('should return 500 if service fails', async () => {
-      const res = {
-        status: jest.fn().mockReturnThis(),
-        send: jest.fn(),
-      };
-      serviceMock.handleWebhook.mockRejectedValue(new Error('FAIL'));
+    expect(serviceMock.handleWebhook).toHaveBeenCalledWith({ event: 'payment.success' });
+    expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
+    expect(res.send).toHaveBeenCalledWith('OK');
+  });
 
-      await controller.handleWebhook({}, res as any);
-      expect(res.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
-    });
+  it('should return 500 when webhook processing fails', async () => {
+    const res = {
+      status: jest.fn().mockReturnThis(),
+      send: jest.fn(),
+    } as any;
+
+    serviceMock.handleWebhook.mockRejectedValue(new Error('Internal Error'));
+
+    await controller.handleWebhook({}, res);
+
+    expect(res.status).toHaveBeenCalledWith(HttpStatus.INTERNAL_SERVER_ERROR);
+    expect(res.send).toHaveBeenCalledWith('Error');
   });
 });

@@ -98,7 +98,7 @@ export class AuthService {
     } as Partial<User>);
 
     // Put OTP job into the queue
-    const queueName = process.env.QUEUE_NAME || 'default';
+    const queueName = this.configService.get('QUEUE_NAME') || 'default';
     await this.queueService.addJob(queueName, 'send-otp-email', { email: user.email, otpCode });
 
     return {

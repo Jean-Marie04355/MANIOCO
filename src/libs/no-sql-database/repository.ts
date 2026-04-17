@@ -7,7 +7,7 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
 
   async find(filter?: any): Promise<T[]> {
     const query = { ...(filter || {}), deletedAt: null };
-    if (query.id) {
+    if ('id' in query && query.id) {
       query._id = query.id;
       delete query.id;
     }
@@ -16,7 +16,7 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
 
   async findOne(filter: any): Promise<T | null> {
     const query = { ...filter, deletedAt: null };
-    if (query.id) {
+    if ('id' in query && query.id) {
       query._id = query.id;
       delete query.id;
     }
@@ -58,7 +58,7 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
 
   async count(filter?: any): Promise<number> {
     const query = { ...(filter || {}), deletedAt: null };
-    if (query.id) {
+    if ('id' in query && query.id) {
       query._id = query.id;
       delete query.id;
     }

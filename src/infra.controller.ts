@@ -61,7 +61,7 @@ export class InfraController {
       status.s3 = 'up';
     } catch {}
 
-    const isAllUp = Object.values(status).every((s) => s === 'up' || typeof s !== 'string' || s === 'up'); // simplified
+    const isAllUp = Object.values(status).every((s) => s === 'up' || typeof s !== 'string'); // simplified
 
     return {
       status: status.redis === 'up' && status.postgres === 'up' && status.mongodb === 'up' && status.s3 === 'up' ? 'healthy' : 'degraded',

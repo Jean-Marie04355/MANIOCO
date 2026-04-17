@@ -20,8 +20,10 @@ function extractToken(client: Socket): string | null {
 
   const header = client.handshake.headers?.authorization;
   if (typeof header === 'string') {
-    const m = header.match(/^Bearer\s+(.+)$/i);
-    if (m?.[1]) return m[1];
+    const parts = header.trim().split(/\s+/);
+    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
+      return parts[1];
+    }
   }
 
   return null;
@@ -40,7 +42,7 @@ export class WsJwtGuard implements CanActivate {
 
     try {
       const payload = await this.jwt.verifyAsync<JwtPayload>(token);
-      (client as Socket & { user?: JwtPayload }).user = payload;
+      Object.assign(client, { user: payload });
       return true;
     } catch {
       throw new WsException('Invalid auth token');

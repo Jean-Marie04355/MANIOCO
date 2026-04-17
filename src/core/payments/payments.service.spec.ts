@@ -82,15 +82,13 @@ describe('PaymentsService', () => {
       });
     });
 
-    it('should handle errors from payment provider', async () => {
+    it('should handle errors from payment provider (non-Error instance)', async () => {
       transactionRepoMock.create.mockResolvedValue({ id: 'local-1' });
-      paymentProviderMock.createTransaction.mockRejectedValue(
-        new Error('Provider Error'),
-      );
+      paymentProviderMock.createTransaction.mockRejectedValue('String Error');
 
       await expect(
         service.createTransaction(order as any, sellerAcc),
-      ).rejects.toThrow('Provider Error');
+      ).rejects.toBe('String Error');
     });
   });
 
@@ -120,6 +118,8 @@ describe('PaymentsService', () => {
       ordersServiceMock.findOne.mockResolvedValue({
         id: 'order-1',
         customerId: 'cust-1',
+        totalAmount: 1000,
+        items: [],
       });
       userRepoMock.findOne.mockResolvedValue({ email: 'test@test.com' });
 
@@ -131,6 +131,41 @@ describe('PaymentsService', () => {
           paymentMethod: 'mtn',
         }),
       );
+      expect(queueServiceMock.addJob).toHaveBeenCalled();
+    });
+
+    it('should handle case when customer is not found after approval', async () => {
+      paymentProviderMock.verifyNotification.mockResolvedValue({
+        status: 'APPROVED',
+        externalId: 'ext-1',
+      });
+      transactionRepoMock.findOne.mockResolvedValue({
+        id: 'local-1',
+        orderId: 'order-1',
+      });
+      ordersServiceMock.findOne.mockResolvedValue({
+        id: 'order-1',
+        customerId: 'cust-1',
+      });
+      userRepoMock.findOne.mockResolvedValue(null);
+
+      await service.handleWebhook({});
+      expect(queueServiceMock.addJob).not.toHaveBeenCalled();
+    });
+
+    it('should handle case when order is not found after approval', async () => {
+      paymentProviderMock.verifyNotification.mockResolvedValue({
+        status: 'APPROVED',
+        externalId: 'ext-1',
+      });
+      transactionRepoMock.findOne.mockResolvedValue({
+        id: 'local-1',
+        orderId: 'order-1',
+      });
+      ordersServiceMock.findOne.mockResolvedValue(null);
+
+      await service.handleWebhook({});
+      expect(userRepoMock.findOne).not.toHaveBeenCalled();
     });
 
     it('should cancel order and restore stock when declined', async () => {
@@ -152,6 +187,32 @@ describe('PaymentsService', () => {
         }),
       );
       expect(ordersServiceMock.cancelOrder).toHaveBeenCalledWith('order-1');
+    });
+
+    it('should do nothing if transaction is not found for externalId', async () => {
+      paymentProviderMock.verifyNotification.mockResolvedValue({
+        status: 'APPROVED',
+        externalId: 'ext-unknown',
+      });
+      transactionRepoMock.findOne.mockResolvedValue(null);
+
+      await service.handleWebhook({});
+      expect(transactionRepoMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should do nothing if verifyNotification returns null', async () => {
+      paymentProviderMock.verifyNotification.mockResolvedValue(null);
+      await service.handleWebhook({});
+      expect(transactionRepoMock.findOne).not.toHaveBeenCalled();
+    });
+
+    it('should ignore status other than APPROVED or DECLINED', async () => {
+      paymentProviderMock.verifyNotification.mockResolvedValue({
+        status: 'PENDING',
+        externalId: 'ext-1',
+      });
+      await service.handleWebhook({});
+      expect(transactionRepoMock.findOne).not.toHaveBeenCalled();
     });
   });
 });

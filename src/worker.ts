@@ -24,8 +24,8 @@ function main() {
         // eslint-disable-next-line no-console
         console.log('\n==========================================');
         console.log(`📧 [SIMULATED EMAIL]`);
-        console.log(`To           : ${email}`);
-        console.log(`OTP Code     : ${otpCode}`);
+        console.log(`To           : ${email.replace(/(.{3}).*@/, '$1***@')}`); // Masked
+        console.log(`Status       : OTP Sent`);
         console.log('==========================================\n');
         return { ok: true, emailSent: true };
       }
@@ -35,15 +35,9 @@ function main() {
         // eslint-disable-next-line no-console
         console.log('\n==========================================');
         console.log(`📧 [COMMANDE RÉUSSIE]`);
-        console.log(`Client       : ${email}`);
+        console.log(`To           : ${email.replace(/(.{3}).*@/, '$1***@')}`); // Masked
         console.log(`Commande ID  : #${orderId}`);
-        console.log(`Montant Total: ${totalAmount} FCFA`);
-        console.log(`Articles     :`);
-        if (Array.isArray(items)) {
-          items.forEach((item: any) => {
-            console.log(` - ${item.productName} (x${item.quantity}) : ${item.price} FCFA`);
-          });
-        }
+        console.log(`Status       : Confirmation Sent`);
         console.log('==========================================\n');
         return { ok: true, emailSent: true };
       }
@@ -66,5 +60,5 @@ function main() {
   console.log(`[worker] started for queue "${queueName}"`);
 }
 
-void main();
+main();
 
