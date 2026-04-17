@@ -1,8 +1,8 @@
-const { Client } = require('pg');
-const crypto = require('node:crypto');
-require('dotenv').config();
+(async () => {
+  const { Client } = require('pg');
+  const crypto = require('node:crypto');
+  require('dotenv').config();
 
-async function simulateFlowPG() {
   const client = new Client({
     user: process.env.DB_USER || ['post', 'gres'].join(''),
     host: process.env.DB_HOST || ['local', 'host'].join(''),
@@ -37,7 +37,7 @@ async function simulateFlowPG() {
       VALUES ($1, $2, $3, $4, $5) RETURNING id
     `, [
       userId,
-      '123e4567-e89b-12d3-a456-426614174000', // mock uuid pour un store existant ou factice (peut-être ajusté si contrainte de clé étrangère trop stricte, mais TypeORM pardonne souvent sans relation explicite DB-level)
+      '123e4567-e89b-12d3-a456-426614174000',
       5500,
       'PENDING',
       JSON.stringify([
@@ -85,8 +85,6 @@ async function simulateFlowPG() {
     }
   } finally {
     await client.end();
-    log("Déconnecté de Postgres. Si la requête API a renvoyé 200/201, vérifiez la console du worker !");
+    process.stdout.write("Déconnecté de Postgres. Si la requête API a renvoyé 200/201, vérifiez la console du worker !\n");
   }
-}
-
-simulateFlowPG();
+})();

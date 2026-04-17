@@ -1,8 +1,8 @@
-const mongoose = require('mongoose');
-const crypto = require('node:crypto');
-require('dotenv').config();
+(async () => {
+  const mongoose = require('mongoose');
+  const crypto = require('node:crypto');
+  require('dotenv').config();
 
-async function simulateFlow() {
   try {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/afrigari';
     await mongoose.connect(mongoUri);
@@ -94,6 +94,4 @@ async function simulateFlow() {
   } catch (error) {
     process.stderr.write(`Erreur de simulation: ${error.message}\n`);
   }
-}
-
-simulateFlow();
+})();

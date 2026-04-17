@@ -1,6 +1,5 @@
-require('dotenv').config();
-
-async function run() {
+(async () => {
+  require('dotenv').config();
   const log = (msg) => process.stdout.write(`${msg}\n`);
   log('Attente du serveur (10s)...');
   await new Promise(r => setTimeout(r, 10000));
@@ -32,6 +31,4 @@ async function run() {
   } catch (err) {
     process.stderr.write(`Erreur de requete: ${err.message}\n`);
   }
-}
-
-run();
+})();

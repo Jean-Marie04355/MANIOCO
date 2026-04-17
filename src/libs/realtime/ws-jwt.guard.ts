@@ -12,27 +12,14 @@ type JwtPayload = {
   exp?: number;
 };
 
-function extractToken(client: Socket): string | null {
-  const auth = client.handshake.auth;
-  if (auth && typeof auth.token === 'string') {
-    return auth.token || null;
-  }
-
-  const authorization = client.handshake.headers?.authorization;
-  if (typeof authorization === 'string' && authorization.startsWith('Bearer ')) {
-    return authorization.substring(7);
-  }
-
-  return null;
-}
-
 @Injectable()
 export class WsJwtGuard implements CanActivate {
   constructor(private readonly jwt: JwtService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client = context.switchToWs().getClient<Socket>();
-    const token = extractToken(client);
+    const token = this.extractToken(client);
+    
     if (!token) {
       throw new WsException('Missing auth token');
     }
@@ -44,6 +31,18 @@ export class WsJwtGuard implements CanActivate {
     } catch {
       throw new WsException('Invalid auth token');
     }
+  }
+
+  private extractToken(client: Socket): string | null {
+    // Priority 1: handshake.auth.token
+    const auth = client.handshake.auth;
+    if (auth?.token) return String(auth.token);
+
+    // Priority 2: Authorization header
+    const header = client.handshake.headers?.authorization;
+    if (header?.startsWith('Bearer ')) return header.substring(7);
+
+    return null;
   }
 }
 
