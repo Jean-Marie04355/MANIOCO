@@ -11,6 +11,7 @@ describe('PaymentsService', () => {
   let paymentProviderMock: any;
   let ordersServiceMock: any;
   let bullMQServiceMock: any;
+  let queueServiceMock: any;
 
   beforeEach(async () => {
     transactionRepoMock = {
