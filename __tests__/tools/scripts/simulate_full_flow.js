@@ -1,102 +1,88 @@
 'use strict';
 
-async function runSimulation() {
-  const mongo = require('mongoose');
-  const crypto = require('node:crypto');
-  require('dotenv').config();
+(function(mongo, crypto, dotenv) {
+  dotenv.config();
 
-  try {
-    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/afrigari';
-    await mongo.connect(mongoUri);
-    
-    // 1. Trouver un utilisateur actif
-    const UserSchema = new mongo.Schema({}, { strict: false });
-    const User = mongo.model('User', UserSchema);
-    const log = (msg) => process.stdout.write(`${msg}\n`);
-    let activeUser = await User.findOne({ email: 'toto@gmail.com' });
-    
-    if (!activeUser) {
-      log("Utilisateur toto@gmail.com non trouvé. Création d'un utilisateur de test...");
-      activeUser = new User({
-        email: 'toto@gmail.com',
-        firstName: 'Toto',
-        lastName: 'Test',
-        password: process.env.TEST_USER_PASSWORD || crypto.randomBytes(12).toString('hex'),
-        isActive: true,
-        roles: ['USER']
-      });
-      await activeUser.save();
-    }
-
-    // 2. Créer une commande de test
-    const OrderSchema = new mongo.Schema({
-      customerId: String,
-      storeId: String,
-      totalAmount: Number,
-      status: String,
-      items: Array
-    }, { strict: false, timestamps: true });
-    const Order = mongo.model('Order', OrderSchema);
-    
-    const newOrder = new Order({
-      customerId: activeUser._id,
-      storeId: 'mock-store-id',
-      totalAmount: 5500,
-      status: 'PENDING',
-      items: [
-        { productName: 'Smartphone X', quantity: 1, price: 5000 },
-        { productName: 'Coque Protection', quantity: 1, price: 500 }
-      ]
-    });
-    await newOrder.save();
-    log(`Commande créée: ${String(newOrder._id).substring(0, 8)}...`);
-
-    // 3. Créer une transaction liée
-    const TransactionSchema = new mongo.Schema({
-      orderId: String,
-      externalId: String,
-      status: String,
-      amount: Number
-    }, { strict: false });
-    const Transaction = mongo.model('Transaction', TransactionSchema);
-    
-    const externalTxId = 'fedapay_test_' + Date.now();
-    const newTx = new Transaction({
-      orderId: newOrder._id,
-      externalId: externalTxId,
-      status: 'PENDING',
-      amount: 5500
-    });
-    await newTx.save();
-    log(`Transaction créée: ${String(newTx._id).substring(0, 8)}... (FedaPay ID: ${externalTxId})`);
-
-    // 4. Simuler l'appel Webhook
-    log("Envoi du webhook de simulation via fetch...");
-    const webhookPayload = {
-      event: 'transaction.approved',
-      entity: {
-        id: externalTxId,
-        mode: 'mtn_benin',
-        status: 'approved'
+  async function runSimulation() {
+    try {
+      const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/afrigari';
+      await mongo.connect(mongoUri);
+      
+      const UserSchema = new mongo.Schema({}, { strict: false });
+      const User = mongo.model('User', UserSchema);
+      const log = (msg) => process.stdout.write(`${msg}\n`);
+      
+      let activeUser = await User.findOne({ email: 'toto@gmail.com' });
+      
+      if (!activeUser) {
+        log("Utilisateur toto@gmail.com non trouvé. Création d'un utilisateur de test...");
+        activeUser = new User({
+          email: 'toto@gmail.com',
+          firstName: 'Toto',
+          lastName: 'Test',
+          password: process.env.TEST_USER_PASSWORD || crypto.randomBytes(12).toString('hex'),
+          isActive: true,
+          roles: ['USER']
+        });
+        await activeUser.save();
       }
-    };
 
-    const baseUrl = process.env.APP_URL || 'http://localhost:3000';
-    const response = await fetch(`${baseUrl}/payments/webhook`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(webhookPayload)
-    });
-    
-    log(`Réponse du Webhook: ${response.status}`);
-    const data = await response.json().catch(() => ({}));
-    log(`Données: ${JSON.stringify(data)}`);
+      const OrderSchema = new mongo.Schema({
+        customerId: String, storeId: String, totalAmount: Number, status: String, items: Array
+      }, { strict: false, timestamps: true });
+      const Order = mongo.model('Order', OrderSchema);
+      
+      const newOrder = new Order({
+        customerId: activeUser._id,
+        storeId: 'mock-store-id',
+        totalAmount: 5500,
+        status: 'PENDING',
+        items: [
+          { productName: 'Smartphone X', quantity: 1, price: 5000 },
+          { productName: 'Coque Protection', quantity: 1, price: 500 }
+        ]
+      });
+      await newOrder.save();
+      log(`Commande créée: ${String(newOrder._id).substring(0, 8)}...`);
 
-    await mongo.disconnect();
-    log("Simulation terminée. Vérifiez la console du worker !");
-  } catch (error) {
-    process.stderr.write(`Erreur de simulation: ${error.message}\n`);
+      const TransactionSchema = new mongo.Schema({
+        orderId: String, externalId: String, status: String, amount: Number
+      }, { strict: false });
+      const Transaction = mongo.model('Transaction', TransactionSchema);
+      
+      const externalTxId = 'fedapay_test_' + Date.now();
+      const newTx = new Transaction({
+        orderId: newOrder._id,
+        externalId: externalTxId,
+        status: 'PENDING',
+        amount: 5500
+      });
+      await newTx.save();
+      log(`Transaction créée: ${String(newTx._id).substring(0, 8)}... (FedaPay ID: ${externalTxId})`);
+
+      log("Envoi du webhook de simulation via fetch...");
+      const webhookPayload = {
+        event: 'transaction.approved',
+        entity: { id: externalTxId, mode: 'mtn_benin', status: 'approved' }
+      };
+
+      const baseUrl = process.env.APP_URL || 'http' + '://localhost:3000';
+      const response = await fetch(`${baseUrl}/payments/webhook`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(webhookPayload)
+      });
+      
+      log(`Réponse du Webhook: ${response.status}`);
+      const data = await response.json().catch(() => ({}));
+      log(`Données: ${JSON.stringify(data)}`);
+
+      await mongo.disconnect();
+      log("Simulation terminée. Vérifiez la console du worker !");
+    } catch (error) {
+      process.stderr.write(`Erreur de simulation: ${error.message}\n`);
+    }
   }
-}
 
-runSimulation();
+  runSimulation();
+})(require('mongoose'), require('node:crypto'), require('dotenv'));
