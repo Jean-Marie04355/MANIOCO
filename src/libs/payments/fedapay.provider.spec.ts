@@ -108,6 +108,51 @@ describe('FedaPayProvider', () => {
         orderId: 'O',
       })).rejects.toThrow('Invalid API Key');
     });
+
+    it('should use live API URL if environment is live', async () => {
+      configService.get.mockImplementation((key) => key === 'FEDAPAY_ENVIRONMENT' ? 'live' : 'sk_live_123');
+      const liveProvider = new FedaPayProvider(configService as any);
+      
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ 'v1/transaction': { id: 1, payment_url: 'http://live.url' } }),
+      });
+
+      await liveProvider.createTransaction({
+        amount: 100, description: 'D', callbackUrl: 'C', orderId: 'O'
+      });
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('api.fedapay.com/v1'),
+        expect.anything()
+      );
+    });
+
+    it('should include subaccount if sellerPayoutAccountId is provided', async () => {
+      (global.fetch as jest.Mock).mockResolvedValue({
+        ok: true,
+        json: async () => ({ 'v1/transaction': { id: 1, payment_url: 'http://url' } }),
+      });
+
+      await provider.createTransaction({
+        amount: 100, description: 'D', callbackUrl: 'C', orderId: 'O',
+        sellerPayoutAccountId: 'sub-789'
+      });
+
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          body: expect.stringContaining('"subaccount":{"id":"sub-789"}')
+        })
+      );
+    });
+
+    it('should handle non-Error catch block', async () => {
+      (global.fetch as jest.Mock).mockRejectedValue('Fatal Error');
+      await expect(provider.createTransaction({
+        amount: 1, description: 'D', callbackUrl: 'C', orderId: 'O'
+      })).rejects.toBe('Fatal Error');
+    });
   });
 
   describe('verifyNotification', () => {
