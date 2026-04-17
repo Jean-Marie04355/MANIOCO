@@ -103,6 +103,13 @@ describe('UsersController', () => {
       const result = await controller.findOne('1', mockUser as any);
       expect(result).toEqual(user);
     });
+
+    it('should throw ForbiddenException if client tries to access another user profile', async () => {
+      const clientUser = { userId: '2', role: UserRole.CLIENT, email: 'client@test.com' };
+      await expect(
+        async () => controller.findOne('1', clientUser as any)
+      ).rejects.toThrow('You can only access your own profile.');
+    });
   });
 
   describe('remove', () => {
@@ -110,6 +117,11 @@ describe('UsersController', () => {
       serviceMock.remove.mockResolvedValue(true);
       const result = await controller.remove('1', mockUser as any);
       expect(result).toEqual({ message: 'User deleted successfully' });
+    });
+
+    it('should throw ForbiddenException if non-owner, non-admin tries to delete', async () => {
+      const clientUser = { userId: '99', role: UserRole.CLIENT, email: 'other@test.com' };
+      await expect(controller.remove('1', clientUser as any)).rejects.toThrow('Only the account owner or a Super Admin can perform this action.');
     });
   });
 
@@ -123,6 +135,29 @@ describe('UsersController', () => {
         mockUser as any,
       );
       expect(result).toEqual(updated);
+    });
+
+    it('should throw ForbiddenException if non-admin client tries to update another user', async () => {
+      const clientUser = { userId: '99', role: UserRole.CLIENT, email: 'other@test.com' };
+      await expect(
+        async () => controller.update('1', {}, clientUser as any)
+      ).rejects.toThrow('You can only update your own profile.');
+    });
+
+    it('should allow update when user is updating their own profile', async () => {
+      const clientUser = { userId: '1', role: UserRole.CLIENT };
+      serviceMock.update.mockResolvedValue({ id: '1' });
+      const result = await controller.update('1', {}, clientUser as any);
+      expect(result).toBeDefined();
+    });
+  });
+
+  describe('create - role downgrade', () => {
+    it('should downgrade SUPER_ADMIN role to CLIENT', async () => {
+      const dto = { email: 'x@x.com', password: '123', role: UserRole.SUPER_ADMIN };
+      serviceMock.create.mockResolvedValue({ ...dto, role: UserRole.CLIENT });
+      await controller.create(dto as any);
+      expect(serviceMock.create).toHaveBeenCalledWith(expect.objectContaining({ role: UserRole.CLIENT }));
     });
   });
 });

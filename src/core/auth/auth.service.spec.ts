@@ -105,5 +105,32 @@ describe('AuthService', () => {
 
       await expect(service.verifyAdminOtp('admin@test.com', '666666')).rejects.toThrow(UnauthorizedException);
     });
+
+    it('should throw if no active OTP session', async () => {
+      const user = { id: '1', email: 'admin@test.com', otpCode: null, otpExpiresAt: null };
+      usersServiceMock.findByEmail.mockResolvedValue(user);
+      await expect(service.verifyAdminOtp('admin@test.com', '123456')).rejects.toThrow('No active OTP session.');
+    });
+
+    it('should throw if OTP is expired', async () => {
+      const expiry = new Date(Date.now() - 10000); // Expired
+      const user = { id: '1', email: 'admin@test.com', otpCode: '123456', otpExpiresAt: expiry };
+      usersServiceMock.findByEmail.mockResolvedValue(user);
+      await expect(service.verifyAdminOtp('admin@test.com', '123456')).rejects.toThrow('OTP code expired.');
+    });
+  });
+
+  describe('adminLogin - edge cases', () => {
+    it('should throw if user not found', async () => {
+      usersServiceMock.findByEmail.mockResolvedValue(null);
+      await expect(service.adminLogin('unknown@test.com', 'pwd')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw if wrong password', async () => {
+      const user = { id: '1', email: 'admin@test.com', password: 'hashed', role: UserRole.ADMIN };
+      usersServiceMock.findByEmail.mockResolvedValue(user);
+      jest.spyOn(hashHelper, 'comparePassword').mockResolvedValue(false);
+      await expect(service.adminLogin('admin@test.com', 'wrong')).rejects.toThrow(UnauthorizedException);
+    });
   });
 });
