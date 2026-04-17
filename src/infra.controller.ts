@@ -61,10 +61,10 @@ export class InfraController {
       status.s3 = 'up';
     } catch {}
 
-    const isAllUp = Object.values(status).every((s) => s === 'up' || typeof s !== 'string'); // simplified
+    const isAllUp = Object.values(status).every((s) => s === 'up' || typeof s !== 'string'); 
 
     return {
-      status: status.redis === 'up' && status.postgres === 'up' && status.mongodb === 'up' && status.s3 === 'up' ? 'healthy' : 'degraded',
+      status: isAllUp ? 'healthy' : 'degraded',
       details: status,
     };
   }

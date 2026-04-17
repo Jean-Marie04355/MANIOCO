@@ -13,10 +13,14 @@ async function bootstrap() {
   app.use(helmet());
   app.useGlobalPipes(new ValidationPipe());
 
+  // Get ConfigService for configuration
+  const configService = app.get(ConfigService);
+
+  // Enable CORS with ConfigService
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    origin: configService.get<string>('FRONTEND_URL', 'http://localhost:3000'),
     credentials: true,
-  }); // Fixed wildcard CORS
+  });
 
   // Swagger Configuration
   const config = new DocumentBuilder()
@@ -29,9 +33,9 @@ async function bootstrap() {
     .build();
 
   // Basic auth for Swagger routes
-  const configService = app.get(ConfigService);
   const swaggerUser = configService.getOrThrow<string>('SWAGGER_USERNAME');
   const swaggerPassword = configService.getOrThrow<string>('SWAGGER_PASSWORD');
+  
   app.use(
     ['/api', '/api-json'],
     basicAuth({
@@ -43,8 +47,8 @@ async function bootstrap() {
   );
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document); // accessible via /api
+  SwaggerModule.setup('api', app, document);
 
-  await app.listen(3000);
+  await app.listen(configService.get<number>('PORT', 3000));
 }
-bootstrap(); 
+bootstrap();

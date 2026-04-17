@@ -6,7 +6,8 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   constructor(protected readonly repo: Model<T & Document>) {}
 
   async find(filter?: any): Promise<T[]> {
-    const query = { ...(filter || {}), deletedAt: null };
+    const safeFilter = filter && typeof filter === 'object' ? { ...filter } : {};
+    const query = { ...safeFilter, deletedAt: null };
     if ('id' in query && query.id) {
       query._id = query.id;
       delete query.id;
@@ -15,7 +16,8 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   async findOne(filter: any): Promise<T | null> {
-    const query = { ...filter, deletedAt: null };
+    const safeFilter = filter && typeof filter === 'object' ? { ...filter } : {};
+    const query = { ...safeFilter, deletedAt: null };
     if ('id' in query && query.id) {
       query._id = query.id;
       delete query.id;
@@ -57,7 +59,8 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   async count(filter?: any): Promise<number> {
-    const query = { ...(filter || {}), deletedAt: null };
+    const safeFilter = filter && typeof filter === 'object' ? { ...filter } : {};
+    const query = { ...safeFilter, deletedAt: null };
     if ('id' in query && query.id) {
       query._id = query.id;
       delete query.id;
