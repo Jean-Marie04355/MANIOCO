@@ -1,3 +1,4 @@
+'use strict';
 (async () => {
   require('dotenv').config();
   const log = (msg) => process.stdout.write(`${msg}\n`);

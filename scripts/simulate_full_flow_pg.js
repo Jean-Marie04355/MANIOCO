@@ -1,3 +1,4 @@
+'use strict';
 (async () => {
   const { Client } = require('pg');
   const crypto = require('node:crypto');

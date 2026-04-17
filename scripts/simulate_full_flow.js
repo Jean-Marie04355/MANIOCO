@@ -1,3 +1,4 @@
+'use strict';
 (async () => {
   const mongoose = require('mongoose');
   const crypto = require('node:crypto');
