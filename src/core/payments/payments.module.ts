@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -13,8 +13,11 @@ import {
 } from './schemas/transaction.schema';
 
 import * as dotenv from 'dotenv';
-import { NoSqlRepository } from '../../lib/no-sql-database/repository';
-import { SqlRepository } from '../../lib/sql-database/repository';
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
+import { OrdersModule } from '../orders/orders.module';
+import { QueuesModule } from '../../libs/queues/queues.module';
+import { UsersModule } from '../users/users.module';
 dotenv.config();
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
@@ -25,6 +28,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
           { name: MongoTransaction.name, schema: TransactionSchema },
         ])
       : TypeOrmModule.forFeature([Transaction]),
+    forwardRef(() => OrdersModule),
+    QueuesModule,
+    UsersModule,
   ],
   controllers: [PaymentsController],
   providers: [

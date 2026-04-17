@@ -23,7 +23,7 @@ export class UpdateStoreDto {
   phone?: string;
 
   @ApiProperty({
-    description: 'ID de sous-compte FedaPay pour les reversements',
+    description: 'ID du compte de reversement pour les paiements',
     required: false,
   })
   @IsOptional()

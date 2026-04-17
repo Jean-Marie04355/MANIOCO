@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
@@ -10,11 +11,8 @@ import {
   ProductCategory as MongoProductCategory,
   ProductCategorySchema,
 } from './schemas/product-category.schema';
-import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
-import { SqlRepository } from 'src/lib/sql-database/repository';
-import * as dotenv from 'dotenv';
-dotenv.config();
-
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({

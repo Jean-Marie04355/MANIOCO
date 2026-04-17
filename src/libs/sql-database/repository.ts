@@ -19,8 +19,9 @@ export class SqlRepository<T extends { id: string | number }>
     return await this.repo.save(entity);
   }
 
-  async update(id: string | number, data: Partial<T>): Promise<void> {
+  async update(id: string | number, data: Partial<T>): Promise<T | null> {
     await this.repo.update(id, data as object);
+    return this.findOne({ id } as object);
   }
 
   async delete(id: string | number): Promise<void> {

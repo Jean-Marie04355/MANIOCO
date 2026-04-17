@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { DynamicModule, Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 
@@ -18,7 +19,7 @@ export class DatabaseModule {
     return {
       module: DatabaseModule,
       imports: [
-        // Load only the one we need to avoid DataSource errors
+        // Conditional loading to prevent crashes if a server (Mongo/Postgres) is missing
         isMongo ? NoSqlDatabaseModule : SqlDatabaseModule,
       ],
       providers: [

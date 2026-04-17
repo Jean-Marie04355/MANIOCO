@@ -20,7 +20,7 @@ export class User {
   @Column()
   password: string;
 
-  // L'utilisation de 'varchar' au lieu de 'enum' permet la compatibilité avec SQLite
+  // Using 'varchar' instead of 'enum' allows compatibility with SQLite
   @Column({ type: 'varchar', default: UserRole.CLIENT })
   role: UserRole;
 

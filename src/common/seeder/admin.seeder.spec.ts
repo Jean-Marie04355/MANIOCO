@@ -39,7 +39,7 @@ describe('AdminSeeder', () => {
     await seeder.seed();
     expect(usersServiceMock.create).toHaveBeenCalledWith(expect.objectContaining({
       email: 'admin@test.com',
-      role: UserRole.ADMIN,
+      role: UserRole.SUPER_ADMIN,
     }));
   });
 

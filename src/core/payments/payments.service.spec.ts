@@ -1,11 +1,16 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentsService } from './payments.service';
 import { ConfigService } from '@nestjs/config';
+import { OrdersService } from '../orders/orders.service';
 
 describe('PaymentsService', () => {
   let service: PaymentsService;
   let transactionRepoMock: any;
   let configServiceMock: any;
+  let userRepoMock: any;
+  let paymentProviderMock: any;
+  let ordersServiceMock: any;
+  let bullMQServiceMock: any;
 
   beforeEach(async () => {
     transactionRepoMock = {
@@ -13,10 +18,25 @@ describe('PaymentsService', () => {
       update: jest.fn(),
       findOne: jest.fn(),
     };
+    userRepoMock = {
+      findOne: jest.fn(),
+    };
+    paymentProviderMock = {
+      createTransaction: jest.fn(),
+      verifyNotification: jest.fn(),
+    };
+    ordersServiceMock = {
+      updateStatus: jest.fn(),
+      findOne: jest.fn(),
+      cancelOrder: jest.fn(),
+    };
+    queueServiceMock = {
+      addJob: jest.fn(),
+    };
     configServiceMock = {
       get: jest.fn().mockImplementation((key, defaultValue) => {
-        if (key === 'FEDAPAY_ENVIRONMENT') return 'sandbox';
-        if (key === 'FEDAPAY_SECRET_KEY') return 'sk_test_123';
+        if (key === 'PAYMENT_ENVIRONMENT') return 'sandbox';
+        if (key === 'PAYMENT_SECRET_KEY') return 'sk_test_123';
         if (key === 'PLATFORM_COMMISSION_PERCENT') return 10;
         return defaultValue || null;
       }),
@@ -26,85 +46,50 @@ describe('PaymentsService', () => {
       providers: [
         PaymentsService,
         { provide: 'TRANSACTION_REPOSITORY', useValue: transactionRepoMock },
+        { provide: 'USER_REPOSITORY', useValue: userRepoMock },
+        { provide: 'PAYMENT_PROVIDER', useValue: paymentProviderMock },
         { provide: ConfigService, useValue: configServiceMock },
+        { provide: 'QUEUE_SERVICE', useValue: queueServiceMock },
+        { provide: OrdersService, useValue: ordersServiceMock },
       ],
     }).compile();
 
     service = module.get<PaymentsService>(PaymentsService);
-    
-    // Global fetch mock
-    (global as any).fetch = jest.fn();
   });
 
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
-  describe('createFedaPayTransaction', () => {
+  describe('createTransaction', () => {
     const order = { id: 'order-1', totalAmount: 1000 };
     const sellerAcc = 'acc-123';
 
     it('should create a local transaction and return payment URL', async () => {
       transactionRepoMock.create.mockResolvedValue({ id: 'local-1' });
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          transaction: { id: 'feda-1', payment_url: 'http://pay.me' }
-        }),
+      paymentProviderMock.createTransaction.mockResolvedValue({
+        transactionId: 'ext-1',
+        url: 'http://pay.me',
       });
 
-      const result = await service.createFedaPayTransaction(order as any, sellerAcc);
+      const result = await service.createTransaction(order as any, sellerAcc);
       expect(result.url).toBe('http://pay.me');
       expect(transactionRepoMock.create).toHaveBeenCalled();
-      expect(transactionRepoMock.update).toHaveBeenCalledWith('local-1', { externalId: 'feda-1' });
-    });
-
-    it('should request a token if payment_url is missing', async () => {
-      transactionRepoMock.create.mockResolvedValue({ id: 'local-1' });
-      (global.fetch as jest.Mock)
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            transaction: { id: 'feda-1' } // No payment_url
-          }),
-        })
-        .mockResolvedValueOnce({
-          ok: true,
-          json: async () => ({
-            token: { url: 'http://pay.me/token' }
-          }),
-        });
-
-      const result = await service.createFedaPayTransaction(order as any, sellerAcc);
-      expect(result.url).toBe('http://pay.me/token');
-      expect(global.fetch).toHaveBeenCalledTimes(2);
-    });
-
-    it('should throw error if FedaPay response is not ok', async () => {
-      transactionRepoMock.create.mockResolvedValue({ id: 'local-1' });
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: false,
-        json: async () => ({ message: 'Bad request' }),
+      expect(paymentProviderMock.createTransaction).toHaveBeenCalled();
+      expect(transactionRepoMock.update).toHaveBeenCalledWith('local-1', {
+        externalId: 'ext-1',
       });
-
-      await expect(service.createFedaPayTransaction(order as any, sellerAcc)).rejects.toThrow('Bad request');
     });
 
-    it('should throw error if transaction data is missing', async () => {
+    it('should handle errors from payment provider', async () => {
       transactionRepoMock.create.mockResolvedValue({ id: 'local-1' });
-      (global.fetch as jest.Mock).mockResolvedValue({
-        ok: true,
-        json: async () => ({ something_else: {} }),
-      });
+      paymentProviderMock.createTransaction.mockRejectedValue(
+        new Error('Provider Error'),
+      );
 
-      await expect(service.createFedaPayTransaction(order as any, sellerAcc)).rejects.toThrow('Unknown FedaPay response format');
-    });
-
-    it('should handle fetch errors', async () => {
-      transactionRepoMock.create.mockResolvedValue({ id: 'local-1' });
-      (global.fetch as jest.Mock).mockRejectedValue(new Error('Network error'));
-
-      await expect(service.createFedaPayTransaction(order as any, sellerAcc)).rejects.toThrow('Network error');
+      await expect(
+        service.createTransaction(order as any, sellerAcc),
+      ).rejects.toThrow('Provider Error');
     });
   });
 
@@ -113,49 +98,59 @@ describe('PaymentsService', () => {
       transactionRepoMock.findOne.mockResolvedValue({ id: 'tx-1' });
       const result = await service.findByOrderId('order-1');
       expect(result).toEqual({ id: 'tx-1' });
-      expect(transactionRepoMock.findOne).toHaveBeenCalledWith({ orderId: 'order-1' });
+      expect(transactionRepoMock.findOne).toHaveBeenCalledWith({
+        orderId: 'order-1',
+      });
     });
   });
 
   describe('handleWebhook', () => {
     it('should update transaction status when approved', async () => {
-      const payload = {
-        event: 'transaction.approved',
-        entity: { id: 'feda-1', mode: 'mtn' }
-      };
-      transactionRepoMock.findOne.mockResolvedValue({ id: 'local-1' });
-
-      await service.handleWebhook(payload);
-      expect(transactionRepoMock.update).toHaveBeenCalledWith('local-1', expect.objectContaining({
+      const payload = { some: 'payload' };
+      paymentProviderMock.verifyNotification.mockResolvedValue({
         status: 'APPROVED',
-        paymentMethod: 'mtn'
-      }));
-    });
-
-    it('should update transaction status when successful', async () => {
-      const payload = {
-        event: 'transaction.successful',
-        entity: { id: 'feda-1', mode: 'card' }
-      };
-      transactionRepoMock.findOne.mockResolvedValue({ id: 'local-1' });
+        externalId: 'ext-1',
+        mode: 'mtn',
+      });
+      transactionRepoMock.findOne.mockResolvedValue({
+        id: 'local-1',
+        orderId: 'order-1',
+      });
+      ordersServiceMock.findOne.mockResolvedValue({
+        id: 'order-1',
+        customerId: 'cust-1',
+      });
+      userRepoMock.findOne.mockResolvedValue({ email: 'test@test.com' });
 
       await service.handleWebhook(payload);
-      expect(transactionRepoMock.update).toHaveBeenCalledWith('local-1', expect.objectContaining({
-        status: 'APPROVED',
-      }));
+      expect(transactionRepoMock.update).toHaveBeenCalledWith(
+        'local-1',
+        expect.objectContaining({
+          status: 'APPROVED',
+          paymentMethod: 'mtn',
+        }),
+      );
     });
 
-    it('should do nothing if event is not approved/successful', async () => {
-      const payload = { event: 'transaction.failed', entity: { id: 'feda-1' } };
-      await service.handleWebhook(payload);
-      expect(transactionRepoMock.update).not.toHaveBeenCalled();
-    });
+    it('should cancel order and restore stock when declined', async () => {
+      const payload = { some: 'payload' };
+      paymentProviderMock.verifyNotification.mockResolvedValue({
+        status: 'DECLINED',
+        externalId: 'ext-1',
+      });
+      transactionRepoMock.findOne.mockResolvedValue({
+        id: 'local-1',
+        orderId: 'order-1',
+      });
 
-    it('should do nothing if transaction not found locally', async () => {
-      const payload = { event: 'transaction.approved', entity: { id: 'feda-1' } };
-      transactionRepoMock.findOne.mockResolvedValue(null);
       await service.handleWebhook(payload);
-      expect(transactionRepoMock.update).not.toHaveBeenCalled();
+      expect(transactionRepoMock.update).toHaveBeenCalledWith(
+        'local-1',
+        expect.objectContaining({
+          status: 'DECLINED',
+        }),
+      );
+      expect(ordersServiceMock.cancelOrder).toHaveBeenCalledWith('order-1');
     });
   });
 });

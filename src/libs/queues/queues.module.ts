@@ -31,8 +31,12 @@ import { BULLMQ_CONNECTION } from './queues.constants';
       },
     },
     BullMQService,
+    {
+      provide: 'QUEUE_SERVICE',
+      useExisting: BullMQService,
+    },
   ],
-  exports: [BULLMQ_CONNECTION, BullMQService],
+  exports: [BULLMQ_CONNECTION, BullMQService, 'QUEUE_SERVICE'],
 })
 export class QueuesModule {}
 

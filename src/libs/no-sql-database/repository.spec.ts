@@ -20,18 +20,18 @@ describe('NoSqlRepository', () => {
 
   it('should call find', async () => {
     const result = await repository.find({});
-    expect(modelMock.find).toHaveBeenCalledWith({});
+    expect(modelMock.find).toHaveBeenCalledWith({ deletedAt: null });
     expect(result).toEqual([]);
   });
 
   it('should call find without filter', async () => {
     await repository.find();
-    expect(modelMock.find).toHaveBeenCalledWith({});
+    expect(modelMock.find).toHaveBeenCalledWith({ deletedAt: null });
   });
 
   it('should call findOne', async () => {
     await repository.findOne({ email: 'test@test.com' });
-    expect(modelMock.findOne).toHaveBeenCalledWith({ email: 'test@test.com' });
+    expect(modelMock.findOne).toHaveBeenCalledWith({ email: 'test@test.com', deletedAt: null });
   });
 
   it('should create a document', async () => {
@@ -47,7 +47,7 @@ describe('NoSqlRepository', () => {
 
   it('should call update', async () => {
     await repository.update('1', { name: 'updated' });
-    expect(modelMock.findByIdAndUpdate).toHaveBeenCalledWith('1', { name: 'updated' });
+    expect(modelMock.findByIdAndUpdate).toHaveBeenCalledWith('1', { name: 'updated' }, { new: true });
   });
 
   it('should call delete', async () => {
@@ -57,13 +57,13 @@ describe('NoSqlRepository', () => {
 
   it('should call count', async () => {
     const result = await repository.count({});
-    expect(modelMock.countDocuments).toHaveBeenCalledWith({});
+    expect(modelMock.countDocuments).toHaveBeenCalledWith({ deletedAt: null });
     expect(result).toBe(0);
   });
 
   it('should call count without filter', async () => {
     await repository.count();
-    expect(modelMock.countDocuments).toHaveBeenCalledWith({});
+    expect(modelMock.countDocuments).toHaveBeenCalledWith({ deletedAt: null });
   });
 
   it('should call softDelete', async () => {

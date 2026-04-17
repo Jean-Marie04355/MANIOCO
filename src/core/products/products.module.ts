@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
@@ -10,16 +11,16 @@ import {
   Product as MongoProduct,
   ProductSchema,
 } from './schemas/product.schema';
-import { NoSqlRepository } from 'src/lib/no-sql-database/repository';
-import { SqlRepository } from 'src/lib/sql-database/repository';
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
 import { ProductCategoriesModule } from '../product-categories/product-categories.module';
-import * as dotenv from 'dotenv';
-dotenv.config();
+import { RolesModule } from '../roles/roles.module';
 
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
+    RolesModule,
     dbType === 'mongodb'
       ? MongooseModule.forFeature([
           { name: MongoProduct.name, schema: ProductSchema },

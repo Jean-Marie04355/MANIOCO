@@ -15,7 +15,7 @@ export class Transaction {
   orderId: string;
 
   @Column({ unique: true, nullable: true })
-  externalId: string; // ID FedaPay
+  externalId: string;
 
   @Column('decimal', { precision: 12, scale: 2 })
   amount: number;

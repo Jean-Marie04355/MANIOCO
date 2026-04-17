@@ -18,13 +18,12 @@ export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
   @Post('webhook')
-  @ApiOperation({ summary: 'Entry point for FedaPay notifications' })
+  @ApiOperation({ summary: 'Generic payment webhook' })
   async handleWebhook(@Body() payload: Record<string, unknown>, @Res() res: Response) {
-    this.logger.log('FedaPay payment notification received');
+    this.logger.log('Payment notification received');
 
     try {
-      // Note: Ideally, signature verification should be implemented here
-      // if FedaPay provides it for better security.
+      // if the provider provides it for better security.
       await this.paymentsService.handleWebhook(payload);
 
       return res.status(HttpStatus.OK).send('OK');

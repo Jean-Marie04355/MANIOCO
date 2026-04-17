@@ -26,7 +26,7 @@ describe('OrdersService', () => {
       update: jest.fn(),
     };
     paymentsServiceMock = {
-      createFedaPayTransaction: jest.fn(),
+      createTransaction: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -101,7 +101,8 @@ describe('OrdersService', () => {
       storeRepoMock.findOne.mockResolvedValue(store);
       productRepoMock.findOne.mockResolvedValue(product);
       orderRepoMock.create.mockResolvedValue(order);
-      paymentsServiceMock.createFedaPayTransaction.mockResolvedValue({ url: 'http://payment.url' });
+      orderRepoMock.findOne.mockResolvedValue(order); // Mock findOne to avoid NotFoundException if used
+      paymentsServiceMock.createTransaction.mockResolvedValue({ url: 'http://payment.url' });
 
       const result = await service.create(createOrderDto as any);
       

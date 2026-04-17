@@ -32,8 +32,8 @@ export class AbstractRepository<T extends { id: string | number }>
     return entities;
   }
 
-  async update(id: string | number, data: Partial<T>): Promise<void> {
-    await this.repo.update(id, data);
+  async update(id: string | number, data: Partial<T>): Promise<T | null> {
+    return this.repo.update(id, data);
   }
 
   async delete(id: string | number): Promise<void> {
