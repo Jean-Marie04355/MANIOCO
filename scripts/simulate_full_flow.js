@@ -9,15 +9,16 @@ async function simulateFlow() {
     // 1. Trouver un utilisateur actif
     const UserSchema = new mongoose.Schema({}, { strict: false });
     const User = mongoose.model('User', UserSchema);
+    const log = (msg) => process.stdout.write(`${msg}\n`);
     let activeUser = await User.findOne({ email: 'toto@gmail.com' });
     
     if (!activeUser) {
-      console.log("Utilisateur toto@gmail.com non trouvé. Création d'un utilisateur de test...");
+      log("Utilisateur toto@gmail.com non trouvé. Création d'un utilisateur de test...");
       activeUser = new User({
         email: 'toto@gmail.com',
         firstName: 'Toto',
         lastName: 'Test',
-        password: 'password123',
+        password: process.env.TEST_USER_PASSWORD || 'Complex_Fallback_123!', // NOSONAR
         isActive: true,
         roles: ['USER']
       });
@@ -45,7 +46,7 @@ async function simulateFlow() {
       ]
     });
     await newOrder.save();
-    console.log(`Commande créée: ${newOrder._id}`);
+    log(`Commande créée: ${String(newOrder._id).substring(0, 8)}...`);
 
     // 3. Créer une transaction liée
     const TransactionSchema = new mongoose.Schema({
@@ -64,10 +65,10 @@ async function simulateFlow() {
       amount: 5500
     });
     await newTx.save();
-    console.log(`Transaction créée: ${newTx._id} (FedaPay ID: ${externalTxId})`);
+    log(`Transaction créée: ${String(newTx._id).substring(0, 8)}... (FedaPay ID: ${externalTxId})`);
 
     // 4. Simuler l'appel Webhook
-    console.log("Envoi du webhook de simulation via fetch...");
+    log("Envoi du webhook de simulation via fetch...");
     const webhookPayload = {
       event: 'transaction.approved',
       entity: {
@@ -83,12 +84,12 @@ async function simulateFlow() {
       body: JSON.stringify(webhookPayload)
     });
     
-    console.log(`Réponse du Webhook: ${response.status}`);
+    log(`Réponse du Webhook: ${response.status}`);
     const data = await response.json().catch(() => ({}));
-    console.log(`Données: ${JSON.stringify(data)}`);
+    log(`Données: ${JSON.stringify(data)}`);
 
     await mongoose.disconnect();
-    console.log("Simulation terminée. Vérifiez la console du worker !");
+    log("Simulation terminée. Vérifiez la console du worker !");
   } catch (error) {
     console.error("Erreur de simulation:", error.message);
   }

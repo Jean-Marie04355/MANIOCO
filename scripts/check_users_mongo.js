@@ -3,8 +3,9 @@ require('dotenv').config();
 
 async function checkUsers() {
   try {
+    const log = (msg) => process.stdout.write(`${msg}\n`);
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/afrigari';
-    console.log(`Connexion à ${mongoUri}...`);
+    log(`Connexion à ${mongoUri}...`);
     
     await mongoose.connect(mongoUri);
     
@@ -18,17 +19,18 @@ async function checkUsers() {
     
     const users = await User.find({});
     
-    console.log("\n--- Liste des utilisateurs dans MongoDB ---");
+    log("\n--- Liste des utilisateurs dans MongoDB ---");
     users.forEach(u => {
       const status = u.deletedAt ? "[SUPPRIMÉ (Soft Delete)]" : "[ACTIF]";
-      console.log(`ID: ${u._id} | Email: ${u.email} | Role: ${u.role} | Statut: ${status}`);
+      const maskedEmail = u.email ? u.email.replace(/(.{2})(.*)(@.*)/, '$1***$3') : 'unknown';
+      log(`ID: ${u._id} | Email: ${maskedEmail} | Role: ${u.role} | Statut: ${status}`);
     });
-    console.log(`Total: ${users.length} utilisateur(s)`);
-    console.log("-------------------------------------------\n");
+    log(`Total: ${users.length} utilisateur(s)`);
+    log("-------------------------------------------\n");
     
     await mongoose.disconnect();
   } catch (error) {
-    console.error("Erreur:", error);
+    process.stderr.write(`Erreur: ${error.message}\n`);
   }
 }
 

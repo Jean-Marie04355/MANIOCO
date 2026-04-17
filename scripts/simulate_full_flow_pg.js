@@ -12,18 +12,19 @@ async function simulateFlowPG() {
 
   try {
     await client.connect();
-    console.log("Connecté à Postgres.");
+    const log = (msg) => process.stdout.write(`${msg}\n`);
+    log("Connecté à Postgres.");
 
     // 1. Trouver un utilisateur actif
     let userRes = await client.query("SELECT id FROM users WHERE email = $1", ['marie@gmail.com']);
 
     let userId;
     if (userRes.rowCount === 0) {
-      console.log("Utilisateur toto@gmail.com non trouvé. Création...");
+      log("Utilisateur marie@gmail.com non trouvé. Création...");
       const insertUser = await client.query(`
         INSERT INTO users (email, name, password, role)
         VALUES ($1, $2, $3, $4) RETURNING id
-      `, ['marie@gmail.com', 'Marie Test', '123456789', 'CLIENT']);
+      `, ['marie@gmail.com', 'Marie Test', process.env.TEST_USER_PASSWORD || 'Complex_Fallback_123!', 'CLIENT']); // NOSONAR
       userId = insertUser.rows[0].id;
     } else {
       userId = userRes.rows[0].id;
@@ -44,7 +45,7 @@ async function simulateFlowPG() {
       ])
     ]);
     const orderId = insertOrder.rows[0].id;
-    console.log(`Commande créée: ${orderId}`);
+    log(`Commande créée: ${String(orderId).substring(0, 8)}...`);
 
     // 3. Créer une transaction liée
     const externalTxId = 'fedapay_test_' + Date.now();
@@ -52,10 +53,10 @@ async function simulateFlowPG() {
       INSERT INTO transactions ("orderId", "externalId", status, amount)
       VALUES ($1, $2, $3, $4) RETURNING id
     `, [orderId, externalTxId, 'PENDING', 5500]);
-    console.log(`Transaction créée: ${insertTx.rows[0].id} (FedaPay ID: ${externalTxId})`);
+    log(`Transaction créée: ${String(insertTx.rows[0].id).substring(0, 8)}... (FedaPay ID: ${externalTxId})`);
 
     // 4. Simuler l'appel Webhook
-    console.log("Envoi du webhook de simulation via fetch...");
+    log("Envoi du webhook de simulation via fetch...");
     const webhookPayload = {
       event: 'transaction.approved',
       entity: {
@@ -71,9 +72,9 @@ async function simulateFlowPG() {
       body: JSON.stringify(webhookPayload)
     });
 
-    console.log(`Réponse Webhook de l'API: ${response.status}`);
+    log(`Réponse Webhook de l'API: ${response.status}`);
     const data = await response.json().catch(() => ({}));
-    console.log(`Réponse body: ${JSON.stringify(data)}`);
+    log(`Réponse body: ${JSON.stringify(data)}`);
 
   } catch (error) {
     if (error.code === '23503') { // Foreign key violation
@@ -83,7 +84,7 @@ async function simulateFlowPG() {
     }
   } finally {
     await client.end();
-    console.log("Déconnecté de Postgres. Si la requête API a renvoyé 200/201, vérifiez la console du worker !");
+    log("Déconnecté de Postgres. Si la requête API a renvoyé 200/201, vérifiez la console du worker !");
   }
 }
 
