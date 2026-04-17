@@ -1,10 +1,11 @@
 'use strict';
-(async () => {
-  const { Client } = require('pg');
-  const crypto = require('node:crypto');
+
+async function runPostgresSimulation() {
+  const { Client: PostgresClient } = require('pg');
+  const nodeCrypto = require('node:crypto');
   require('dotenv').config();
 
-  const client = new Client({
+  const client = new PostgresClient({
     user: process.env.DB_USER || ['post', 'gres'].join(''),
     host: process.env.DB_HOST || ['local', 'host'].join(''),
     database: process.env.DB_NAME || 'afrigari',
@@ -26,7 +27,7 @@
       const insertUser = await client.query(`
         INSERT INTO users (email, name, password, role)
         VALUES ($1, $2, $3, $4) RETURNING id
-      `, ['marie@gmail.com', 'Marie Test', process.env.TEST_USER_PASSWORD || crypto.randomBytes(12).toString('hex'), 'CLIENT']); // NOSONAR
+      `, ['marie@gmail.com', 'Marie Test', process.env.TEST_USER_PASSWORD || nodeCrypto.randomBytes(12).toString('hex'), 'CLIENT']); // NOSONAR
       userId = insertUser.rows[0].id;
     } else {
       userId = userRes.rows[0].id;
@@ -88,4 +89,6 @@
     await client.end();
     process.stdout.write("Déconnecté de Postgres. Si la requête API a renvoyé 200/201, vérifiez la console du worker !\n");
   }
-})();
+}
+
+runPostgresSimulation();

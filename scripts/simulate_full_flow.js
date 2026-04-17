@@ -1,16 +1,17 @@
 'use strict';
-(async () => {
-  const mongoose = require('mongoose');
+
+async function runSimulation() {
+  const mongo = require('mongoose');
   const crypto = require('node:crypto');
   require('dotenv').config();
 
   try {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/afrigari';
-    await mongoose.connect(mongoUri);
+    await mongo.connect(mongoUri);
     
     // 1. Trouver un utilisateur actif
-    const UserSchema = new mongoose.Schema({}, { strict: false });
-    const User = mongoose.model('User', UserSchema);
+    const UserSchema = new mongo.Schema({}, { strict: false });
+    const User = mongo.model('User', UserSchema);
     const log = (msg) => process.stdout.write(`${msg}\n`);
     let activeUser = await User.findOne({ email: 'toto@gmail.com' });
     
@@ -28,14 +29,14 @@
     }
 
     // 2. Créer une commande de test
-    const OrderSchema = new mongoose.Schema({
+    const OrderSchema = new mongo.Schema({
       customerId: String,
       storeId: String,
       totalAmount: Number,
       status: String,
       items: Array
     }, { strict: false, timestamps: true });
-    const Order = mongoose.model('Order', OrderSchema);
+    const Order = mongo.model('Order', OrderSchema);
     
     const newOrder = new Order({
       customerId: activeUser._id,
@@ -51,13 +52,13 @@
     log(`Commande créée: ${String(newOrder._id).substring(0, 8)}...`);
 
     // 3. Créer une transaction liée
-    const TransactionSchema = new mongoose.Schema({
+    const TransactionSchema = new mongo.Schema({
       orderId: String,
       externalId: String,
       status: String,
       amount: Number
     }, { strict: false });
-    const Transaction = mongoose.model('Transaction', TransactionSchema);
+    const Transaction = mongo.model('Transaction', TransactionSchema);
     
     const externalTxId = 'fedapay_test_' + Date.now();
     const newTx = new Transaction({
@@ -90,9 +91,11 @@
     const data = await response.json().catch(() => ({}));
     log(`Données: ${JSON.stringify(data)}`);
 
-    await mongoose.disconnect();
+    await mongo.disconnect();
     log("Simulation terminée. Vérifiez la console du worker !");
   } catch (error) {
     process.stderr.write(`Erreur de simulation: ${error.message}\n`);
   }
-})();
+}
+
+runSimulation();
