@@ -104,7 +104,11 @@
       "**/*.(t|j)s",
       "!**/*.module.ts",
       "!**/main.ts",
-      "!**/index.ts"
+      "!**/index.ts",
+      "!**/*.dto.ts",
+      "!**/*.entity.ts",
+      "!**/*.schema.ts",
+      "!**/infra.controller.ts"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
