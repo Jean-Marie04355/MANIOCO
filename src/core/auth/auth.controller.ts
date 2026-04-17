@@ -13,29 +13,29 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('login')
-  @ApiOperation({ summary: 'Connexion (email + password) -> JWT' })
-  @ApiResponse({ status: 201, description: 'Token JWT retourné avec succès' })
+  @ApiOperation({ summary: 'Login (email + password) -> JWT' })
+  @ApiResponse({ status: 201, description: 'JWT Token successfully returned' })
   login(@Body() body: LoginDto): Promise<Record<string, unknown>> {
     return this.authService.login(body.email, body.password);
   }
 
   @Post('admin/login')
-  @ApiOperation({ summary: "Connexion Admin Étape 1 (email + password) -> Envoi OTP" })
-  @ApiResponse({ status: 201, description: 'OTP généré et affiché en console' })
+  @ApiOperation({ summary: "Admin Login Step 1 (email + password) -> Send OTP" })
+  @ApiResponse({ status: 201, description: 'OTP generated and displayed in console' })
   adminLogin(@Body() body: LoginDto): Promise<Record<string, unknown>> {
     return this.authService.adminLogin(body.email, body.password);
   }
 
   @Post('admin/verify-otp')
-  @ApiOperation({ summary: "Connexion Admin Étape 2 (email + otp) -> JWT" })
-  @ApiResponse({ status: 201, description: 'Token JWT retourné après validation OTP' })
+  @ApiOperation({ summary: "Admin Login Step 2 (email + otp) -> JWT" })
+  @ApiResponse({ status: 201, description: 'JWT Token returned after OTP validation' })
   verifyOtp(@Body() body: VerifyOtpDto): Promise<Record<string, unknown>> {
     return this.authService.verifyAdminOtp(body.email, body.otpCode);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('me')
-  @ApiOperation({ summary: 'Infos du compte courant' })
+  @ApiOperation({ summary: 'Current account information' })
   me(@Req() req: { user: AuthenticatedUser }) {
     return this.authService.me(req.user);
   }

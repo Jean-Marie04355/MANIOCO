@@ -6,7 +6,7 @@ import { InfraController } from './infra.controller';
 import { UsersModule } from './core/users/users.module';
 import { AuthModule } from './core/auth/auth.module';
 import { FilesModule } from './core/files/files.module';
-import { DatabaseModule } from './lib/database/module';
+import { DatabaseModule } from './libs/database/module';
 import { ProductCategoriesModule } from './core/product-categories/product-categories.module';
 import { ProductsModule } from './core/products/products.module';
 import { StoreModule } from './core/store/store.module';
@@ -17,6 +17,7 @@ import { OrdersModule } from './core/orders/orders.module';
 import { PaymentsModule } from './core/payments/payments.module';
 import { RealtimeModule } from './core/realtime/realtime.module';
 import { QueuesModule } from './libs/queues/queues.module';
+import { AdminSeeder } from './common/seeder/admin.seeder';
 
 @Module({
   imports: [
@@ -38,6 +39,6 @@ import { QueuesModule } from './libs/queues/queues.module';
   ],
 
   controllers: [AppController, InfraController],
-  providers: [AppService],
+  providers: [AppService, AdminSeeder],
 })
 export class AppModule {}

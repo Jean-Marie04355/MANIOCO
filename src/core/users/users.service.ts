@@ -5,6 +5,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './user.entity';
 import { hashPassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
@@ -33,6 +34,7 @@ export class UsersService {
 
     // Check how many users already exist
     const userCount = await this.userRepository.count();
+
     // Logic: First registered user becomes SUPER_ADMIN
     // Every other user becomes whatever is in the DTO (default to CLIENT)
     let finalRole = createUserDto.role ?? UserRole.CLIENT;
@@ -40,7 +42,7 @@ export class UsersService {
     if (userCount === 0) {
       finalRole = UserRole.SUPER_ADMIN;
     } else if (finalRole === UserRole.SUPER_ADMIN) {
-      // Sécurité : On empêche un profil d'être créé en SUPER_ADMIN s'il y en a déjà un
+      // Security: Prevent a profile from being created as SUPER_ADMIN if one already exists
       finalRole = UserRole.CLIENT;
     }
 
@@ -71,11 +73,11 @@ export class UsersService {
     return this.userRepository.softDelete(id);
   }
 
-  async update(id: string, updateUserDto: Partial<CreateUserDto>) {
+  async update(id: string, updateUserDto: UpdateUserDto = {}) {
     await this.findOne(id);
-    if (updateUserDto.password) {
+    if (updateUserDto && updateUserDto.password) {
       updateUserDto.password = await hashPassword(updateUserDto.password);
     }
-    return this.userRepository.update(id, updateUserDto);
+    return this.userRepository.update(id, updateUserDto || {});
   }
 }

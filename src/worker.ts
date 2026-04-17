@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Worker, type ConnectionOptions, type Job } from 'bullmq';
 
 function main() {
@@ -17,7 +18,36 @@ function main() {
   const worker = new Worker(
     queueName,
     async (job: Job) => {
-      // Infrastructure worker: tu pourras brancher ici les jobs OTP, S3, etc.
+      // Infrastructure worker: register OTP, S3, etc. jobs here
+      if (job.name === 'send-otp-email') {
+        const { email, otpCode } = job.data;
+        // eslint-disable-next-line no-console
+        console.log('\n==========================================');
+        console.log(`📧 [SIMULATED EMAIL]`);
+        console.log(`To           : ${email}`);
+        console.log(`OTP Code     : ${otpCode}`);
+        console.log('==========================================\n');
+        return { ok: true, emailSent: true };
+      }
+
+      if (job.name === 'send-order-confirmation') {
+        const { email, orderId, totalAmount, items } = job.data;
+        // eslint-disable-next-line no-console
+        console.log('\n==========================================');
+        console.log(`📧 [COMMANDE RÉUSSIE]`);
+        console.log(`Client       : ${email}`);
+        console.log(`Commande ID  : #${orderId}`);
+        console.log(`Montant Total: ${totalAmount} FCFA`);
+        console.log(`Articles     :`);
+        if (Array.isArray(items)) {
+          items.forEach((item: any) => {
+            console.log(` - ${item.productName} (x${item.quantity}) : ${item.price} FCFA`);
+          });
+        }
+        console.log('==========================================\n');
+        return { ok: true, emailSent: true };
+      }
+
       return { ok: true, name: job.name, data: job.data };
     },
     { connection },

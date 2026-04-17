@@ -1,8 +1,8 @@
-import { Controller, Get } from '@nestjs/common';
+import { Controller, Get, Optional } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CacheService } from '../libs/cache/cache.service';
-import { BullMQService } from '../libs/queues/bullmq.service';
-import { S3StorageService } from '../libs/storage/s3-storage.service';
+import { CacheService } from './libs/cache/cache.service';
+import { BullMQService } from './libs/queues/bullmq.service';
+import { S3StorageService } from './libs/storage/s3-storage.service';
 import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import { InjectConnection as InjectMongoConnection } from '@nestjs/mongoose';
@@ -15,8 +15,8 @@ export class InfraController {
     private readonly cache: CacheService,
     private readonly queues: BullMQService,
     private readonly s3: S3StorageService,
-    @InjectConnection() private readonly postgres: Connection,
-    @InjectMongoConnection() private readonly mongo: MongoConnection,
+    @Optional() @InjectConnection() private readonly postgres: Connection,
+    @Optional() @InjectMongoConnection() private readonly mongo: MongoConnection,
   ) {}
 
   @Get('health')
@@ -38,13 +38,21 @@ export class InfraController {
 
     // Check Postgres
     try {
-      const isConnected = this.postgres.isConnected;
-      if (isConnected) status.postgres = 'up';
+      if (this.postgres) {
+        const isConnected = this.postgres.isConnected;
+        if (isConnected) status.postgres = 'up';
+      } else {
+        status.postgres = 'not_configured';
+      }
     } catch {}
 
     // Check MongoDB
     try {
-      if (this.mongo.readyState === 1) status.mongodb = 'up';
+      if (this.mongo) {
+        if (this.mongo.readyState === 1) status.mongodb = 'up';
+      } else {
+        status.mongodb = 'not_configured';
+      }
     } catch {}
 
     // Check S3

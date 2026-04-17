@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
@@ -11,13 +12,11 @@ import {
   Store as MongoStore,
   StoreSchema,
 } from './schemas/store.schema';
-import { NoSqlRepository } from '../../lib/no-sql-database/repository';
-import { SqlRepository } from '../../lib/sql-database/repository';
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
-import { UsersModule } from '../users/users.module'; // ← IMPORTANT pour USER_REPOSITORY
+import { UsersModule } from '../users/users.module'; // ← IMPORTANT for USER_REPOSITORY
 import { LocationModule } from '../location/location.module';
-import * as dotenv from 'dotenv';
-dotenv.config();
 
 const dbType = process.env.DB_TYPE?.toLowerCase();
 

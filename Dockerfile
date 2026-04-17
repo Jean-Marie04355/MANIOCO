@@ -14,9 +14,11 @@ FROM node:24-slim AS base
 FROM base AS deps
 WORKDIR /app
 
+# Install build tools for native modules (e.g., sqlite3)
+RUN apt-get update && apt-get install -y python3 make g++ && rm -rf /var/lib/apt/lists/*
+
 # Copy package.json and package-lock.json (if available) into the root directory of the container
 COPY package*.json ./
-
 
 # Install any needed packages specified in package.json
 RUN ls -la && \
@@ -55,10 +57,9 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/data ./data
 
-
-USER nestjs
 RUN chown -R nestjs:nodejs data
 
+USER nestjs
 #ENV NODE_ENV=production
 EXPOSE 3000
 

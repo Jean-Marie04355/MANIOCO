@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
@@ -12,11 +13,11 @@ import {
   UserSchema,
 } from './schemas/user.schema';
 
-import { NoSqlRepository } from '../../lib/no-sql-database/repository';
-import { SqlRepository } from '../../lib/sql-database/repository';
+import { NoSqlRepository } from '../../libs/no-sql-database/repository';
+import { SqlRepository } from '../../libs/sql-database/repository';
 import { RolesGuard } from '../../common/guards/roles.guard';
 
-// dbType calculé via env (NestJS s'occupe de charger le .env via ConfigModule globalement)
+// dbType calculated via env (NestJS handles loading the .env via ConfigModule globally)
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
