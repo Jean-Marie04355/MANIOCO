@@ -10,7 +10,6 @@ describe('PaymentsService', () => {
   let userRepoMock: any;
   let paymentProviderMock: any;
   let ordersServiceMock: any;
-  let bullMQServiceMock: any;
   let queueServiceMock: any;
 
   beforeEach(async () => {
