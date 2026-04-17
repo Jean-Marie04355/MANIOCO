@@ -27,7 +27,7 @@ describe('PaymentsService', () => {
     };
     ordersServiceMock = {
       updateStatus: jest.fn(),
-      findOne: jest.fn(),
+      findOne: jùest.fn(),
       cancelOrder: jest.fn(),
     };
     queueServiceMock = {
