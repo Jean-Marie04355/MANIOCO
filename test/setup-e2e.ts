@@ -1,8 +1,7 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { DataSource } from 'typeorm';
 
 class E2EState {
-  static mongod: MongoMemoryServer;
+  public static mongod: MongoMemoryServer | undefined;
 }
 
 beforeAll(async () => {

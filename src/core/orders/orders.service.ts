@@ -135,7 +135,7 @@ export class OrdersService {
    */
   async restoreStock(orderId: string): Promise<void> {
     const order = await this.findOne(orderId);
-    if (!order || !order.items) return;
+    if (!order?.items) return;
 
     for (const item of order.items) {
       const product = await this.productRepository.findOne({

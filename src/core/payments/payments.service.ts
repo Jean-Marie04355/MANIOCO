@@ -82,7 +82,7 @@ export class PaymentsService {
   async handleWebhook(payload: Record<string, unknown>): Promise<void> {
     const result = await this.paymentProvider.verifyNotification(payload);
 
-    if (result && result.status === 'APPROVED') {
+    if (result?.status === 'APPROVED') {
       const transaction = await this.transactionRepository.findOne({
         externalId: result.externalId,
       });
@@ -116,7 +116,7 @@ export class PaymentsService {
         
         this.logger.log(`Payment approved for transaction ${result.externalId}`);
       }
-    } else if (result && result.status === 'DECLINED') {
+    } else if (result?.status === 'DECLINED') {
       const transaction = await this.transactionRepository.findOne({
         externalId: result.externalId,
       });
