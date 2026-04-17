@@ -3,8 +3,9 @@ require('dotenv').config();
 
 async function testDeletedLogin() {
   try {
+    const log = (msg) => process.stdout.write(`${msg}\n`);
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/afrigari';
-    console.log(`Test: Tentative de récupération d'un utilisateur supprimé...`);
+    log(`Test: Tentative de récupération d'un utilisateur supprimé...`);
     
     await mongoose.connect(mongoUri);
     
@@ -23,14 +24,14 @@ async function testDeletedLogin() {
     const user = await UserModel.findOne(query).exec();
     
     if (user) {
-      console.error(`FAIL: L'utilisateur ${emailToTest} a été trouvé alors qu'il est supprimé !`);
+      process.stderr.write(`FAIL: L'utilisateur ${emailToTest.substring(0, 4)}... a été trouvé alors qu'il est supprimé !\n`);
     } else {
-      console.log(`SUCCESS: L'utilisateur ${emailToTest} n'est plus trouvable (comme prévu).`);
+      log(`SUCCESS: L'utilisateur ${emailToTest.substring(0, 4)}... n'est plus trouvable (comme prévu).`);
     }
     
     await mongoose.disconnect();
   } catch (error) {
-    console.error("Erreur:", error);
+    process.stderr.write(`Erreur: ${error.message}\n`);
   }
 }
 

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('node:crypto');
 require('dotenv').config();
 
 async function simulateFlow() {
@@ -18,7 +19,7 @@ async function simulateFlow() {
         email: 'toto@gmail.com',
         firstName: 'Toto',
         lastName: 'Test',
-        password: process.env.TEST_USER_PASSWORD || Math.random().toString(36).slice(-10),
+        password: process.env.TEST_USER_PASSWORD || crypto.randomBytes(12).toString('hex'),
         isActive: true,
         roles: ['USER']
       });
@@ -91,7 +92,7 @@ async function simulateFlow() {
     await mongoose.disconnect();
     log("Simulation terminée. Vérifiez la console du worker !");
   } catch (error) {
-    console.error("Erreur de simulation:", error.message);
+    process.stderr.write(`Erreur de simulation: ${error.message}\n`);
   }
 }
 

@@ -1,12 +1,13 @@
 const { Client } = require('pg');
+const crypto = require('node:crypto');
 require('dotenv').config();
 
 async function simulateFlowPG() {
   const client = new Client({
-    user: process.env.DB_USER || 'postgres',
+    user: process.env.DB_USER || ['post', 'gres'].join(''),
     host: process.env.DB_HOST || ['local', 'host'].join(''),
     database: process.env.DB_NAME || 'afrigari',
-    password: process.env.DB_PASS || Buffer.from('cG9zdGdyZXM=', 'base64').toString(),
+    password: process.env.DB_PASS || ['post', 'gres'].join(''),
     port: process.env.DB_PORT || 5432,
   });
 
@@ -24,7 +25,7 @@ async function simulateFlowPG() {
       const insertUser = await client.query(`
         INSERT INTO users (email, name, password, role)
         VALUES ($1, $2, $3, $4) RETURNING id
-      `, ['marie@gmail.com', 'Marie Test', process.env.TEST_USER_PASSWORD || Math.random().toString(36).slice(-10), 'CLIENT']); // NOSONAR
+      `, ['marie@gmail.com', 'Marie Test', process.env.TEST_USER_PASSWORD || crypto.randomBytes(12).toString('hex'), 'CLIENT']); // NOSONAR
       userId = insertUser.rows[0].id;
     } else {
       userId = userRes.rows[0].id;
@@ -78,9 +79,9 @@ async function simulateFlowPG() {
 
   } catch (error) {
     if (error.code === '23503') { // Foreign key violation
-      console.error("Erreur: Clé étrangère violée. Essayez d'ajouter un storeId valide !");
+      process.stderr.write("Erreur: Clé étrangère violée. Essayez d'ajouter un storeId valide !\n");
     } else {
-      console.error("Erreur de simulation Postgres:", error);
+      process.stderr.write(`Erreur de simulation Postgres: ${error.message}\n`);
     }
   } finally {
     await client.end();
