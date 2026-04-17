@@ -21,24 +21,26 @@ function main() {
       // Infrastructure worker: register OTP, S3, etc. jobs here
       if (job.name === 'send-otp-email') {
         const { email, otpCode } = job.data;
-        // eslint-disable-next-line no-console
-        console.log('\n==========================================');
-        console.log(`📧 [SIMULATED EMAIL]`);
-        console.log(`To           : ${email.replace(/(.{3}).*@/, '$1***@')}`); // Masked
-        console.log(`Status       : OTP Sent`);
-        console.log('==========================================\n');
+        const log = (msg: string) => process.stdout.write(`${msg}\n`);
+        log('\n==========================================');
+        log(`📧 [SIMULATED EMAIL]`);
+        const maskedEmail = email ? email.replace(/(.{3}).*@/, '$1***@') : 'unknown';
+        log(`To           : ${maskedEmail}`);
+        log(`Status       : OTP Sent`);
+        log('==========================================\n');
         return { ok: true, emailSent: true };
       }
 
       if (job.name === 'send-order-confirmation') {
         const { email, orderId, totalAmount, items } = job.data;
-        // eslint-disable-next-line no-console
-        console.log('\n==========================================');
-        console.log(`📧 [COMMANDE RÉUSSIE]`);
-        console.log(`To           : ${email.replace(/(.{3}).*@/, '$1***@')}`); // Masked
-        console.log(`Commande ID  : #${orderId}`);
-        console.log(`Status       : Confirmation Sent`);
-        console.log('==========================================\n');
+        const log = (msg: string) => process.stdout.write(`${msg}\n`);
+        log('\n==========================================');
+        log(`📧 [COMMANDE RÉUSSIE]`);
+        const maskedEmail = email ? email.replace(/(.{3}).*@/, '$1***@') : 'unknown';
+        log(`To           : ${maskedEmail}`);
+        log(`Commande ID  : #${orderId}`);
+        log(`Status       : Confirmation Sent`);
+        log('==========================================\n');
         return { ok: true, emailSent: true };
       }
 
@@ -48,16 +50,13 @@ function main() {
   );
 
   worker.on('completed', (job) => {
-    // eslint-disable-next-line no-console
-    console.log(`[worker] completed ${job.id} ${job.name}`);
+    process.stdout.write(`[worker] completed ${job.id} ${job.name}\n`);
   });
   worker.on('failed', (job, err) => {
-    // eslint-disable-next-line no-console
-    console.error(`[worker] failed ${job?.id} ${job?.name}`, err);
+    process.stderr.write(`[worker] failed ${job?.id} ${job?.name}: ${err.message}\n`);
   });
 
-  // eslint-disable-next-line no-console
-  console.log(`[worker] started for queue "${queueName}"`);
+  process.stdout.write(`[worker] started for queue "${queueName}"\n`);
 }
 
 main();

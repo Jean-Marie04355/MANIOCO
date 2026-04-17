@@ -13,17 +13,14 @@ type JwtPayload = {
 };
 
 function extractToken(client: Socket): string | null {
-  const authToken = client.handshake.auth?.token;
-  if (typeof authToken === 'string' && authToken.trim() !== '') {
-    return authToken;
+  const auth = client.handshake.auth;
+  if (auth && typeof auth.token === 'string') {
+    return auth.token || null;
   }
 
-  const header = client.handshake.headers?.authorization;
-  if (typeof header === 'string') {
-    const parts = header.trim().split(/\s+/);
-    if (parts.length === 2 && parts[0].toLowerCase() === 'bearer') {
-      return parts[1];
-    }
+  const authorization = client.handshake.headers?.authorization;
+  if (typeof authorization === 'string' && authorization.startsWith('Bearer ')) {
+    return authorization.substring(7);
   }
 
   return null;
