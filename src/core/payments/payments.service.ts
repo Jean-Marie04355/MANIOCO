@@ -44,7 +44,7 @@ export class PaymentsService {
 
     try {
       const callbackUrl =
-        this.configService.get('FRONTEND_URL', 'http://localhost:3000') +
+        this.configService.get('FRONTEND_URL', 'https://localhost:3000') +
         `/payment-callback?orderId=${order.id}`;
 
       // Delegate to external provider

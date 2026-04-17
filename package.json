@@ -12,7 +12,7 @@
     "start:dev": "nest start --watch",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",
-    "start:worker": "ts-node -r tsconfig-paths/register src/worker.ts",
+    "start:worker": "ts-node -r tsconfig-paths/register src/__tests__/worker.standalone.ts",
     "start:worker:prod": "node dist/worker",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",

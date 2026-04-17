@@ -12,7 +12,8 @@ import { WsJwtGuard } from './ws-jwt.guard';
 @WebSocketGateway({
   namespace: '/realtime',
   cors: {
-    origin: true,
+    origin: process.env.CORS_ORIGIN || false,
+
     credentials: true,
   },
 })
