@@ -1,13 +1,15 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { DataSource } from 'typeorm';
 
-let mongod: MongoMemoryServer;
+class E2EState {
+  static mongod: MongoMemoryServer;
+}
 
 beforeAll(async () => {
   // Setup MongoDB Memory Server if needed
   if (process.env.DB_TYPE === 'mongodb') {
-    mongod = await MongoMemoryServer.create();
-    const uri = mongod.getUri();
+    E2EState.mongod = await MongoMemoryServer.create();
+    const uri = E2EState.mongod.getUri();
     process.env.MONGODB_URI = uri;
   }
 
@@ -16,7 +18,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  if (mongod) {
-    await mongod.stop();
+  if (E2EState.mongod) {
+    await E2EState.mongod.stop();
   }
 });

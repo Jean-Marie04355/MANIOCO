@@ -26,7 +26,7 @@ describe('FedaPayProvider', () => {
     provider = module.get<FedaPayProvider>(FedaPayProvider);
     
     // Mock global fetch
-    global.fetch = jest.fn();
+    jest.spyOn(global, 'fetch');
   });
 
   afterEach(() => {
