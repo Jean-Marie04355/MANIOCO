@@ -8,4 +8,6 @@ sonarqube-checker:
   variables:
     SONAR_SCANNER_OPTS: "-Xmx4096m" # Augmenté pour éviter les crashs sur gros projets
     SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true" # Accélère le démarrage
+    SONAR_SOURCES: "src"
+
 
