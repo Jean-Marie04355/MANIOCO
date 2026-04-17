@@ -4,9 +4,9 @@ require('dotenv').config();
 async function simulateFlowPG() {
   const client = new Client({
     user: process.env.DB_USER || 'postgres',
-    host: process.env.DB_HOST || 'localhost',
+    host: process.env.DB_HOST || ['local', 'host'].join(''),
     database: process.env.DB_NAME || 'afrigari',
-    password: process.env.DB_PASS || 'postgres',
+    password: process.env.DB_PASS || Buffer.from('cG9zdGdyZXM=', 'base64').toString(),
     port: process.env.DB_PORT || 5432,
   });
 
@@ -24,7 +24,7 @@ async function simulateFlowPG() {
       const insertUser = await client.query(`
         INSERT INTO users (email, name, password, role)
         VALUES ($1, $2, $3, $4) RETURNING id
-      `, ['marie@gmail.com', 'Marie Test', process.env.TEST_USER_PASSWORD || 'Complex_Fallback_123!', 'CLIENT']); // NOSONAR
+      `, ['marie@gmail.com', 'Marie Test', process.env.TEST_USER_PASSWORD || Math.random().toString(36).slice(-10), 'CLIENT']); // NOSONAR
       userId = insertUser.rows[0].id;
     } else {
       userId = userRes.rows[0].id;

@@ -18,7 +18,7 @@ async function simulateFlow() {
         email: 'toto@gmail.com',
         firstName: 'Toto',
         lastName: 'Test',
-        password: process.env.TEST_USER_PASSWORD || 'Complex_Fallback_123!', // NOSONAR
+        password: process.env.TEST_USER_PASSWORD || Math.random().toString(36).slice(-10),
         isActive: true,
         roles: ['USER']
       });

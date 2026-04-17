@@ -31,7 +31,7 @@ async function checkOrders() {
     
     await mongoose.disconnect();
   } catch (error) {
-    console.error("Erreur:", error);
+    process.stderr.write(`Erreur: ${error.message}\n`);
   }
 }
 
