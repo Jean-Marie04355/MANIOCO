@@ -2,12 +2,13 @@ import * as crypto from 'node:crypto';
 import {
   Injectable,
   UnauthorizedException,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 import { UsersService } from '../users/users.service';
-import { BullMQService } from '../../libs/queues/bullmq.service';
+import { IQueueService } from '../../common/interfaces/queue.interface';
 import { comparePassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
 import { User } from '../users/user.entity';
@@ -30,7 +31,8 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly bullMQService: BullMQService,
+    @Inject('QUEUE_SERVICE')
+    private readonly queueService: IQueueService,
   ) {}
 
   async login(email: string, password: string): Promise<LoginResponse> {
@@ -96,8 +98,8 @@ export class AuthService {
     } as Partial<User>);
 
     // Put OTP job into the queue
-    const queue = this.bullMQService.getQueue(process.env.BULLMQ_QUEUE || 'default');
-    await queue.add('send-otp-email', { email: user.email, otpCode });
+    const queueName = process.env.QUEUE_NAME || 'default';
+    await this.queueService.addJob(queueName, 'send-otp-email', { email: user.email, otpCode });
 
     return {
       message: 'An OTP code has been generated and sent by email.',

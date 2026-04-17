@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
+import { RolesService } from '../roles/roles.service';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
@@ -21,6 +22,10 @@ describe('ProductsController', () => {
         {
           provide: ProductsService,
           useValue: serviceMock,
+        },
+        {
+          provide: RolesService,
+          useValue: { findByName: jest.fn() },
         },
       ],
     }).compile();

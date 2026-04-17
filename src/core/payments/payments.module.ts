@@ -15,7 +15,6 @@ import {
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
-import { FedaPayProvider } from '../../libs/payments/fedapay.provider';
 import { OrdersModule } from '../orders/orders.module';
 import { QueuesModule } from '../../libs/queues/queues.module';
 import { UsersModule } from '../users/users.module';
@@ -36,10 +35,6 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
   controllers: [PaymentsController],
   providers: [
     PaymentsService,
-    {
-      provide: 'PAYMENT_PROVIDER',
-      useClass: FedaPayProvider,
-    },
     {
       provide: 'TRANSACTION_REPOSITORY',
       inject: [

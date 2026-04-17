@@ -32,6 +32,12 @@ describe('AuthService', () => {
         { provide: UsersService, useValue: usersServiceMock },
         { provide: JwtService, useValue: jwtServiceMock },
         { provide: ConfigService, useValue: configServiceMock },
+        {
+          provide: 'QUEUE_SERVICE',
+          useValue: {
+            addJob: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
@@ -85,7 +91,7 @@ describe('AuthService', () => {
       const expiry = new Date(Date.now() + 10000);
       const user = { id: '1', email: 'admin@test.com', otpCode: '123456', otpExpiresAt: expiry, role: UserRole.ADMIN };
       usersServiceMock.findByEmail.mockResolvedValue(user);
-      jwtServiceMock.sign.mockReturnValue('token');
+      jwtServiceMock.signAsync.mockResolvedValue('token');
 
       const result = await service.verifyAdminOtp('admin@test.com', '123456');
       expect(result.accessToken).toBe('token');

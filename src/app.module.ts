@@ -19,6 +19,7 @@ import { RealtimeModule } from './libs/realtime/realtime.module';
 import { QueuesModule } from './libs/queues/queues.module';
 import { AdminSeeder } from './common/seeder/admin.seeder';
 import { RolesModule } from './core/roles/roles.module';
+import { PaymentsInfraModule } from './libs/payments/payments-infra.module';
 
 @Module({
   imports: [
@@ -38,9 +39,13 @@ import { RolesModule } from './core/roles/roles.module';
     PaymentsModule,
     RealtimeModule,
     QueuesModule,
+    PaymentsInfraModule,
   ],
 
   controllers: [AppController, InfraController],
-  providers: [AppService, AdminSeeder],
+  providers: [
+    AppService,
+    AdminSeeder,
+  ],
 })
 export class AppModule {}

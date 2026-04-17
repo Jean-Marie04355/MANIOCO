@@ -6,7 +6,7 @@ import { Order } from '../orders/order.entity';
 import { User } from '../users/user.entity';
 import { IPaymentProvider } from '../../common/interfaces/payment-provider.interface';
 import { OrdersService } from '../orders/orders.service';
-import { BullMQService } from '../../libs/queues/bullmq.service';
+import { IQueueService } from '../../common/interfaces/queue.interface';
 
 @Injectable()
 export class PaymentsService {
@@ -20,7 +20,8 @@ export class PaymentsService {
     @Inject('PAYMENT_PROVIDER')
     private readonly paymentProvider: IPaymentProvider,
     private readonly configService: ConfigService,
-    private readonly bullMQService: BullMQService,
+    @Inject('QUEUE_SERVICE')
+    private readonly queueService: IQueueService,
     @Inject(forwardRef(() => OrdersService))
     private readonly ordersService: OrdersService,
   ) {}
@@ -102,9 +103,8 @@ export class PaymentsService {
           const customer = await this.userRepository.findOne({ id: order.customerId });
           if (customer) {
             // Queue order confirmation email
-            const queueToken = process.env.BULLMQ_QUEUE || 'default';
-            const queue = this.bullMQService.getQueue(queueToken);
-            await queue.add('send-order-confirmation', {
+            const queueToken = process.env.QUEUE_NAME || 'default';
+            await this.queueService.addJob(queueToken, 'send-order-confirmation', {
               email: customer.email,
               orderId: order.id,
               totalAmount: order.totalAmount,
