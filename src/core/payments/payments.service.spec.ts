@@ -89,6 +89,15 @@ describe('PaymentsService', () => {
         service.createTransaction(order as any, sellerAcc),
       ).rejects.toBe('String Error');
     });
+
+    it('should handle errors from payment provider (Error instance)', async () => {
+      transactionRepoMock.create.mockResolvedValue({ id: 'local-1' });
+      paymentProviderMock.createTransaction.mockRejectedValue(new Error('Typed Error'));
+
+      await expect(
+        service.createTransaction(order as any, sellerAcc),
+      ).rejects.toThrow('Typed Error');
+    });
   });
 
   describe('findByOrderId', () => {
@@ -186,6 +195,18 @@ describe('PaymentsService', () => {
         }),
       );
       expect(ordersServiceMock.cancelOrder).toHaveBeenCalledWith('order-1');
+    });
+
+    it('should do nothing if transaction is not found for DECLINED status', async () => {
+      paymentProviderMock.verifyNotification.mockResolvedValue({
+        status: 'DECLINED',
+        externalId: 'ext-unknown',
+      });
+      transactionRepoMock.findOne.mockResolvedValue(null);
+
+      await service.handleWebhook({});
+      expect(transactionRepoMock.update).not.toHaveBeenCalled();
+      expect(ordersServiceMock.cancelOrder).not.toHaveBeenCalled();
     });
 
     it('should do nothing if transaction is not found for externalId', async () => {

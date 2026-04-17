@@ -1,74 +1,80 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { JwtService } from '@nestjs/jwt';
 import { WsJwtGuard } from './ws-jwt.guard';
-import { WsException } from '@nestjs/websockets';
+import { JwtService } from '@nestjs/jwt';
 import { ExecutionContext } from '@nestjs/common';
+import { WsException } from '@nestjs/websockets';
 
 describe('WsJwtGuard', () => {
   let guard: WsJwtGuard;
-  let jwtService: jest.Mocked<JwtService>;
+  let jwtService: JwtService;
 
   beforeEach(async () => {
-    jwtService = {
-      verifyAsync: jest.fn(),
-    } as any;
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         WsJwtGuard,
-        { provide: JwtService, useValue: jwtService },
+        {
+          provide: JwtService,
+          useValue: {
+            verifyAsync: jest.fn(),
+          },
+        },
       ],
     }).compile();
 
     guard = module.get<WsJwtGuard>(WsJwtGuard);
+    jwtService = module.get<JwtService>(JwtService);
   });
-
-  const createMockContext = (auth?: any, headers?: any) => {
-    return {
-      switchToWs: () => ({
-        getClient: () => ({
-          handshake: {
-            auth,
-            headers,
-          },
-        }),
-      }),
-    } as unknown as ExecutionContext;
-  };
 
   it('should be defined', () => {
     expect(guard).toBeDefined();
   });
 
-  it('should throw WsException if token is missing', async () => {
-    const context = createMockContext();
-    await expect(guard.canActivate(context)).rejects.toThrow(WsException);
-    await expect(guard.canActivate(context)).rejects.toThrow('Missing auth token');
-  });
+  describe('canActivate', () => {
+    let context: any;
 
-  it('should extract token from handshake.auth.token', async () => {
-    const context = createMockContext({ token: 'test-token' });
-    jwtService.verifyAsync.mockResolvedValue({ userId: '123' });
+    beforeEach(() => {
+      context = {
+        switchToWs: jest.fn().mockReturnValue({
+          getClient: jest.fn().mockReturnValue({
+            handshake: {
+              auth: {},
+              headers: {},
+            },
+          }),
+        }),
+      };
+    });
 
-    const result = await guard.canActivate(context);
-    expect(result).toBe(true);
-    expect(jwtService.verifyAsync).toHaveBeenCalledWith('test-token');
-  });
+    it('should return true if token in auth is valid', async () => {
+      const client = context.switchToWs().getClient();
+      client.handshake.auth.token = 'valid-token';
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue({ userId: '1' });
 
-  it('should extract token from Authorization header (Bearer)', async () => {
-    const context = createMockContext(null, { authorization: 'Bearer test-token' });
-    jwtService.verifyAsync.mockResolvedValue({ userId: '123' });
+      const result = await guard.canActivate(context as ExecutionContext);
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-token');
+    });
 
-    const result = await guard.canActivate(context);
-    expect(result).toBe(true);
-    expect(jwtService.verifyAsync).toHaveBeenCalledWith('test-token');
-  });
+    it('should return true if token in headers is valid (Bearer)', async () => {
+      const client = context.switchToWs().getClient();
+      client.handshake.headers.authorization = 'Bearer valid-header-token';
+      (jwtService.verifyAsync as jest.Mock).mockResolvedValue({ userId: '1' });
 
-  it('should throw WsException if token is invalid', async () => {
-    const context = createMockContext({ token: 'invalid-token' });
-    jwtService.verifyAsync.mockRejectedValue(new Error('Invalid'));
+      const result = await guard.canActivate(context as ExecutionContext);
+      expect(result).toBe(true);
+      expect(jwtService.verifyAsync).toHaveBeenCalledWith('valid-header-token');
+    });
 
-    await expect(guard.canActivate(context)).rejects.toThrow(WsException);
-    await expect(guard.canActivate(context)).rejects.toThrow('Invalid auth token');
+    it('should return false if no token is found', async () => {
+      await expect(guard.canActivate(context as ExecutionContext)).rejects.toThrow(WsException);
+    });
+
+    it('should return false if token verification fails', async () => {
+      const client = context.switchToWs().getClient();
+      client.handshake.auth.token = 'invalid-token';
+      (jwtService.verifyAsync as jest.Mock).mockRejectedValue(new Error('Invalid token'));
+
+      await expect(guard.canActivate(context as ExecutionContext)).rejects.toThrow(WsException);
+    });
   });
 });

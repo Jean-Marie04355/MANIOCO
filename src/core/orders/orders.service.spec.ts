@@ -110,6 +110,100 @@ describe('OrdersService', () => {
       expect(result.paymentUrl).toBe('http://payment.url');
       expect(productRepoMock.update).toHaveBeenCalled();
     });
+
+    it('should cancel order and restore stock if payment initiation fails', async () => {
+      const store = { id: 'store-1', payoutAccountId: 'payout-1' };
+      const product = { 
+        id: 'prod-1', 
+        name: 'Product 1', 
+        stock: 10, 
+        price: 100, 
+        category: { storeId: 'store-1' } 
+      };
+      const order = { id: 'order-1', totalAmount: 200, status: OrderStatus.PENDING };
+
+      storeRepoMock.findOne.mockResolvedValue(store);
+      productRepoMock.findOne.mockResolvedValue(product);
+      orderRepoMock.create.mockResolvedValue(order);
+      orderRepoMock.findOne.mockResolvedValue(order);
+      paymentsServiceMock.createTransaction.mockRejectedValue(new Error('Payment Provider Down'));
+
+      await expect(service.create(createOrderDto as any)).rejects.toThrow(BadRequestException);
+      
+      // Should have called update status to CANCELLED (via cancelOrder)
+      expect(orderRepoMock.update).toHaveBeenCalledWith('order-1', { status: OrderStatus.CANCELLED });
+    });
+
+    it('should handle non-Error catch block in create', async () => {
+      const store = { id: 'store-1', payoutAccountId: 'payout-1' };
+      const product = { id: 'prod-1', stock: 10, price: 100, category: { storeId: 'store-1' } };
+      const order = { id: 'order-1', status: OrderStatus.PENDING };
+
+      storeRepoMock.findOne.mockResolvedValue(store);
+      productRepoMock.findOne.mockResolvedValue(product);
+      orderRepoMock.create.mockResolvedValue(order);
+      orderRepoMock.findOne.mockResolvedValue(order);
+      paymentsServiceMock.createTransaction.mockRejectedValue('String Error');
+
+      await expect(service.create(createOrderDto as any)).rejects.toThrow(/String Error/);
+    });
+  });
+
+  describe('restoreStock', () => {
+    it('should restore stock for each item in order', async () => {
+      const order = { 
+        id: 'order-1', 
+        items: [{ productId: 'prod-1', quantity: 3 }] 
+      };
+      const product = { id: 'prod-1', stock: 10 };
+      
+      orderRepoMock.findOne.mockResolvedValue(order);
+      productRepoMock.findOne.mockResolvedValue(product);
+      
+      await service.restoreStock('order-1');
+      
+      expect(productRepoMock.update).toHaveBeenCalledWith('prod-1', { stock: 13 });
+    });
+
+    it('should throw NotFoundException if order is missing', async () => {
+      orderRepoMock.findOne.mockResolvedValue(null);
+      await expect(service.restoreStock('order-unknown')).rejects.toThrow(NotFoundException);
+      expect(productRepoMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should skip product if not found during restoration', async () => {
+      const order = { 
+        id: 'order-1', 
+        items: [{ productId: 'prod-unknown', quantity: 3 }] 
+      };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      productRepoMock.findOne.mockResolvedValue(null);
+      
+      await service.restoreStock('order-1');
+      expect(productRepoMock.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('cancelOrder', () => {
+    it('should update status to CANCELLED and restore stock', async () => {
+      const order = { id: 'order-1', status: OrderStatus.PENDING };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      jest.spyOn(service, 'restoreStock').mockResolvedValue(undefined);
+      
+      await service.cancelOrder('order-1');
+      
+      expect(orderRepoMock.update).toHaveBeenCalledWith('order-1', { status: OrderStatus.CANCELLED });
+      expect(service.restoreStock).toHaveBeenCalledWith('order-1');
+    });
+
+    it('should return immediately if order is already CANCELLED', async () => {
+      const order = { id: 'order-1', status: OrderStatus.CANCELLED };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      
+      const result = await service.cancelOrder('order-1');
+      expect(result).toEqual(order);
+      expect(orderRepoMock.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('findAll/findOne', () => {
@@ -117,6 +211,16 @@ describe('OrdersService', () => {
       orderRepoMock.find.mockResolvedValue([]);
       await service.findAll();
       expect(orderRepoMock.find).toHaveBeenCalled();
+    });
+
+    it('should find orders by customer', async () => {
+      await service.findByCustomer('cust-1');
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ customerId: 'cust-1' });
+    });
+
+    it('should find orders by store', async () => {
+      await service.findByStore('store-1');
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ storeId: 'store-1' });
     });
 
     it('should throw if findOne fails', async () => {
