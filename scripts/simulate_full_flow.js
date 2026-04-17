@@ -9,11 +9,19 @@ async function simulateFlow() {
     // 1. Trouver un utilisateur actif
     const UserSchema = new mongoose.Schema({}, { strict: false });
     const User = mongoose.model('User', UserSchema);
-    const activeUser = await User.findOne({ email: 'toto@gmail.com' });
+    let activeUser = await User.findOne({ email: 'toto@gmail.com' });
     
     if (!activeUser) {
-      console.error("Utilisateur toto@gmail.com non trouvé.");
-      return;
+      console.log("Utilisateur toto@gmail.com non trouvé. Création d'un utilisateur de test...");
+      activeUser = new User({
+        email: 'toto@gmail.com',
+        firstName: 'Toto',
+        lastName: 'Test',
+        password: 'password123',
+        isActive: true,
+        roles: ['USER']
+      });
+      await activeUser.save();
     }
 
     // 2. Créer une commande de test

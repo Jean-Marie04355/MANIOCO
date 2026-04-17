@@ -15,11 +15,10 @@ import { S3StorageService } from '../../libs/storage/s3-storage.service';
 @Module({
   imports: [
     ConfigModule,
-    ...(process.env.STORAGE_TYPE === 'mongo'
+    ...(process.env.DB_TYPE === 'mongodb'
       ? [MongooseModule.forFeature([{ name: File.name, schema: FileSchema }])]
       : []),
-    ...(process.env.STORAGE_TYPE === 'postgres' ||
-    process.env.STORAGE_TYPE === 's3'
+    ...(process.env.DB_TYPE !== 'mongodb' && (process.env.STORAGE_TYPE === 'postgres' || process.env.STORAGE_TYPE === 's3')
       ? [TypeOrmModule.forFeature([FileEntity])]
       : []),
   ],
@@ -27,14 +26,13 @@ import { S3StorageService } from '../../libs/storage/s3-storage.service';
   providers: [
     S3StorageService,
     JsonStorageProvider,
-    ...(process.env.STORAGE_TYPE === 'mongo'
+    ...(process.env.DB_TYPE === 'mongodb'
       ? [MongoStorageProvider]
       : [{ provide: MongoStorageProvider, useValue: {} }]),
-    ...(process.env.STORAGE_TYPE === 's3'
+    ...(process.env.DB_TYPE !== 'mongodb' && process.env.STORAGE_TYPE === 's3'
       ? [S3StorageProvider]
       : [{ provide: S3StorageProvider, useValue: {} }]),
-    ...(process.env.STORAGE_TYPE === 'postgres' ||
-    process.env.STORAGE_TYPE === 's3'
+    ...(process.env.DB_TYPE !== 'mongodb' && (process.env.STORAGE_TYPE === 'postgres' || process.env.STORAGE_TYPE === 's3')
       ? [PostgresStorageProvider]
       : [{ provide: PostgresStorageProvider, useValue: {} }]),
     {
@@ -60,7 +58,7 @@ import { S3StorageService } from '../../libs/storage/s3-storage.service';
           case 'postgres':
             return postgresProvider;
           case 's3':
-            return s3Provider;
+            return process.env.DB_TYPE === 'mongodb' ? mongoProvider : s3Provider;
           case 'json':
           default:
             return jsonProvider;
