@@ -30,6 +30,7 @@ export class User {
   @Column({ nullable: true })
   otpExpiresAt: Date;
 
+
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;
 }

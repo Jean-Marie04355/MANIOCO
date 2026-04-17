@@ -60,10 +60,10 @@ COPY --from=builder /app/data ./data
 RUN chown -R nestjs:nodejs data
 
 USER nestjs
-
+#ENV NODE_ENV=production
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
   CMD wget --spider -q http://localhost:3000/ping || exit 1
 
-CMD ["node", "dist/main.js"]   le nouveau dockerfile
+CMD ["node", "dist/main.js"]

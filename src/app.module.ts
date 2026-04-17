@@ -15,7 +15,7 @@ import { CacheModule } from './libs/cache/cache.module';
 import { LocationModule } from './core/location/location.module';
 import { OrdersModule } from './core/orders/orders.module';
 import { PaymentsModule } from './core/payments/payments.module';
-import { RealtimeModule } from './core/realtime/realtime.module';
+import { RealtimeModule } from './libs/realtime/realtime.module';
 import { QueuesModule } from './libs/queues/queues.module';
 import { AdminSeeder } from './common/seeder/admin.seeder';
 import { RolesModule } from './core/roles/roles.module';
