@@ -14,8 +14,15 @@ FROM node:24-alpine3.23 AS base
 FROM base AS deps
 WORKDIR /app
 
-# Install build tools for native modules (e.g., sqlite3)
-RUN apk update && apk add --no-cache python3 make g++ && rm -rf /var/cache/apk/*
+# Install build tools for native modules
+ARG APK_PYTHON3_VERSION=3.12.13-r0
+ARG APK_MAKE_VERSION=4.4.1-r3
+ARG APK_GPP_VERSION=15.2.0-r2
+
+RUN apk update && apk add --no-cache \
+    python3=${APK_PYTHON3_VERSION} \
+    make=${APK_MAKE_VERSION} \
+    g++=${APK_GPP_VERSION}
 
 # Copy package.json and package-lock.json (if available) into the root directory of the container
 COPY package*.json ./
