@@ -3,7 +3,7 @@
 #  BUILD STAGE
 # ===========================
 # Use an official Node.js runtime as the base image
-FROM node:24-slim AS base
+FROM node:24-alpine3.23 AS base
 
 
 # ===========================
@@ -15,12 +15,7 @@ FROM base AS deps
 WORKDIR /app
 
 # Install build tools for native modules (e.g., sqlite3)
-# hadolint ignore=DL3008
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    python3=3.11.2-1+b1 \
-    make=4.3-4.1 \
-    g++=4:12.2.0-3 \
-    && rm -rf /var/lib/apt/lists/*
+RUN apk update && apk add --no-cache python3 make g++ && rm -rf /var/cache/apk/*
 
 # Copy package.json and package-lock.json (if available) into the root directory of the container
 COPY package*.json ./
@@ -65,10 +60,10 @@ COPY --from=builder /app/data ./data
 RUN chown -R nestjs:nodejs data
 
 USER nestjs
-#ENV NODE_ENV=production
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD wget --spider -q http://localhost:3000/ping || exit 1
+    CMD wget --spider -q http://localhost:3000/ping || exit 1
 
 CMD ["node", "dist/main.js"]

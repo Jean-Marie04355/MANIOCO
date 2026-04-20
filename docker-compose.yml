@@ -104,3 +104,34 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  api:
+    build:
+      context: .
+      target: runner
+    depends_on:
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - DB_TYPE=postgres
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-postgres}
+      - DB_PASS=${DB_PASS}
+      - DB_NAME=${DB_NAME:-afrigari}
+      - MONGO_URI=mongodb://mongodb:27017/afrigari
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - S3_ENDPOINT=http://minio:9000
+      - SWAGGER_USERNAME=${SWAGGER_USERNAME:-admin}
+      - SWAGGER_PASSWORD=${SWAGGER_PASSWORD:-admin}
+      - PORT=3000
