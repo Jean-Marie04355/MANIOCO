@@ -25,8 +25,9 @@ export class S3StorageService implements IStorageService {
       'afrigari-bucket',
     );
 
-    const accessKeyId = this.configService.get<string>('S3_ACCESS_KEY_ID');
-    const secretAccessKey = this.configService.get<string>(
+    const accessKeyId =
+      this.configService.getOrThrow<string>('S3_ACCESS_KEY_ID');
+    const secretAccessKey = this.configService.getOrThrow<string>(
       'S3_SECRET_ACCESS_KEY',
     );
 
@@ -34,8 +35,8 @@ export class S3StorageService implements IStorageService {
       region: this.configService.get<string>('S3_REGION', 'garage'),
       endpoint: this.endpoint,
       credentials: {
-        accessKeyId: accessKeyId || '',
-        secretAccessKey: secretAccessKey || '',
+        accessKeyId,
+        secretAccessKey,
       },
       forcePathStyle: true,
     });

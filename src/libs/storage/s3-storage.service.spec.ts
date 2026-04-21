@@ -13,6 +13,7 @@ describe('S3StorageService', () => {
   beforeEach(async () => {
     configServiceMock = {
       get: jest.fn().mockImplementation((key, defaultValue) => defaultValue || 'test-value'),
+      getOrThrow: jest.fn().mockImplementation((key) => 'test-value'),
     };
 
     s3ClientMock = {

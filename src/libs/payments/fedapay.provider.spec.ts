@@ -14,6 +14,10 @@ describe('FedaPayProvider', () => {
         if (key === 'PLATFORM_COMMISSION_PERCENT') return 10;
         return defaultValue || null;
       }),
+      getOrThrow: jest.fn().mockImplementation((key) => {
+        if (key === 'FEDAPAY_SECRET_KEY') return 'sk_test_123';
+        throw new Error(`Config ${key} not found`);
+      }),
     } as any;
 
     const module: TestingModule = await Test.createTestingModule({
