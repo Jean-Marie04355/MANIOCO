@@ -6,7 +6,7 @@ import {
   HttpStatus,
   Res,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { PaymentsService } from './payments.service';
 import { Response } from 'express';
 
@@ -19,6 +19,21 @@ export class PaymentsController {
 
   @Post('webhook')
   @ApiOperation({ summary: 'Generic payment webhook' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        event: { type: 'string', example: 'transaction.approved' },
+        entity: {
+          type: 'object',
+          properties: {
+            id: { type: 'string', example: '431988' },
+            mode: { type: 'string', example: 'sandbox' },
+          },
+        },
+      },
+    },
+  })
   async handleWebhook(@Body() payload: Record<string, unknown>, @Res() res: Response) {
     this.logger.log('Payment notification received');
 
