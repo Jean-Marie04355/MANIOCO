@@ -9,7 +9,7 @@ services:
     ports:
       - "127.0.0.1:27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - ./data/mongodb:/data/db
     healthcheck:
       test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
@@ -47,6 +47,3 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-volumes:
-  mongodb_data:

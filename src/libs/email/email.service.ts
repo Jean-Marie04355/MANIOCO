@@ -25,12 +25,6 @@ export class EmailService {
     });
   }
 
-  private maskEmail(email: string): string {
-    const [local, domain] = email.split('@');
-    if (!local || !domain) return '***@***';
-    return `${local[0]}***@${domain}`;
-  }
-
   async sendEmail(options: EmailOptions): Promise<void> {
     const from = process.env.SMTP_FROM || '"Afrigari" <noreply@afrigari.com>';
     
@@ -43,16 +37,14 @@ export class EmailService {
         text: options.text,
       });
       // Use internal process.stdout for worker if Logger is not initialized by Nest
-      const maskedTo = this.maskEmail(options.to);
-      const msg = `Email sent successfully to ${maskedTo}`;
+      const msg = `Email sent successfully`;
       if (process.env.NODE_ENV === 'production' || !this.logger) {
         console.log(`[EmailService] ${msg}`);
       } else {
         this.logger.log(msg);
       }
     } catch (error: any) {
-      const maskedTo = this.maskEmail(options.to);
-      const errMsg = `Failed to send email to ${maskedTo}: ${error.message}`;
+      const errMsg = `Failed to send email: ${error.message}`;
       console.error(`[EmailService] ${errMsg}`);
       throw error;
     }
