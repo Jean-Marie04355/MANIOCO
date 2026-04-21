@@ -5,11 +5,12 @@ export async function handleWorkerJob(job: Job) {
   const log = (msg: string) => process.stdout.write(`${msg}\n`);
   
   if (job.name === 'send-otp-email') {
-    const { email } = job.data;
+    const { email, otpCode } = job.data;
     log('\n==========================================');
     log(`📧 [SIMULATED EMAIL]`);
     const maskedEmail = email ? email.replace(/(.{3}).*@/, '$1***@') : 'unknown';
     log(`To           : ${maskedEmail}`);
+    log(`OTP Code     : ${otpCode}`);
     log(`Status       : OTP Sent`);
     log('==========================================\n');
     return { ok: true, emailSent: true };

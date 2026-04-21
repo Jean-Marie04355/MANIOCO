@@ -2,6 +2,8 @@ import { Injectable, Inject, NotFoundException, ConflictException, ForbiddenExce
 import { IBaseRepository } from '../../database/index';
 import { Role } from './role.entity';
 
+import { Permission } from '../../common/enum/permission.enum';
+
 @Injectable()
 export class RolesService {
   constructor(
@@ -53,10 +55,10 @@ export class RolesService {
 
   async initializeSystemRoles() {
     const systemRoles = [
-      { name: 'super_admin', isSystem: true, permissions: ['*'] },
-      { name: 'admin', isSystem: true, permissions: ['user:manage'] },
-      { name: 'vendeur', isSystem: true, permissions: ['product:manage', 'order:manage'] },
-      { name: 'livreur', isSystem: true, permissions: ['delivery:manage'] },
+      { name: 'super_admin', isSystem: true, permissions: [Permission.ALL] },
+      { name: 'admin', isSystem: true, permissions: [Permission.USERS_MANAGE, Permission.PRODUCTS_MANAGE, Permission.ORDERS_MANAGE] },
+      { name: 'vendeur', isSystem: true, permissions: [Permission.PRODUCTS_MANAGE, Permission.ORDERS_MANAGE] },
+      { name: 'livreur', isSystem: true, permissions: [Permission.ORDERS_VIEW] },
       { name: 'client', isSystem: true, permissions: [] },
     ];
 

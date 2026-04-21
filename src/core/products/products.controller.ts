@@ -13,9 +13,9 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole } from '../../common/enum/role.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../common/enum/permission.enum';
 
 @ApiTags('Products')
 @Controller('products')
@@ -24,8 +24,8 @@ export class ProductsController {
 
   @Post()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.VENDEUR)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.PRODUCTS_MANAGE)
   @ApiOperation({ summary: 'Create a new product' })
   create(@Body() createProductDto: CreateProductDto) {
     return this.productsService.create(createProductDto);
@@ -45,8 +45,8 @@ export class ProductsController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.VENDEUR)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.PRODUCTS_MANAGE)
   @ApiOperation({ summary: 'Update a product by ID' })
   update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
     return this.productsService.update(id, updateProductDto);
@@ -54,8 +54,8 @@ export class ProductsController {
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.VENDEUR)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.PRODUCTS_MANAGE)
   @ApiOperation({ summary: 'Delete a product by ID' })
   remove(@Param('id') id: string) {
     return this.productsService.remove(id);
