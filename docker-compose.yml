@@ -1,3 +1,4 @@
+---
 services:
   mongodb:
     image: mongo:latest
@@ -39,8 +40,8 @@ services:
     cap_drop:
       - ALL
     ports:
-      - "127.0.0.1:1025:1025" # SMTP port
-      - "127.0.0.1:8025:8025" # Web UI port
+      - "127.0.0.1:1025:1025"  # SMTP port
+      - "127.0.0.1:8025:8025"  # Web UI port
     restart: always
     healthcheck:
       test: ["CMD", "nc", "-z", "localhost", "1025"]
