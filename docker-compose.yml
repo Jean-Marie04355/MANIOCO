@@ -1,0 +1,25 @@
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: afrigari-mongodb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+
+  redis:
+    image: redis:alpine
+    container_name: afrigari-redis
+    ports:
+      - "6379:6379"
+
+  mailpit:
+    image: axllent/mailpit
+    container_name: afrigari-mailpit
+    ports:
+      - "1025:1025" # SMTP port
+      - "8025:8025" # Web UI port
+    restart: always
+
+volumes:
+  mongodb_data:

@@ -27,9 +27,9 @@ import { SqlRepository } from './repository';
           };
         }
 
-        // SQLite fallback
+        // SQLite fallback (using better-sqlite3 for better path handling)
         return {
-          type: 'sqlite',
+          type: 'better-sqlite3',
           database: config.get<string>('SQLITE_DB', 'data/database.sqlite'),
           autoLoadEntities: true,
           synchronize: true,

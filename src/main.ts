@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import basicAuth from 'express-basic-auth';
 import { ConfigService } from '@nestjs/config';
+import { AdminSeeder } from './common/seeder/admin.seeder';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -48,6 +49,10 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
+  // Auto-seed admin account on startup
+  const adminSeeder = app.get(AdminSeeder);
+  await adminSeeder.seed();
 
   await app.listen(configService.get<number>('PORT', 3000));
 }
