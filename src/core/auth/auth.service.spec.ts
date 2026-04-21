@@ -24,6 +24,7 @@ describe('AuthService', () => {
     };
     configServiceMock = {
       get: jest.fn(),
+      getOrThrow: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({

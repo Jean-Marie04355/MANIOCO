@@ -26,6 +26,7 @@ describe('JwtStrategy', () => {
   beforeEach(() => {
     configServiceMock = {
       get: jest.fn().mockReturnValue('secret'),
+      getOrThrow: jest.fn().mockReturnValue('secret'),
     };
     strategy = new JwtStrategy(configServiceMock);
   });
