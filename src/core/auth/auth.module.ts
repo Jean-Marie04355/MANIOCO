@@ -17,9 +17,8 @@ import { QueuesModule } from '../../libs/queues/queues.module';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('JWT_SECRET') || 'afrigari-super-secret-fallback-key',
         signOptions: {
-          // @nestjs/jwt accepte `number | StringValue` pour `expiresIn`
           expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as '1d',
         },
       }),
