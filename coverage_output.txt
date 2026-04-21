@@ -1,0 +1,110 @@
+
+> backend@0.0.1 test:cov
+> jest --coverage src/core/orders src/core/payments src/libs/realtime src/libs/payments
+
+[31m[Nest] 264277  - [39m17/04/2026 20:45:18 [31m  ERROR[39m [38;5;3m[PaymentsService] [39m[31mPayment Initiation Error: String Error[39m
+[31m[Nest] 264277  - [39m17/04/2026 20:45:18 [31m  ERROR[39m [38;5;3m[PaymentsService] [39m[31mPayment Initiation Error: Typed Error[39m
+PASS src/libs/realtime/ws-jwt.guard.spec.ts (11.755 s)
+PASS src/libs/realtime/realtime.gateway.spec.ts (11.719 s)
+[31m[Nest] 264245  - [39m17/04/2026 20:45:18 [31m  ERROR[39m [38;5;3m[PaymentsController] [39m[31mWebhook Error: Internal Error[39m
+PASS src/core/payments/payments.controller.spec.ts (11.758 s)
+PASS src/core/payments/payments.service.spec.ts (11.842 s)
+PASS src/core/orders/orders.service.spec.ts (11.942 s)
+PASS src/core/payments/transaction.entity.spec.ts
+PASS src/core/orders/order.entity.spec.ts
+PASS src/core/orders/orders.controller.spec.ts (12.526 s)
+[31m[Nest] 264238  - [39m17/04/2026 20:45:19 [31m  ERROR[39m [38;5;3m[FedaPayProvider] [39m[31mFedaPay API Error: Invalid API Key[39m
+PASS src/libs/payments/fedapay.provider.spec.ts (12.924 s)
+-----------------------------------|---------|----------|---------|---------|-------------------
+File                               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+-----------------------------------|---------|----------|---------|---------|-------------------
+All files                          |    20.2 |    22.64 |   13.41 |   20.61 |                   
+ src                               |       0 |      100 |       0 |       0 |                   
+  app.controller.ts                |       0 |      100 |       0 |       0 | 1-14              
+  app.service.ts                   |       0 |      100 |       0 |       0 | 1-6               
+ src/__tests__                     |       0 |        0 |       0 |       0 |                   
+  worker.standalone.ts             |       0 |        0 |       0 |       0 | 1-64              
+ src/common/decorators             |       0 |      100 |       0 |       0 |                   
+  roles.decorator.ts               |       0 |      100 |       0 |       0 | 1-7               
+  user.decorator.ts                |       0 |      100 |       0 |       0 | 1-7               
+ src/common/enum                   |     100 |      100 |     100 |     100 |                   
+  order-status.enum.ts             |     100 |      100 |     100 |     100 |                   
+  role.enum.ts                     |     100 |      100 |     100 |     100 |                   
+ src/common/guards                 |       0 |        0 |       0 |       0 |                   
+  roles.guard.ts                   |       0 |        0 |       0 |       0 | 1-50              
+ src/common/helpers                |       0 |      100 |       0 |       0 |                   
+  hash.helper.ts                   |       0 |      100 |       0 |       0 | 1-19              
+  location.helper.ts               |       0 |      100 |       0 |       0 | 9-25              
+ src/common/seeder                 |       0 |        0 |       0 |       0 |                   
+  admin.seeder.ts                  |       0 |        0 |       0 |       0 | 1-46              
+ src/core/auth                     |       0 |        0 |       0 |       0 |                   
+  auth.controller.ts               |       0 |      100 |       0 |       0 | 1-40              
+  auth.service.ts                  |       0 |        0 |       0 |       0 | 1-152             
+ src/core/auth/guards              |       0 |      100 |     100 |       0 |                   
+  jwt-auth.guard.ts                |       0 |      100 |     100 |       0 | 1-5               
+ src/core/auth/strategies          |       0 |        0 |       0 |       0 |                   
+  jwt.strategy.ts                  |       0 |        0 |       0 |       0 | 1-39              
+ src/core/files                    |       0 |        0 |       0 |       0 |                   
+  files.controller.ts              |       0 |      100 |       0 |       0 | 1-83              
+  files.service.ts                 |       0 |        0 |       0 |       0 | 1-39              
+ src/core/files/providers          |       0 |        0 |       0 |       0 |                   
+  json-storage.provider.ts         |       0 |        0 |       0 |       0 | 1-84              
+  mongo-storage.provider.ts        |       0 |        0 |       0 |       0 | 1-63              
+  postgres-storage.provider.ts     |       0 |        0 |       0 |       0 | 1-64              
+  s3-storage.provider.ts           |       0 |        0 |       0 |       0 | 1-64              
+ src/core/location                 |       0 |        0 |       0 |       0 |                   
+  location.controller.ts           |       0 |      100 |       0 |       0 | 1-31              
+  location.service.ts              |       0 |        0 |       0 |       0 | 1-32              
+ src/core/orders                   |     100 |      100 |     100 |     100 |                   
+  orders.controller.ts             |     100 |      100 |     100 |     100 |                   
+  orders.service.ts                |     100 |      100 |     100 |     100 |                   
+ src/core/payments                 |     100 |      100 |     100 |     100 |                   
+  payments.controller.ts           |     100 |      100 |     100 |     100 |                   
+  payments.service.ts              |     100 |      100 |     100 |     100 |                   
+ src/core/product-categories       |       0 |      100 |       0 |       0 |                   
+  product-categories.controller.ts |       0 |      100 |       0 |       0 | 1-63              
+  product-categories.service.ts    |       0 |      100 |       0 |       0 | 1-31              
+ src/core/products                 |       0 |      100 |       0 |       0 |                   
+  products.controller.ts           |       0 |      100 |       0 |       0 | 1-61              
+  products.service.ts              |       0 |      100 |       0 |       0 | 1-31              
+ src/core/roles                    |       0 |        0 |       0 |       0 |                   
+  roles.controller.ts              |       0 |      100 |       0 |       0 | 1-38              
+  roles.service.ts                 |       0 |        0 |       0 |       0 | 1-66              
+ src/core/store                    |       0 |        0 |       0 |       0 |                   
+  store.controller.ts              |       0 |        0 |       0 |       0 | 1-122             
+  store.service.ts                 |       0 |        0 |       0 |       0 | 1-149             
+ src/core/users                    |       0 |        0 |       0 |       0 |                   
+  users.controller.ts              |       0 |        0 |       0 |       0 | 1-97              
+  users.service.ts                 |       0 |        0 |       0 |       0 | 1-81              
+ src/database/interfaces           |       0 |      100 |     100 |       0 |                   
+  base-repository.interface.ts     |       0 |      100 |     100 |       0 | 1                 
+ src/libs/cache                    |       0 |        0 |       0 |       0 |                   
+  cache.service.ts                 |       0 |      100 |     100 |       0 | 5                 
+  redis-cache.service.ts           |       0 |        0 |       0 |       0 | 1-35              
+  redis.constants.ts               |       0 |      100 |     100 |       0 | 1-2               
+ src/libs/database                 |       0 |        0 |       0 |       0 |                   
+  module.ts                        |       0 |        0 |       0 |       0 | 1-30              
+  repository.ts                    |       0 |      100 |       0 |       0 | 1-52              
+ src/libs/no-sql-database          |       0 |        0 |       0 |       0 |                   
+  module.ts                        |       0 |      100 |       0 |       0 | 1-25              
+  repository.ts                    |       0 |        0 |       0 |       0 | 5-72              
+ src/libs/payments                 |     100 |       84 |     100 |     100 |                   
+  fedapay.provider.ts              |     100 |       84 |     100 |     100 | 14-41,50,82       
+ src/libs/queues                   |       0 |        0 |       0 |       0 |                   
+  bullmq.service.ts                |       0 |        0 |       0 |       0 | 1-25              
+  queues.constants.ts              |       0 |      100 |     100 |       0 | 1                 
+ src/libs/realtime                 |     100 |      100 |     100 |     100 |                   
+  realtime.gateway.ts              |     100 |      100 |     100 |     100 |                   
+  ws-jwt.guard.ts                  |     100 |      100 |     100 |     100 |                   
+ src/libs/sql-database             |       0 |        0 |       0 |       0 |                   
+  module.ts                        |       0 |        0 |       0 |       0 | 1-43              
+  repository.ts                    |       0 |      100 |       0 |       0 | 4-40              
+ src/libs/storage                  |       0 |        0 |       0 |       0 |                   
+  s3-storage.service.ts            |       0 |        0 |       0 |       0 | 1-185             
+-----------------------------------|---------|----------|---------|---------|-------------------
+
+Test Suites: 9 passed, 9 total
+Tests:       58 passed, 58 total
+Snapshots:   0 total
+Time:        33.321 s
+Ran all test suites matching src/core/orders|src/core/payments|src/libs/realtime|src/libs/payments.
