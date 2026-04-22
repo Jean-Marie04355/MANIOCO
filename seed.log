@@ -1,0 +1,11 @@
+DriverPackageNotInstalledError: SQLite package has not been found installed. Please run "npm install sqlite3".
+    at SqliteDriver.loadDependencies (/media/mary/Nouveau nom/Soft vodooz/afrigari/node_modules/typeorm/src/driver/sqlite/SqliteDriver.ts:198:19)
+    at new SqliteDriver (/media/mary/Nouveau nom/Soft vodooz/afrigari/node_modules/typeorm/src/driver/sqlite/SqliteDriver.ts:43:14)
+    at DriverFactory.create (/media/mary/Nouveau nom/Soft vodooz/afrigari/node_modules/src/driver/DriverFactory.ts:44:24)
+    at new DataSource (/media/mary/Nouveau nom/Soft vodooz/afrigari/node_modules/src/data-source/DataSource.ts:150:43)
+    at seedSqlite (/media/mary/Nouveau nom/Soft vodooz/afrigari/seed-sqlite.ts:8:25)
+    at Object.<anonymous> (/media/mary/Nouveau nom/Soft vodooz/afrigari/seed-sqlite.ts:39:1)
+    at Module._compile (node:internal/modules/cjs/loader:1521:14)
+    at Module.m._compile (/media/mary/Nouveau nom/Soft vodooz/afrigari/node_modules/ts-node/src/index.ts:1618:23)
+    at Module._extensions..js (node:internal/modules/cjs/loader:1623:10)
+    at Object.require.extensions.<computed> [as .ts] (/media/mary/Nouveau nom/Soft vodooz/afrigari/node_modules/ts-node/src/index.ts:1621:12)
