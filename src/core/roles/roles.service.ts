@@ -56,8 +56,27 @@ export class RolesService {
   async initializeSystemRoles() {
     const systemRoles = [
       { name: 'super_admin', isSystem: true, permissions: [Permission.ALL] },
-      { name: 'admin', isSystem: true, permissions: [Permission.USERS_MANAGE, Permission.PRODUCTS_MANAGE, Permission.ORDERS_MANAGE] },
-      { name: 'vendeur', isSystem: true, permissions: [Permission.PRODUCTS_MANAGE, Permission.ORDERS_MANAGE] },
+      {
+        name: 'admin',
+        isSystem: true,
+        permissions: [
+          Permission.USERS_MANAGE,
+          Permission.PRODUCTS_MANAGE,
+          Permission.ORDERS_MANAGE,
+          Permission.PRODUCT_CATEGORIES_MANAGE,
+          Permission.STORES_MANAGE,
+        ],
+      },
+      {
+        name: 'vendeur',
+        isSystem: true,
+        permissions: [
+          Permission.PRODUCTS_MANAGE,
+          Permission.ORDERS_MANAGE,
+          Permission.PRODUCT_CATEGORIES_MANAGE,
+          Permission.STORES_MANAGE,
+        ],
+      },
       { name: 'livreur', isSystem: true, permissions: [Permission.ORDERS_VIEW] },
       { name: 'client', isSystem: true, permissions: [] },
     ];
@@ -66,6 +85,18 @@ export class RolesService {
       const exists = await this.findByName(roleData.name);
       if (!exists) {
         await this.roleRepository.create(roleData);
+      } else if (exists.isSystem) {
+        // Update permissions for existing system roles if they differ
+        const currentPermissions = exists.permissions || [];
+        const hasAllPermissions =
+          roleData.permissions.every((p) => currentPermissions.includes(p)) &&
+          currentPermissions.length === roleData.permissions.length;
+
+        if (!hasAllPermissions) {
+          await this.roleRepository.update(exists.id, {
+            permissions: roleData.permissions,
+          });
+        }
       }
     }
   }

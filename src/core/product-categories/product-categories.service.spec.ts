@@ -1,5 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { ProductCategoriesService } from './product-categories.service';
+import { StoreService } from '../store/store.service';
+import { UserRole } from '../../common/enum/role.enum';
 
 const mockRepo = {
   create: jest.fn(),
@@ -9,8 +11,18 @@ const mockRepo = {
   softDelete: jest.fn(),
 };
 
+const mockStoreService = {
+  findByOwnerId: jest.fn(),
+};
+
 describe('ProductCategoriesService', () => {
   let service: ProductCategoriesService;
+
+  const mockAdmin = {
+    userId: 'admin-id',
+    role: UserRole.ADMIN,
+    email: 'admin@test.com',
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -19,6 +31,10 @@ describe('ProductCategoriesService', () => {
         {
           provide: 'PRODUCT_CATEGORY_REPOSITORY',
           useValue: mockRepo,
+        },
+        {
+          provide: StoreService,
+          useValue: mockStoreService,
         },
       ],
     }).compile();
@@ -37,7 +53,7 @@ describe('ProductCategoriesService', () => {
   it('should create a category', async () => {
     const dto = { name: 'Test' };
     mockRepo.create.mockResolvedValue(dto);
-    const result = await service.create(dto as any);
+    const result = await service.create(dto as any, mockAdmin);
     expect(result).toEqual(dto);
     expect(mockRepo.create).toHaveBeenCalledWith(dto);
   });
@@ -58,15 +74,17 @@ describe('ProductCategoriesService', () => {
 
   it('should update a category', async () => {
     const dto = { name: 'Test2' };
+    mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'store-1' });
     mockRepo.update.mockResolvedValue(dto);
-    const result = await service.update('1', dto);
+    const result = await service.update('1', dto, mockAdmin);
     expect(result).toEqual(dto);
     expect(mockRepo.update).toHaveBeenCalledWith('1', dto);
   });
 
   it('should remove a category', async () => {
+    mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'store-1' });
     mockRepo.softDelete.mockResolvedValue(undefined);
-    await service.remove('1');
+    await service.remove('1', mockAdmin);
     expect(mockRepo.softDelete).toHaveBeenCalledWith('1');
   });
 });

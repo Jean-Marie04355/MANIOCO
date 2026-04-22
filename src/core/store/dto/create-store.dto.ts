@@ -12,7 +12,7 @@ export class CreateStoreDto {
   @IsString()
   ownerId: string;
 
-  @ApiProperty({ description: 'Profile photo URL', required: false })
+  @ApiProperty({ description: 'Profile photo URL', required: true })
   @IsString()
   @IsNotEmpty()
   profilePhoto?: string;
@@ -46,7 +46,7 @@ export class CreateStoreDto {
 
   @ApiProperty({
     description: 'ID du compte de reversement pour les paiements',
-    required: false,
+    required: true,
   })
   @IsString()
   @IsNotEmpty()

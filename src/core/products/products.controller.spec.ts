@@ -2,10 +2,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsController } from './products.controller';
 import { ProductsService } from './products.service';
 import { RolesService } from '../roles/roles.service';
+import { UserRole } from '../../common/enum/role.enum';
 
 describe('ProductsController', () => {
   let controller: ProductsController;
   let serviceMock: any;
+
+  const mockAdmin = {
+    userId: 'admin-id',
+    role: UserRole.ADMIN,
+    email: 'admin@test.com',
+  };
 
   beforeEach(async () => {
     serviceMock = {
@@ -53,8 +60,8 @@ describe('ProductsController', () => {
     it('should call service.create', async () => {
       const dto = { name: 'Prod' };
       serviceMock.create.mockResolvedValue({ id: '1', ...dto });
-      await controller.create(dto as any);
-      expect(serviceMock.create).toHaveBeenCalledWith(dto);
+      await controller.create(dto as any, mockAdmin);
+      expect(serviceMock.create).toHaveBeenCalledWith(dto, mockAdmin);
     });
   });
 
@@ -62,16 +69,16 @@ describe('ProductsController', () => {
     it('should call service.update', async () => {
       const dto = { name: 'Updated' };
       serviceMock.update.mockResolvedValue({ id: '1', ...dto });
-      await controller.update('1', dto as any);
-      expect(serviceMock.update).toHaveBeenCalledWith('1', dto);
+      await controller.update('1', dto as any, mockAdmin);
+      expect(serviceMock.update).toHaveBeenCalledWith('1', dto, mockAdmin);
     });
   });
 
   describe('remove', () => {
     it('should call service.remove', async () => {
       serviceMock.remove.mockResolvedValue(true);
-      await controller.remove('1');
-      expect(serviceMock.remove).toHaveBeenCalledWith('1');
+      await controller.remove('1', mockAdmin);
+      expect(serviceMock.remove).toHaveBeenCalledWith('1', mockAdmin);
     });
   });
 });

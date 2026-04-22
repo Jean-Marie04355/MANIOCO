@@ -16,6 +16,8 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { Permission } from '../../common/enum/permission.enum';
+import { CurrentUser } from '../../common/decorators/user.decorator';
+import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 
 @ApiTags('Products')
 @Controller('products')
@@ -27,8 +29,11 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions(Permission.PRODUCTS_MANAGE)
   @ApiOperation({ summary: 'Create a new product' })
-  create(@Body() createProductDto: CreateProductDto) {
-    return this.productsService.create(createProductDto);
+  create(
+    @Body() createProductDto: CreateProductDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.productsService.create(createProductDto, user);
   }
 
   @Get()
@@ -48,8 +53,12 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions(Permission.PRODUCTS_MANAGE)
   @ApiOperation({ summary: 'Update a product by ID' })
-  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
-    return this.productsService.update(id, updateProductDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateProductDto: UpdateProductDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.productsService.update(id, updateProductDto, user);
   }
 
   @Delete(':id')
@@ -57,7 +66,7 @@ export class ProductsController {
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions(Permission.PRODUCTS_MANAGE)
   @ApiOperation({ summary: 'Delete a product by ID' })
-  remove(@Param('id') id: string) {
-    return this.productsService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.productsService.remove(id, user);
   }
 }

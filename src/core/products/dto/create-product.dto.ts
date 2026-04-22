@@ -17,6 +17,11 @@ export class CreateProductDto {
   @IsOptional()
   currency?: string;
 
+  @ApiPropertyOptional({ example: 10, description: 'Le stock disponible' })
+  @IsNumber()
+  @IsOptional()
+  stock?: number;
+
   @ApiPropertyOptional({
     example: 'Dernier modèle avec 5G',
     description: 'Description détaillée',
@@ -24,6 +29,14 @@ export class CreateProductDto {
   @IsString()
   @IsOptional()
   description?: string;
+
+  @ApiPropertyOptional({
+    example: 'UUID-or-ObjectId',
+    description: 'ID de la boutique associée',
+  })
+  @IsString()
+  @IsOptional()
+  storeId?: string;
 
   @ApiProperty({
     example: 'UUID-or-ObjectId',

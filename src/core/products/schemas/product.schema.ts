@@ -28,6 +28,9 @@ export class Product {
   })
   category: ProductCategory;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Store', required: false })
+  storeId: string;
+
   @Prop()
   deletedAt: Date;
 }

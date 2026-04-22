@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   BadRequestException,
+  ForbiddenException,
   forwardRef,
 } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
@@ -12,6 +13,9 @@ import { PaymentsService } from '../payments/payments.service';
 import { Store } from '../store/store.entity';
 import { Product } from '../products/product.entity';
 import { OrderStatus } from '../../common/enum/order-status.enum';
+import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
+import { UserRole } from '../../common/enum/role.enum';
+import { StoreService } from '../store/store.service';
 
 @Injectable()
 export class OrdersService {
@@ -24,6 +28,7 @@ export class OrdersService {
     private readonly productRepository: IBaseRepository<Product>,
     @Inject(forwardRef(() => PaymentsService))
     private readonly paymentsService: PaymentsService,
+    private readonly storeService: StoreService,
   ) {}
 
   async create(
@@ -64,7 +69,7 @@ export class OrdersService {
 
       // Check if the product belongs to the store
       if (
-        String(product.category?.storeId) !== String(createOrderDto.storeId)
+        String(product.storeId) !== String(createOrderDto.storeId)
       ) {
         throw new BadRequestException(
           `The product ${product.name} does not belong to this store.`,
@@ -134,7 +139,7 @@ export class OrdersService {
    * Restores product stock for a given order
    */
   async restoreStock(orderId: string): Promise<void> {
-    const order = await this.findOne(orderId);
+    const order = await this.orderRepository.findOne({ id: orderId });
     if (!order?.items) return;
 
     for (const item of order.items) {
@@ -153,37 +158,103 @@ export class OrdersService {
    * Cancels an order and restores its stock
    */
   async cancelOrder(id: string): Promise<Order | null> {
-    const order = await this.findOne(id);
-    if (order.status === OrderStatus.CANCELLED) return order;
+    const order = await this.orderRepository.findOne({ id });
+    if (!order || order.status === OrderStatus.CANCELLED) return order;
 
     await this.orderRepository.update(id, { status: OrderStatus.CANCELLED });
     await this.restoreStock(id);
     
-    return this.findOne(id);
+    return this.orderRepository.findOne({ id });
   }
 
-  async findAll(): Promise<Order[]> {
-    return this.orderRepository.find();
+  async findAll(user: AuthenticatedUser): Promise<Order[]> {
+    if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
+      return this.orderRepository.find();
+    }
+
+    if (user.role === UserRole.VENDEUR) {
+      const store = await this.storeService.findByOwnerId(user.userId);
+      return this.orderRepository.find({ storeId: store.id });
+    }
+
+    return this.orderRepository.find({ customerId: user.userId });
   }
 
-  async findOne(id: string): Promise<Order | null> {
+  async findOne(id: string, user: AuthenticatedUser): Promise<Order | null> {
     const order = await this.orderRepository.findOne({ id });
     if (!order) {
       throw new NotFoundException(`Commande avec l'ID ${id} non trouvée`);
     }
+
+    // Security check
+    if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
+      return order;
+    }
+
+    if (user.role === UserRole.VENDEUR) {
+      const store = await this.storeService.findByOwnerId(user.userId);
+      if (order.storeId !== store.id) {
+        throw new ForbiddenException('You do not have access to this order');
+      }
+      return order;
+    }
+
+    if (order.customerId !== user.userId) {
+      throw new ForbiddenException('You do not have access to this order');
+    }
+
     return order;
   }
 
-  async findByCustomer(customerId: string): Promise<Order[]> {
-    return this.orderRepository.find({ customerId });
+  async findByCustomer(customerId: string, user: AuthenticatedUser): Promise<Order[]> {
+    if (
+      user.role === UserRole.ADMIN ||
+      user.role === UserRole.SUPER_ADMIN ||
+      user.userId === customerId
+    ) {
+      return this.orderRepository.find({ customerId });
+    }
+    throw new ForbiddenException('You do not have access to these orders');
   }
 
-  async findByStore(storeId: string): Promise<Order[]> {
-    return this.orderRepository.find({ storeId });
+  async findByStore(storeId: string, user: AuthenticatedUser): Promise<Order[]> {
+    if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
+      return this.orderRepository.find({ storeId });
+    }
+
+    if (user.role === UserRole.VENDEUR) {
+      const store = await this.storeService.findByOwnerId(user.userId);
+      if (store.id !== storeId) {
+        throw new ForbiddenException('You do not have access to these orders');
+      }
+      return this.orderRepository.find({ storeId });
+    }
+
+    throw new ForbiddenException('You do not have access to these orders');
   }
 
-  async updateStatus(id: string, status: OrderStatus): Promise<Order | null> {
+  async updateStatus(id: string, status: OrderStatus, user: AuthenticatedUser): Promise<Order | null> {
+    const order = await this.findOne(id, user); // findOne already checks permissions
+    
+    // Only vendors (owners) and admins can update status
+    if (user.role === UserRole.CLIENT && order.customerId === user.userId) {
+        throw new ForbiddenException('Clients cannot update order status');
+    }
+
     await this.orderRepository.update(id, { status });
-    return this.findOne(id);
+    return this.findOne(id, user);
+  }
+
+  async findOneById(id: string): Promise<Order | null> {
+    return this.orderRepository.findOne({ id });
+  }
+
+  /**
+   * Internal method to update order status without permission checks.
+   * Used by payment webhooks and other system-level operations.
+   */
+  async updateStatusInternal(id: string, status: OrderStatus): Promise<Order | null> {
+    await this.orderRepository.update(id, { status });
+    return this.orderRepository.findOne({ id });
   }
 }

@@ -148,4 +148,13 @@ export class StoreService {
     await this.findOne(id);
     return this.storeRepository.delete(id);
   }
+
+  async findByOwnerId(ownerId: string) {
+    const store = await this.storeRepository.findOne({ ownerId });
+    if (!store)
+      throw new NotFoundException(
+        `Store for user with ID ${ownerId} not found.`,
+      );
+    return store;
+  }
 }
