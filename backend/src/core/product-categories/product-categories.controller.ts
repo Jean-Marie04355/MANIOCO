@@ -13,9 +13,11 @@ import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { UserRole } from '../../common/enum/role.enum';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../common/enum/permission.enum';
+import { CurrentUser } from '../../common/decorators/user.decorator';
+import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 
 @ApiTags('Product Categories')
 @Controller('product-categories')
@@ -26,11 +28,14 @@ export class ProductCategoriesController {
 
   @Post()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.VENDEUR)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.PRODUCT_CATEGORIES_MANAGE)
   @ApiOperation({ summary: 'Create a new product category' })
-  create(@Body() createDto: CreateProductCategoryDto) {
-    return this.productCategoriesService.create(createDto);
+  create(
+    @Body() createDto: CreateProductCategoryDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.productCategoriesService.create(createDto, user);
   }
 
   @Get()
@@ -47,19 +52,23 @@ export class ProductCategoriesController {
 
   @Patch(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.VENDEUR)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.PRODUCT_CATEGORIES_MANAGE)
   @ApiOperation({ summary: 'Update a product category by ID' })
-  update(@Param('id') id: string, @Body() updateDto: UpdateProductCategoryDto) {
-    return this.productCategoriesService.update(id, updateDto);
+  update(
+    @Param('id') id: string,
+    @Body() updateDto: UpdateProductCategoryDto,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.productCategoriesService.update(id, updateDto, user);
   }
 
   @Delete(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.VENDEUR)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.PRODUCT_CATEGORIES_MANAGE)
   @ApiOperation({ summary: 'Delete a product category by ID' })
-  remove(@Param('id') id: string) {
-    return this.productCategoriesService.remove(id);
+  remove(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.productCategoriesService.remove(id, user);
   }
 }

@@ -11,7 +11,7 @@ export interface EmailOptions {
 @Injectable()
 export class EmailService {
   private readonly logger = new Logger(EmailService.name);
-  private transporter: nodemailer.Transporter;
+  private readonly transporter: nodemailer.Transporter;
 
   constructor() {
     this.transporter = nodemailer.createTransport({
@@ -36,16 +36,10 @@ export class EmailService {
         html: options.html,
         text: options.text,
       });
-      // Use internal process.stdout for worker if Logger is not initialized by Nest
-      const msg = `Email sent successfully to ${options.to}`;
-      if (process.env.NODE_ENV === 'production' || !this.logger) {
-        console.log(`[EmailService] ${msg}`);
-      } else {
-        this.logger.log(msg);
-      }
+      
+      this.logger.log('Email sent successfully');
     } catch (error: any) {
-      const errMsg = `Failed to send email to ${options.to}: ${error.message}`;
-      console.error(`[EmailService] ${errMsg}`);
+      this.logger.error('Failed to send email');
       throw error;
     }
   }

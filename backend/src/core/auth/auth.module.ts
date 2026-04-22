@@ -17,7 +17,7 @@ import { QueuesModule } from '../../libs/queues/queues.module';
     JwtModule.registerAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET') || 'afrigari-super-secret-fallback-key',
+        secret: configService.getOrThrow<string>('JWT_SECRET'),
         signOptions: {
           expiresIn: (configService.get<string>('JWT_EXPIRES_IN') || '1d') as '1d',
         },

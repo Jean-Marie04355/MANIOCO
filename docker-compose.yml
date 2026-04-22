@@ -1,25 +1,50 @@
+---
 services:
   mongodb:
     image: mongo:latest
     container_name: afrigari-mongodb
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - ./data/mongodb:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
     container_name: afrigari-redis
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   mailpit:
     image: axllent/mailpit
     container_name: afrigari-mailpit
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     ports:
-      - "1025:1025" # SMTP port
-      - "8025:8025" # Web UI port
+      - "127.0.0.1:1025:1025"  # SMTP port
+      - "127.0.0.1:8025:8025"  # Web UI port
     restart: always
-
-volumes:
-  mongodb_data:
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "1025"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

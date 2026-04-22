@@ -9,6 +9,7 @@ import {
   DeleteDateColumn,
 } from 'typeorm';
 import { ProductCategory } from '../product-categories/product-category.entity';
+import { Store } from '../store/store.entity';
 
 @Entity('products')
 export class Product {
@@ -29,6 +30,13 @@ export class Product {
 
   @Column({ nullable: true })
   description: string;
+
+  @Column({ nullable: true })
+  storeId: string;
+
+  @ManyToOne(() => Store, { nullable: true })
+  @JoinColumn({ name: 'storeId' })
+  store: Store;
 
   @Column()
   categoryId: string;

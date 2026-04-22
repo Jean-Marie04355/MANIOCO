@@ -5,11 +5,18 @@ import {
   Body,
   Patch,
   Param,
+  UseGuards,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { OrdersService } from './orders.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { OrderStatus } from '../../common/enum/order-status.enum';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../common/enum/permission.enum';
+import { CurrentUser } from '../../common/decorators/user.decorator';
+import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 
 @ApiTags('orders')
 @Controller('orders')
@@ -23,32 +30,57 @@ export class OrdersController {
   }
 
   @Get()
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.ORDERS_MANAGE)
   @ApiOperation({ summary: 'Lister toutes les commandes' })
-  findAll() {
-    return this.ordersService.findAll();
+  findAll(@CurrentUser() user: AuthenticatedUser) {
+    return this.ordersService.findAll(user);
   }
 
   @Get(':id')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.ORDERS_MANAGE)
   @ApiOperation({ summary: 'Récupérer une commande par son ID' })
-  findOne(@Param('id') id: string) {
-    return this.ordersService.findOne(id);
+  findOne(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
+    return this.ordersService.findOne(id, user);
   }
 
   @Get('customer/:customerId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.ORDERS_MANAGE)
   @ApiOperation({ summary: "Lister les commandes d'un client" })
-  findByCustomer(@Param('customerId') customerId: string) {
-    return this.ordersService.findByCustomer(customerId);
+  findByCustomer(
+    @Param('customerId') customerId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.ordersService.findByCustomer(customerId, user);
   }
 
   @Get('store/:storeId')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.ORDERS_MANAGE)
   @ApiOperation({ summary: "Lister les commandes d'une boutique" })
-  findByStore(@Param('storeId') storeId: string) {
-    return this.ordersService.findByStore(storeId);
+  findByStore(
+    @Param('storeId') storeId: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.ordersService.findByStore(storeId, user);
   }
 
   @Patch(':id/status')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.ORDERS_MANAGE)
   @ApiOperation({ summary: "Mettre à jour le statut d'une commande" })
-  updateStatus(@Param('id') id: string, @Body('status') status: OrderStatus) {
-    return this.ordersService.updateStatus(id, status);
+  updateStatus(
+    @Param('id') id: string,
+    @Body('status') status: OrderStatus,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.ordersService.updateStatus(id, status, user);
   }
 }

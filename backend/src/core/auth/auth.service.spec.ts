@@ -24,6 +24,7 @@ describe('AuthService', () => {
     };
     configServiceMock = {
       get: jest.fn(),
+      getOrThrow: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -131,6 +132,13 @@ describe('AuthService', () => {
       usersServiceMock.findByEmail.mockResolvedValue(user);
       jest.spyOn(hashHelper, 'comparePassword').mockResolvedValue(false);
       await expect(service.adminLogin('admin@test.com', 'wrong')).rejects.toThrow(UnauthorizedException);
+    });
+  });
+
+  describe('me', () => {
+    it('should return the user object', () => {
+      const user = { email: 'test@test.com', role: UserRole.CLIENT, userId: '1' };
+      expect(service.me(user as any)).toEqual(user);
     });
   });
 });

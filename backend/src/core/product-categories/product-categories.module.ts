@@ -13,15 +13,20 @@ import {
 } from './schemas/product-category.schema';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
+import { StoreModule } from '../store/store.module';
+import { RolesModule } from '../roles/roles.module';
+
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
+    RolesModule,
     dbType === 'mongodb'
       ? MongooseModule.forFeature([
           { name: MongoProductCategory.name, schema: ProductCategorySchema },
         ])
       : TypeOrmModule.forFeature([ProductCategory]),
+    StoreModule,
   ],
   controllers: [ProductCategoriesController],
   providers: [

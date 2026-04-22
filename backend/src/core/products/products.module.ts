@@ -15,6 +15,7 @@ import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
 import { ProductCategoriesModule } from '../product-categories/product-categories.module';
 import { RolesModule } from '../roles/roles.module';
+import { StoreModule } from '../store/store.module';
 
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
@@ -27,6 +28,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
         ])
       : TypeOrmModule.forFeature([Product]),
     ProductCategoriesModule,
+    StoreModule,
   ],
   controllers: [ProductsController],
   providers: [

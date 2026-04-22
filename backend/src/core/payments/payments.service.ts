@@ -93,11 +93,11 @@ export class PaymentsService {
           paymentMethod: result.mode || 'unknown',
         });
         
-        // Update order status to PAID
-        await this.ordersService.updateStatus(transaction.orderId, 'PAID' as any);
+        // Update order status to PAID (internal call, no user context needed)
+        await this.ordersService.updateStatusInternal(transaction.orderId, 'PAID' as any);
         
         // Fetch order details for notification
-        const order = await this.ordersService.findOne(transaction.orderId);
+        const order = await this.ordersService.findOneById(transaction.orderId);
         if (order) {
           // Fetch customer email
           const customer = await this.userRepository.findOne({ id: order.customerId });

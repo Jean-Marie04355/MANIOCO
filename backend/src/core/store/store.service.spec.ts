@@ -63,11 +63,19 @@ describe('StoreService', () => {
   });
 
   describe('findAll', () => {
-    it('should return public mappings of stores', async () => {
+    it('should return public mappings of all stores', async () => {
       const stores = [{ id: 's1', name: 'S1', city: 'C1' }];
       storeRepoMock.find.mockResolvedValue(stores);
       const result = await service.findAll();
+      expect(result.length).toBe(1);
       expect(result[0].name).toBe('S1');
+      expect(storeRepoMock.find).toHaveBeenCalledWith();
+    });
+
+    it('should filter stores by city', async () => {
+      storeRepoMock.find.mockResolvedValue([]);
+      await service.findAll('Cotonou');
+      expect(storeRepoMock.find).toHaveBeenCalledWith({ city: 'Cotonou' });
     });
   });
 
@@ -84,6 +92,13 @@ describe('StoreService', () => {
       expect(result.length).toBe(1);
       expect(result[0].id).toBe('s1');
     });
+
+    it('should skip stores with missing GPS coordinates', async () => {
+      const stores = [{ id: 's1', name: 'S1', latitude: null }];
+      storeRepoMock.find.mockResolvedValue(stores);
+      const result = await service.findNearby(0, 0, 10);
+      expect(result.length).toBe(0);
+    });
   });
 
   describe('getDeliveryFee', () => {
@@ -95,6 +110,13 @@ describe('StoreService', () => {
       const result = await service.getDeliveryFee('s1', 0, 0);
       expect(result.fee).toBe(500);
       expect(result.distance).toBe(5);
+    });
+
+    it('should return flat rate if store GPS is missing', async () => {
+      storeRepoMock.findOne.mockResolvedValue({ id: 's1', latitude: null });
+      const result = await service.getDeliveryFee('s1', 0, 0);
+      expect(result.fee).toBe(1000);
+      expect(result.distance).toBeNull();
     });
   });
 
@@ -114,6 +136,20 @@ describe('StoreService', () => {
       storeRepoMock.findOne.mockResolvedValue({ id: 's1' });
       await service.remove('s1');
       expect(storeRepoMock.delete).toHaveBeenCalled();
+    });
+  });
+
+  describe('findByOwnerId', () => {
+    it('should return store if found', async () => {
+      const store = { id: 's1', ownerId: 'u1' };
+      storeRepoMock.findOne.mockResolvedValue(store);
+      const result = await service.findByOwnerId('u1');
+      expect(result).toEqual(store);
+    });
+
+    it('should throw NotFoundException if not found', async () => {
+      storeRepoMock.findOne.mockResolvedValue(null);
+      await expect(service.findByOwnerId('u1')).rejects.toThrow(NotFoundException);
     });
   });
 });

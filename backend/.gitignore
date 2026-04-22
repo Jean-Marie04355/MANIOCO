@@ -3,6 +3,7 @@
 /node_modules
 /build
 /.npm-cache
+/.tools/
 
 ### Les requêtes 
 requests.http

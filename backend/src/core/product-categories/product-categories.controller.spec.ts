@@ -2,8 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductCategoriesController } from './product-categories.controller';
 import { ProductCategoriesService } from './product-categories.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../../common/guards/roles.guard';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { Reflector } from '@nestjs/core';
+import { UserRole } from '../../common/enum/role.enum';
 
 const mockService = {
   create: jest.fn(),
@@ -15,6 +16,12 @@ const mockService = {
 
 describe('ProductCategoriesController', () => {
   let controller: ProductCategoriesController;
+
+  const mockAdmin = {
+    userId: 'admin-id',
+    role: UserRole.ADMIN,
+    email: 'admin@test.com',
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -29,7 +36,7 @@ describe('ProductCategoriesController', () => {
     })
     .overrideGuard(JwtAuthGuard)
     .useValue({ canActivate: () => true })
-    .overrideGuard(RolesGuard)
+    .overrideGuard(PermissionsGuard)
     .useValue({ canActivate: () => true })
     .compile();
 
@@ -47,9 +54,9 @@ describe('ProductCategoriesController', () => {
   it('should create a category', async () => {
     const dto = { name: 'Test' };
     mockService.create.mockResolvedValue(dto);
-    const result = await controller.create(dto as any);
+    const result = await controller.create(dto as any, mockAdmin);
     expect(result).toEqual(dto);
-    expect(mockService.create).toHaveBeenCalledWith(dto);
+    expect(mockService.create).toHaveBeenCalledWith(dto, mockAdmin);
   });
 
   it('should find all categories', async () => {
@@ -69,14 +76,14 @@ describe('ProductCategoriesController', () => {
   it('should update a category', async () => {
     const dto = { name: 'Test2' };
     mockService.update.mockResolvedValue(dto);
-    const result = await controller.update('1', dto);
+    const result = await controller.update('1', dto, mockAdmin);
     expect(result).toEqual(dto);
-    expect(mockService.update).toHaveBeenCalledWith('1', dto);
+    expect(mockService.update).toHaveBeenCalledWith('1', dto, mockAdmin);
   });
 
   it('should remove a category', async () => {
     mockService.remove.mockResolvedValue(undefined);
-    await controller.remove('1');
-    expect(mockService.remove).toHaveBeenCalledWith('1');
+    await controller.remove('1', mockAdmin);
+    expect(mockService.remove).toHaveBeenCalledWith('1', mockAdmin);
   });
 });

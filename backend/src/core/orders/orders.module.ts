@@ -12,6 +12,7 @@ import { Order as MongoOrder, OrderSchema } from './schemas/order.schema';
 import { PaymentsModule } from '../payments/payments.module';
 import { StoreModule } from '../store/store.module';
 import { ProductsModule } from '../products/products.module';
+import { RolesModule } from '../roles/roles.module';
 
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
@@ -29,6 +30,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
     PaymentsModule,
     StoreModule,
     ProductsModule,
+    RolesModule,
   ],
   controllers: [OrdersController],
   providers: [

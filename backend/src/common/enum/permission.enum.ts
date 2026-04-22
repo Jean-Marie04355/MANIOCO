@@ -13,9 +13,16 @@ export enum Permission {
   PRODUCTS_MANAGE = 'products:manage',
   PRODUCTS_VIEW = 'products:view',
 
+  // Product Categories
+  PRODUCT_CATEGORIES_MANAGE = 'product-categories:manage',
+  PRODUCT_CATEGORIES_VIEW = 'product-categories:view',
+
   // Orders
   ORDERS_MANAGE = 'orders:manage',
   ORDERS_VIEW = 'orders:view',
+
+  // Stores
+  STORES_MANAGE = 'stores:manage',
 
   // Settings
   SETTINGS_MANAGE = 'settings:manage',

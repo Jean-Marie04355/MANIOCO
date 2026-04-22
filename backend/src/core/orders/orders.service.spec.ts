@@ -1,8 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersService } from './orders.service';
 import { PaymentsService } from '../payments/payments.service';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import { StoreService } from '../store/store.service';
+import { NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { OrderStatus } from '../../common/enum/order-status.enum';
+import { UserRole } from '../../common/enum/role.enum';
 
 describe('OrdersService', () => {
   let service: OrdersService;
@@ -10,6 +12,11 @@ describe('OrdersService', () => {
   let storeRepoMock: any;
   let productRepoMock: any;
   let paymentsServiceMock: any;
+  let storeServiceMock: any;
+
+  const adminUser = { email: 'admin@test.com', role: UserRole.ADMIN, userId: 'admin-1' };
+  const vendeurUser = { email: 'vendeur@test.com', role: UserRole.VENDEUR, userId: 'vendeur-1' };
+  const clientUser = { email: 'client@test.com', role: UserRole.CLIENT, userId: 'client-1' };
 
   beforeEach(async () => {
     orderRepoMock = {
@@ -28,6 +35,9 @@ describe('OrdersService', () => {
     paymentsServiceMock = {
       createTransaction: jest.fn(),
     };
+    storeServiceMock = {
+      findByOwnerId: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -36,6 +46,7 @@ describe('OrdersService', () => {
         { provide: 'STORE_REPOSITORY', useValue: storeRepoMock },
         { provide: 'PRODUCT_REPOSITORY', useValue: productRepoMock },
         { provide: PaymentsService, useValue: paymentsServiceMock },
+        { provide: StoreService, useValue: storeServiceMock },
       ],
     }).compile();
 
@@ -71,7 +82,7 @@ describe('OrdersService', () => {
 
     it('should throw BadRequestException if product does not belong to store', async () => {
       storeRepoMock.findOne.mockResolvedValue({ id: 'store-1', payoutAccountId: 'payout-1' });
-      productRepoMock.findOne.mockResolvedValue({ id: 'prod-1', category: { storeId: 'other-store' } });
+      productRepoMock.findOne.mockResolvedValue({ id: 'prod-1', storeId: 'other-store' });
       await expect(service.create(createOrderDto as any)).rejects.toThrow(BadRequestException);
     });
 
@@ -82,7 +93,7 @@ describe('OrdersService', () => {
         name: 'Product 1',
         stock: 1, 
         price: 10,
-        category: { storeId: 'store-1' } 
+        storeId: 'store-1',
       });
       await expect(service.create(createOrderDto as any)).rejects.toThrow(BadRequestException);
     });
@@ -94,14 +105,14 @@ describe('OrdersService', () => {
         name: 'Product 1', 
         stock: 10, 
         price: 100, 
-        category: { storeId: 'store-1' } 
+        storeId: 'store-1',
       };
       const order = { id: 'order-1', totalAmount: 200 };
 
       storeRepoMock.findOne.mockResolvedValue(store);
       productRepoMock.findOne.mockResolvedValue(product);
       orderRepoMock.create.mockResolvedValue(order);
-      orderRepoMock.findOne.mockResolvedValue(order); // Mock findOne to avoid NotFoundException if used
+      orderRepoMock.findOne.mockResolvedValue(order);
       paymentsServiceMock.createTransaction.mockResolvedValue({ url: 'http://payment.url' });
 
       const result = await service.create(createOrderDto as any);
@@ -118,7 +129,7 @@ describe('OrdersService', () => {
         name: 'Product 1', 
         stock: 10, 
         price: 100, 
-        category: { storeId: 'store-1' } 
+        storeId: 'store-1',
       };
       const order = { id: 'order-1', totalAmount: 200, status: OrderStatus.PENDING };
 
@@ -136,7 +147,7 @@ describe('OrdersService', () => {
 
     it('should handle non-Error catch block in create', async () => {
       const store = { id: 'store-1', payoutAccountId: 'payout-1' };
-      const product = { id: 'prod-1', stock: 10, price: 100, category: { storeId: 'store-1' } };
+      const product = { id: 'prod-1', stock: 10, price: 100, storeId: 'store-1' };
       const order = { id: 'order-1', status: OrderStatus.PENDING };
 
       storeRepoMock.findOne.mockResolvedValue(store);
@@ -165,9 +176,9 @@ describe('OrdersService', () => {
       expect(productRepoMock.update).toHaveBeenCalledWith('prod-1', { stock: 13 });
     });
 
-    it('should throw NotFoundException if order is missing', async () => {
+    it('should do nothing if order has no items', async () => {
       orderRepoMock.findOne.mockResolvedValue(null);
-      await expect(service.restoreStock('order-unknown')).rejects.toThrow(NotFoundException);
+      await service.restoreStock('order-unknown');
       expect(productRepoMock.update).not.toHaveBeenCalled();
     });
 
@@ -206,37 +217,130 @@ describe('OrdersService', () => {
     });
   });
 
-  describe('findAll/findOne', () => {
-    it('should find all', async () => {
+  describe('findAll', () => {
+    it('admin should see all orders', async () => {
       orderRepoMock.find.mockResolvedValue([]);
-      await service.findAll();
-      expect(orderRepoMock.find).toHaveBeenCalled();
+      await service.findAll(adminUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith();
     });
 
-    it('should find orders by customer', async () => {
-      await service.findByCustomer('cust-1');
-      expect(orderRepoMock.find).toHaveBeenCalledWith({ customerId: 'cust-1' });
-    });
-
-    it('should find orders by store', async () => {
-      await service.findByStore('store-1');
+    it('vendeur should see only their store orders', async () => {
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-1' });
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findAll(vendeurUser);
       expect(orderRepoMock.find).toHaveBeenCalledWith({ storeId: 'store-1' });
     });
 
-    it('should throw if findOne fails', async () => {
+    it('client should see only their own orders', async () => {
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findAll(clientUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ customerId: 'client-1' });
+    });
+  });
+
+  describe('findOne', () => {
+    it('should throw if order not found', async () => {
       orderRepoMock.findOne.mockResolvedValue(null);
-      await expect(service.findOne('1')).rejects.toThrow(NotFoundException);
+      await expect(service.findOne('1', adminUser)).rejects.toThrow(NotFoundException);
+    });
+
+    it('admin should access any order', async () => {
+      const order = { id: '1', storeId: 'store-1', customerId: 'other' };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      const result = await service.findOne('1', adminUser);
+      expect(result).toEqual(order);
+    });
+
+    it('vendeur should be forbidden from accessing other store orders', async () => {
+      const order = { id: '1', storeId: 'store-other', customerId: 'c1' };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-1' });
+      await expect(service.findOne('1', vendeurUser)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('client should be forbidden from accessing other customer orders', async () => {
+      const order = { id: '1', storeId: 'store-1', customerId: 'other-client' };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      await expect(service.findOne('1', clientUser)).rejects.toThrow(ForbiddenException);
     });
   });
 
   describe('updateStatus', () => {
-    it('should update status and return order', async () => {
-      const order = { id: '1', status: OrderStatus.PENDING };
+    it('admin should update status', async () => {
+      const order = { id: '1', status: OrderStatus.PENDING, storeId: 's1', customerId: 'c1' };
       orderRepoMock.findOne.mockResolvedValue({ ...order, status: OrderStatus.DELIVERED });
       
-      const result = await service.updateStatus('1', OrderStatus.DELIVERED);
+      const result = await service.updateStatus('1', OrderStatus.DELIVERED, adminUser);
       expect(result.status).toBe(OrderStatus.DELIVERED);
       expect(orderRepoMock.update).toHaveBeenCalledWith('1', { status: OrderStatus.DELIVERED });
+    });
+  });
+
+  describe('updateStatusInternal', () => {
+    it('should update status without permission checks', async () => {
+      orderRepoMock.findOne.mockResolvedValue({ id: '1', status: OrderStatus.PAID });
+      const result = await service.updateStatusInternal('1', OrderStatus.PAID);
+      expect(result.status).toBe(OrderStatus.PAID);
+      expect(orderRepoMock.update).toHaveBeenCalledWith('1', { status: OrderStatus.PAID });
+    });
+  });
+
+  describe('findByCustomer', () => {
+    it('admin should see customer orders', async () => {
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findByCustomer('c1', adminUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ customerId: 'c1' });
+    });
+
+    it('customer should see their own orders', async () => {
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findByCustomer('client-1', clientUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ customerId: 'client-1' });
+    });
+
+    it('should throw ForbiddenException for other customer orders', async () => {
+      await expect(service.findByCustomer('other', clientUser)).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('findByStore', () => {
+    it('admin should see store orders', async () => {
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findByStore('s1', adminUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ storeId: 's1' });
+    });
+
+    it('vendeur should see their own store orders', async () => {
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 's1' });
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findByStore('s1', vendeurUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ storeId: 's1' });
+    });
+
+    it('should throw ForbiddenException if vendeur accesses other store', async () => {
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 's1' });
+      await expect(service.findByStore('other', vendeurUser)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw ForbiddenException for clients', async () => {
+      await expect(service.findByStore('s1', clientUser)).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('updateStatus - restrictions', () => {
+    it('should throw ForbiddenException if client tries to update status', async () => {
+      const order = { id: '1', customerId: 'client-1', storeId: 's1' };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      await expect(service.updateStatus('1', OrderStatus.DELIVERED, clientUser)).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('findOneById', () => {
+    it('should return order by ID', async () => {
+      const order = { id: '1' };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      const result = await service.findOneById('1');
+      expect(result).toEqual(order);
     });
   });
 });

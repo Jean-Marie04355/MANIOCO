@@ -14,7 +14,7 @@ export class FedaPayProvider implements IPaymentProvider {
       env === 'live'
         ? 'https://api.fedapay.com/v1'
         : 'https://sandbox-api.fedapay.com/v1';
-    this.secretKey = this.configService.get<string>('FEDAPAY_SECRET_KEY', '');
+    this.secretKey = this.configService.getOrThrow<string>('FEDAPAY_SECRET_KEY');
   }
 
   async createTransaction(params: {
