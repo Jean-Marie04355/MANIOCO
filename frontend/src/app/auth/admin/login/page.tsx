@@ -1,15 +1,48 @@
 "use client";
-import { ShieldCheck, Lock, Mail, ArrowRight, User, Leaf, Fingerprint, Sparkles, CheckCircle2, ChevronLeft } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, ArrowRight, User, Leaf, Fingerprint, Sparkles, Loader2, ChevronLeft } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 
-
 export default function AdminLoginPage() {
-  const [isAdminMode, setIsAdminMode] = useState(true);
+  const router = useRouter();
   const [mounted, setMounted] = useState(false);
+  
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => setMounted(true), []);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    
+    setError(null);
+    setIsLoading(true);
+
+    try {
+      const res = await fetch('http://localhost:3000/auth/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'La connexion a échoué.');
+      }
+
+      sessionStorage.setItem('adminLoginEmail', email);
+      router.push('/auth/admin/verify');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const particles = useMemo(() => {
     if (!mounted) return [];
@@ -27,7 +60,7 @@ export default function AdminLoginPage() {
   return (
     <div className="min-h-screen bg-organic-cream flex items-center justify-center p-4 font-sans selection:bg-forest-green selection:text-white overflow-hidden relative">
       
-      {/* --- CLIENT-STYLE ANTIGRAVITY ENGINE --- */}
+      {/* --- BACKGROUND ENGINE --- */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
          <div className="absolute top-[-10%] left-[-5%] w-[700px] h-[700px] bg-forest-green/10 rounded-full blur-[140px] animate-float"></div>
          <div className="absolute bottom-[-10%] right-[-5%] w-[600px] h-[600px] bg-afrigari-gold/5 rounded-full blur-[140px] animate-float-reverse"></div>
@@ -43,82 +76,36 @@ export default function AdminLoginPage() {
          ))}
       </div>
 
-      {/* --- SLIDING AUTH CONTAINER (CLIENT-STYLE PORTED TO ADMIN) --- */}
-      <div className="relative z-20 w-full max-w-5xl h-[720px] bg-white/40 backdrop-blur-3xl rounded-[60px] shadow-[0_60px_150px_-30px_rgba(45,70,53,0.3)] border border-white/60 overflow-hidden animate-reveal flex">
+      {/* --- CENTRALIZED AUTH CARD --- */}
+      <div className="relative z-20 w-full max-w-[500px] bg-white/40 backdrop-blur-3xl rounded-[60px] shadow-[0_60px_150px_-30px_rgba(45,70,53,0.3)] border border-white/60 p-12 lg:p-16 flex flex-col items-center animate-reveal">
          
-         {/* 1. ADMIN LOGIN (FIXED LEFT) */}
-         <div className="absolute top-0 left-0 h-full w-1/2 transition-all duration-700">
-            <div className={`h-full flex flex-col items-center justify-center p-12 lg:p-20 transition-all duration-700 ${isAdminMode ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none -translate-x-12'}`}>
-               <div className="flex gap-1 mb-8 relative group">
-                  <Leaf size={48} className="text-green-600 rotate-[-15deg] group-hover:rotate-0 transition-transform duration-500" fill="currentColor" />
-                  <Leaf size={64} className="text-green-500 group-hover:scale-110 transition-transform duration-500" fill="currentColor" />
-               </div>
-               <h1 className="text-5xl font-black uppercase text-forest-green mb-10 tracking-tighter italic">Admin</h1>
-               <form className="w-full space-y-6 max-w-[340px]">
-                  <Input icon={Mail} placeholder="Admin Email" />
-                  <Input icon={Lock} type="password" placeholder="Key Phrase" />
-                  <Link href="/auth/admin/verify" className="w-full bg-forest-green text-white py-6 rounded-[28px] font-black text-sm uppercase tracking-widest hover:bg-afrigari-gold transition-all shadow-2xl flex items-center justify-center gap-3 mt-6">
-                     Access Vault <Fingerprint size={18} />
-                  </Link>
-               </form>
-               <Link href="/dashboard/client" className="mt-10 text-[10px] font-black uppercase tracking-widest text-forest-green/30 hover:text-forest-green transition-colors flex items-center gap-2">
-                  <ChevronLeft size={14} /> Back to Platform
-               </Link>
-            </div>
+         <div className="flex gap-1 mb-8 relative group">
+            <ShieldCheck size={56} className="text-forest-green group-hover:scale-110 transition-transform duration-500" />
+            <Sparkles size={24} className="text-afrigari-gold absolute -top-2 -right-4 animate-pulse opacity-80" />
          </div>
+         
+         <h1 className="text-4xl font-black uppercase text-forest-green mb-4 tracking-tighter italic text-center">Citadel</h1>
+         <p className="text-sm font-bold text-forest-green/50 mb-10 text-center px-4 leading-relaxed italic">Veuillez vous authentifier pour accéder à la gestion administrative (Admin & Super Admin).</p>
 
-         {/* 2. SUPER ADMIN LOGIN (FIXED RIGHT) */}
-         <div className="absolute top-0 left-1/2 h-full w-1/2 transition-all duration-700">
-            <div className={`h-full flex flex-col items-center justify-center p-12 lg:p-20 transition-all duration-700 ${!isAdminMode ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none translate-x-12'}`}>
-               <div className="flex gap-1 mb-8 relative group">
-                  <ShieldCheck size={64} className="text-afrigari-gold group-hover:scale-110 transition-transform duration-500" />
-               </div>
-               <h1 className="text-4xl font-black uppercase text-forest-green mb-10 tracking-tighter italic text-center leading-none">Super<br/><span className="text-afrigari-gold">Privilege</span></h1>
-               <form className="w-full space-y-6 max-w-[340px]">
-                  <Input icon={User} placeholder="Super User ID" />
-                  <Input icon={Lock} type="password" placeholder="System Master Key" />
-                  <Link href="/auth/admin/verify" className="w-full bg-afrigari-gold text-white py-6 rounded-[28px] font-black text-sm uppercase tracking-widest hover:bg-forest-green transition-all shadow-2xl flex items-center justify-center gap-3 mt-6">
-                     Root Access <ArrowRight size={18} />
-                  </Link>
-               </form>
-            </div>
-         </div>
+         <form onSubmit={onSubmit} className="w-full space-y-6">
+            {error && <div className="text-red-500 text-sm font-bold text-center bg-red-50 p-4 rounded-[20px]">{error}</div>}
+            
+            <Input icon={User} type="email" placeholder="Identifiant (Email)" value={email} onChange={e => setEmail(e.target.value)} required />
+            <Input icon={Lock} type="password" placeholder="Mot de passe système" value={password} onChange={e => setPassword(e.target.value)} required />
+            
+            <button type="submit" disabled={isLoading} className="w-full bg-forest-green text-white py-6 rounded-[28px] font-black text-sm uppercase tracking-widest hover:bg-afrigari-gold transition-all shadow-2xl flex items-center justify-center gap-3 mt-8 disabled:opacity-70 active:scale-95">
+               {isLoading ? <Loader2 className="animate-spin" size={18} /> : <>Entrer dans la Citadelle <ArrowRight size={18} /></>}
+            </button>
+         </form>
 
-         {/* --- SLIDING OVERLAY (THE "MAGIC" PART) --- */}
-         <div className={`absolute top-0 w-1/2 h-full transition-all duration-[800ms] cubic-bezier(0.68, -0.6, 0.32, 1.6) z-[100] ${isAdminMode ? 'left-1/2' : 'left-0'}`}>
-            <div className={`h-full bg-gradient-to-br from-forest-green to-forest-light relative overflow-hidden transition-all duration-700 ${isAdminMode ? 'rounded-l-[120px]' : 'rounded-r-[120px]'}`}>
-               <div className="h-full flex flex-col items-center justify-center text-center p-16 text-white relative z-10">
-                  {isAdminMode ? (
-                     <div className="animate-reveal">
-                        <Sparkles size={40} className="text-afrigari-gold mb-8 mx-auto opacity-50" />
-                        <h2 className="text-5xl font-black mb-8 tracking-tighter italic italic">Root?</h2>
-                        <p className="text-white/60 text-sm mb-12 max-w-[260px] mx-auto leading-relaxed italic">Vous possédez les clés maîtresses ? Basculez sur l'accès Super-Administrateur.</p>
-                        <button onClick={() => setIsAdminMode(false)} className="group border-2 border-white/50 px-16 py-5 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-forest-green transition-all hover:scale-105 flex items-center gap-2 mx-auto">
-                           Go to Root <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
-                     </div>
-                  ) : (
-                     <div className="animate-reveal">
-                        <ShieldCheck size={40} className="text-white mb-8 mx-auto opacity-50" />
-                        <h2 className="text-5xl font-black mb-8 tracking-tighter italic">Regular?</h2>
-                        <p className="text-white/60 text-sm mb-12 max-w-[260px] mx-auto leading-relaxed italic">Retournez sur l'interface de gestion administrative standard.</p>
-                        <button onClick={() => setIsAdminMode(true)} className="group border-2 border-white/50 px-16 py-5 rounded-full font-black text-[10px] uppercase tracking-widest hover:bg-white hover:text-forest-green transition-all hover:scale-105 flex items-center gap-2 mx-auto">
-                           Go Admin <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
-                        </button>
-                     </div>
-                  )}
-               </div>
-               
-               {/* Pattern overlay */}
-               <div className="absolute inset-0 opacity-[0.05] pointer-events-none bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent"></div>
-            </div>
-         </div>
-
+         <Link href="/dashboard/client" className="mt-12 text-[10px] font-black uppercase tracking-widest text-forest-green/30 hover:text-forest-green transition-colors flex items-center gap-2">
+            <ChevronLeft size={14} /> Retour à l'accueil
+         </Link>
       </div>
 
       <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex items-center gap-4 animate-reveal opacity-20">
          <div className="h-px w-24 bg-forest-green"></div>
-         <span className="text-[11px] font-black uppercase tracking-[1em] text-forest-green">CITADEL</span>
+         <span className="text-[11px] font-black uppercase tracking-[1em] text-forest-green">SÉCURITÉ</span>
          <div className="h-px w-24 bg-forest-green"></div>
       </div>
     </div>

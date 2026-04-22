@@ -1,16 +1,29 @@
 "use client";
-import { ChevronLeft, ArrowRight, ShieldCheck, Timer, RefreshCw, Leaf, Sparkles } from 'lucide-react';
+import { ChevronLeft, ArrowRight, ShieldCheck, Timer, RefreshCw, Leaf, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 export default function AdminVerifyPage() {
+  const router = useRouter();
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(295);
   const [mounted, setMounted] = useState(false);
+  const [email, setEmail] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const inputRefs = useRef<any>([]);
 
   useEffect(() => {
     setMounted(true);
+    const storedEmail = sessionStorage.getItem('adminLoginEmail');
+    if (storedEmail) setEmail(storedEmail);
+    if (!storedEmail) {
+       router.push('/auth/admin/login');
+    }
+  }, [router]);
+
+  useEffect(() => {
     if (timeLeft > 0) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
@@ -48,6 +61,39 @@ export default function AdminVerifyPage() {
 
   const isComplete = otp.every(d => d !== '');
 
+  const handleVerify = async () => {
+    if (!isComplete || !email) return;
+
+    setIsLoading(true);
+    setError(null);
+    const otpCode = otp.join('');
+
+    try {
+      const res = await fetch('http://localhost:3000/auth/admin/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otpCode }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Le code saisi est invalide ou expiré.');
+      }
+
+      localStorage.setItem('accessToken', data.accessToken);
+      
+      if (data.user.role === 'super_admin') {
+        router.push('/dashboard/super-admin');
+      } else {
+        router.push('/dashboard/admin');
+      }
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-organic-cream flex items-center justify-center p-4 font-sans selection:bg-forest-green selection:text-white overflow-hidden relative">
       
@@ -76,7 +122,9 @@ export default function AdminVerifyPage() {
          </div>
 
          <h1 className="text-4xl font-black text-forest-green mb-3 tracking-tighter italic uppercase">Vérification</h1>
-         <p className="text-sm font-bold text-forest-green/50 mb-12 text-center px-4 leading-relaxed italic">Synchronisation de sécurité nécessaire. Veuillez entrer le code envoyé à votre terminal.</p>
+         <p className="text-sm font-bold text-forest-green/50 mb-8 text-center px-4 leading-relaxed italic">Synchronisation de sécurité nécessaire. Veuillez entrer le code envoyé à votre terminal.</p>
+         
+         {error && <div className="text-red-500 text-sm font-bold w-full text-center bg-red-50 p-4 rounded-[20px] mb-8">{error}</div>}
 
          <div className="w-full space-y-12">
             {/* OTP Inputs with Forest & Gold accents */}
@@ -86,7 +134,7 @@ export default function AdminVerifyPage() {
                      key={index}
                      type="text"
                      maxLength={1}
-                     ref={el => inputRefs.current[index] = el}
+                     ref={el => { inputRefs.current[index] = el; }}
                      value={data}
                      onChange={e => handleChange(e.target, index)}
                      onKeyDown={e => handleKeyDown(e, index)}
@@ -104,10 +152,11 @@ export default function AdminVerifyPage() {
                </div>
 
                <button 
-                  disabled={!isComplete}
-                  className={`w-full py-6 rounded-[28px] font-black text-sm uppercase tracking-widest transition-all shadow-2xl flex items-center justify-center gap-4 group ${isComplete ? 'bg-forest-green text-white hover:bg-afrigari-gold active:scale-95' : 'bg-slate-100 text-slate-300 pointer-events-none'}`}
+                  onClick={handleVerify}
+                  disabled={!isComplete || isLoading}
+                  className={`w-full py-6 rounded-[28px] font-black text-sm uppercase tracking-widest transition-all shadow-2xl flex items-center justify-center gap-4 group ${isComplete && !isLoading ? 'bg-forest-green text-white hover:bg-afrigari-gold active:scale-95' : 'bg-slate-100 text-slate-400 pointer-events-none'}`}
                >
-                  Valider l'Accès <ShieldCheck size={20} />
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Valider l'Accès <ShieldCheck size={20} /></>}
                </button>
 
                <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-forest-green/30 hover:text-forest-green transition-all group p-2">

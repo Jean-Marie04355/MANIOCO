@@ -6,10 +6,10 @@ export default function SuperAdminDashboard() {
   return (
     <div className="flex bg-[#0b0e14] min-h-screen text-slate-300">
       <Sidebar mode="super-admin" />
-      
+
       <main className="flex-1 ml-64">
         <TopNav title="System Control Center" isAdmin={false} />
-        
+
         <div className="p-8 space-y-8">
           {/* Infrastructure Stats */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -22,75 +22,75 @@ export default function SuperAdminDashboard() {
           {/* Technical Monitors */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
             <MonitorCard title="Redis (Cache)" status="Actif" metrics={[
-                { label: "Utilisation mémoire", value: "65%" },
-                { label: "Clés", value: "12,452" }
+              { label: "Utilisation mémoire", value: "65%" },
+              { label: "Clés", value: "12,452" }
             ]} color="red" />
             <MonitorCard title="BullMQ (Jobs)" status="Actif" metrics={[
-                { label: "Jobs en attente", value: "32" },
-                { label: "Jobs échoués", value: "3" }
+              { label: "Jobs en attente", value: "32" },
+              { label: "Jobs échoués", value: "3" }
             ]} color="pink" />
             <MonitorCard title="WebSocket" status="Actif" metrics={[
-                { label: "Connexions", value: "562" },
-                { label: "Messages / min", value: "1,245" }
+              { label: "Connexions", value: "562" },
+              { label: "Messages / min", value: "1,245" }
             ]} color="green" />
             <MonitorCard title="Stockage S3" status="Online" metrics={[
-                { label: "Total fichiers", value: "12,450" },
-                { label: "Utilisation", value: "320 GB" }
+              { label: "Total fichiers", value: "12,450" },
+              { label: "Utilisation", value: "320 GB" }
             ]} color="blue" />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             {/* System Logs */}
             <div className="lg:col-span-2 bg-[#151921] p-6 rounded-3xl border border-slate-800">
-               <div className="flex justify-between items-center mb-6">
-                  <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                    <Terminal size={20} className="text-indigo-400" /> Logs Système
-                  </h3>
-                  <span className="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-bold uppercase">Live</span>
-               </div>
-               <div className="space-y-4 font-mono text-xs">
-                  {systemLogs.map((log, i) => (
-                    <div key={i} className="flex gap-4 p-2 rounded hover:bg-white/5 transition-colors group">
-                      <span className="text-slate-600">[{log.time}]</span>
-                      <span className={log.color}>{log.event}</span>
-                      <span className="text-slate-500 italic ml-auto opacity-0 group-hover:opacity-100">{log.ip}</span>
-                    </div>
-                  ))}
-               </div>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-white text-lg flex items-center gap-2">
+                  <Terminal size={20} className="text-indigo-400" /> Logs Système
+                </h3>
+                <span className="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-bold uppercase">Live</span>
+              </div>
+              <div className="space-y-4 font-mono text-xs">
+                {systemLogs.map((log, i) => (
+                  <div key={i} className="flex gap-4 p-2 rounded hover:bg-white/5 transition-colors group">
+                    <span className="text-slate-600">[{log.time}]</span>
+                    <span className={log.color}>{log.event}</span>
+                    <span className="text-slate-500 italic ml-auto opacity-0 group-hover:opacity-100">{log.ip}</span>
+                  </div>
+                ))}
+              </div>
             </div>
 
             {/* Storage Gauge */}
             <div className="bg-[#151921] p-6 rounded-3xl border border-slate-800">
-               <h3 className="font-bold text-white text-lg mb-8 flex items-center gap-2">
-                  <HardDrive size={20} className="text-blue-400" /> Utilisation Stockage
-               </h3>
-               <div className="flex flex-col items-center">
-                  <div className="relative w-48 h-48 flex items-center justify-center">
-                    <div className="absolute inset-0 rounded-full border-[10px] border-slate-800"></div>
-                    <div className="absolute inset-0 rounded-full border-[10px] border-indigo-500 border-t-transparent transform rotate-45 animate-pulse"></div>
-                    <div className="text-center">
-                      <p className="text-3xl font-black text-white">320 GB</p>
-                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">sur 1 TB</p>
-                    </div>
+              <h3 className="font-bold text-white text-lg mb-8 flex items-center gap-2">
+                <HardDrive size={20} className="text-blue-400" /> Utilisation Stockage
+              </h3>
+              <div className="flex flex-col items-center">
+                <div className="relative w-48 h-48 flex items-center justify-center">
+                  <div className="absolute inset-0 rounded-full border-[10px] border-slate-800"></div>
+                  <div className="absolute inset-0 rounded-full border-[10px] border-indigo-500 border-t-transparent transform rotate-45 animate-pulse"></div>
+                  <div className="text-center">
+                    <p className="text-3xl font-black text-white">320 GB</p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">sur 1 TB</p>
                   </div>
-                  <div className="mt-8 w-full space-y-4">
-                     <StorageItem label="Images" size="120 GB" color="bg-blue-500" />
-                     <StorageItem label="Vidéos" size="150 GB" color="bg-purple-500" />
-                     <StorageItem label="Documents" size="30 GB" color="bg-indigo-500" />
-                  </div>
-               </div>
+                </div>
+                <div className="mt-8 w-full space-y-4">
+                  <StorageItem label="Images" size="120 GB" color="bg-blue-500" />
+                  <StorageItem label="Vidéos" size="150 GB" color="bg-purple-500" />
+                  <StorageItem label="Documents" size="30 GB" color="bg-indigo-500" />
+                </div>
+              </div>
             </div>
           </div>
 
           {/* System Alerts */}
           <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-3xl">
-             <h3 className="text-red-500 font-bold mb-4 flex items-center gap-2">
-                <AlertCircle size={18} /> Alertes Système Critiques
-             </h3>
-             <div className="space-y-3">
-                <p className="text-sm text-red-300">• Espace disque élevé sur le serveur (85% utilisé) <span className="text-red-500/50 text-[10px] ml-2">il y a 5 min</span></p>
-                <p className="text-sm text-red-300">• Plusieurs échecs de jobs détectés dans BullMQ <span className="text-red-500/50 text-[10px] ml-2">il y a 15 min</span></p>
-             </div>
+            <h3 className="text-red-500 font-bold mb-4 flex items-center gap-2">
+              <AlertCircle size={18} /> Alertes Système Critiques
+            </h3>
+            <div className="space-y-3">
+              <p className="text-sm text-red-300">• Espace disque élevé sur le serveur (85% utilisé) <span className="text-red-500/50 text-[10px] ml-2">il y a 5 min</span></p>
+              <p className="text-sm text-red-300">• Plusieurs échecs de jobs détectés dans BullMQ <span className="text-red-500/50 text-[10px] ml-2">il y a 15 min</span></p>
+            </div>
           </div>
         </div>
       </main>
@@ -137,10 +137,10 @@ function MonitorCard({ title, status, metrics, color }: any) {
       </div>
       <div className="space-y-3 relative z-10">
         {metrics.map((m: any, i: number) => (
-           <div key={i} className="flex justify-between items-center">
-              <span className="text-[10px] text-slate-500">{m.label}</span>
-              <span className="text-xs font-bold text-white">{m.value}</span>
-           </div>
+          <div key={i} className="flex justify-between items-center">
+            <span className="text-[10px] text-slate-500">{m.label}</span>
+            <span className="text-xs font-bold text-white">{m.value}</span>
+          </div>
         ))}
       </div>
     </div>
@@ -150,11 +150,11 @@ function MonitorCard({ title, status, metrics, color }: any) {
 function StorageItem({ label, size, color }: any) {
   return (
     <div className="flex items-center justify-between">
-       <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${color}`}></div>
-          <span className="text-[10px] text-slate-400 font-bold uppercase">{label}</span>
-       </div>
-       <span className="text-xs font-black text-white">{size}</span>
+      <div className="flex items-center gap-2">
+        <div className={`w-2 h-2 rounded-full ${color}`}></div>
+        <span className="text-[10px] text-slate-400 font-bold uppercase">{label}</span>
+      </div>
+      <span className="text-xs font-black text-white">{size}</span>
     </div>
   );
 }
