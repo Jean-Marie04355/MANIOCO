@@ -134,4 +134,11 @@ describe('AuthService', () => {
       await expect(service.adminLogin('admin@test.com', 'wrong')).rejects.toThrow(UnauthorizedException);
     });
   });
+
+  describe('me', () => {
+    it('should return the user object', () => {
+      const user = { email: 'test@test.com', role: UserRole.CLIENT, userId: '1' };
+      expect(service.me(user as any)).toEqual(user);
+    });
+  });
 });

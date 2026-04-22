@@ -50,12 +50,21 @@ describe('ProductCategoriesService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should create a category', async () => {
+  it('should create a category as admin', async () => {
     const dto = { name: 'Test' };
     mockRepo.create.mockResolvedValue(dto);
     const result = await service.create(dto as any, mockAdmin);
     expect(result).toEqual(dto);
     expect(mockRepo.create).toHaveBeenCalledWith(dto);
+  });
+
+  it('should inject storeId for vendor creation', async () => {
+    const dto = { name: 'Test' };
+    const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+    mockStoreService.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+    await service.create(dto as any, vendorUser as any);
+    expect(dto['storeId']).toBe('store-v1');
+    expect(mockRepo.create).toHaveBeenCalled();
   });
 
   it('should find all categories', async () => {
@@ -72,7 +81,7 @@ describe('ProductCategoriesService', () => {
     expect(mockRepo.findOne).toHaveBeenCalledWith({ id: '1' });
   });
 
-  it('should update a category', async () => {
+  it('should update a category as admin', async () => {
     const dto = { name: 'Test2' };
     mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'store-1' });
     mockRepo.update.mockResolvedValue(dto);
@@ -81,10 +90,50 @@ describe('ProductCategoriesService', () => {
     expect(mockRepo.update).toHaveBeenCalledWith('1', dto);
   });
 
-  it('should remove a category', async () => {
+  it('should throw NotFoundException on update if missing', async () => {
+    mockRepo.findOne.mockResolvedValue(null);
+    await expect(service.update('1', {}, mockAdmin)).rejects.toThrow('Catégorie non trouvée');
+  });
+
+  it('should allow vendor to update their own category', async () => {
+    const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+    mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'store-v1' });
+    mockStoreService.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+    await service.update('1', { name: 'New' }, vendorUser as any);
+    expect(mockRepo.update).toHaveBeenCalled();
+  });
+
+  it('should forbid vendor from updating other category', async () => {
+    const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+    mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'other' });
+    mockStoreService.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+    await expect(service.update('1', { name: 'New' }, vendorUser as any)).rejects.toThrow('Vous ne pouvez modifier que vos propres catégories');
+  });
+
+  it('should remove a category as admin', async () => {
     mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'store-1' });
     mockRepo.softDelete.mockResolvedValue(undefined);
     await service.remove('1', mockAdmin);
     expect(mockRepo.softDelete).toHaveBeenCalledWith('1');
+  });
+
+  it('should throw NotFoundException on remove if missing', async () => {
+    mockRepo.findOne.mockResolvedValue(null);
+    await expect(service.remove('1', mockAdmin)).rejects.toThrow('Catégorie non trouvée');
+  });
+
+  it('should allow vendor to remove their own category', async () => {
+    const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+    mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'store-v1' });
+    mockStoreService.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+    await service.remove('1', vendorUser as any);
+    expect(mockRepo.softDelete).toHaveBeenCalled();
+  });
+
+  it('should forbid vendor from removing other category', async () => {
+    const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+    mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'other' });
+    mockStoreService.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+    await expect(service.remove('1', vendorUser as any)).rejects.toThrow('Vous ne pouvez supprimer que vos propres catégories');
   });
 });

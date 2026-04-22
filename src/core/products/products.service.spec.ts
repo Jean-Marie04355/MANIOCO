@@ -65,30 +65,79 @@ describe('ProductsService', () => {
   });
 
   describe('create', () => {
-    it('should call repo.create', async () => {
+    it('should call repo.create for admin', async () => {
       const dto = { name: 'Prod' };
       repoMock.create.mockResolvedValue({ id: '1', ...dto });
       await service.create(dto as any, mockAdmin);
       expect(repoMock.create).toHaveBeenCalledWith(dto);
     });
+
+    it('should inject storeId for vendor', async () => {
+      const dto = { name: 'Prod' };
+      const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+      await service.create(dto as any, vendorUser as any);
+      expect(dto['storeId']).toBe('store-v1');
+      expect(repoMock.create).toHaveBeenCalled();
+    });
   });
 
   describe('update', () => {
-    it('should call repo.update', async () => {
+    it('should call repo.update for admin', async () => {
       const dto = { name: 'Updated' };
       repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'store-1' });
       repoMock.update.mockResolvedValue({ id: '1', ...dto });
       await service.update('1', dto as any, mockAdmin);
       expect(repoMock.update).toHaveBeenCalledWith('1', dto);
     });
+
+    it('should throw NotFoundException if product missing', async () => {
+      repoMock.findOne.mockResolvedValue(null);
+      await expect(service.update('1', {}, mockAdmin)).rejects.toThrow('Produit non trouvé');
+    });
+
+    it('should allow vendor to update their own product', async () => {
+      const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+      repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'store-v1' });
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+      await service.update('1', { name: 'New' }, vendorUser as any);
+      expect(repoMock.update).toHaveBeenCalled();
+    });
+
+    it('should forbid vendor from updating other products', async () => {
+      const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+      repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'other-store' });
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+      await expect(service.update('1', { name: 'New' }, vendorUser as any)).rejects.toThrow('Vous ne pouvez modifier que vos propres produits');
+    });
   });
 
   describe('remove', () => {
-    it('should call repo.softDelete', async () => {
+    it('should call repo.softDelete for admin', async () => {
       repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'store-1' });
       repoMock.softDelete.mockResolvedValue(true);
       await service.remove('1', mockAdmin);
       expect(repoMock.softDelete).toHaveBeenCalledWith('1');
+    });
+
+    it('should throw NotFoundException if product missing', async () => {
+      repoMock.findOne.mockResolvedValue(null);
+      await expect(service.remove('1', mockAdmin)).rejects.toThrow('Produit non trouvé');
+    });
+
+    it('should allow vendor to remove their own product', async () => {
+      const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+      repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'store-v1' });
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+      await service.remove('1', vendorUser as any);
+      expect(repoMock.softDelete).toHaveBeenCalledWith('1');
+    });
+
+    it('should forbid vendor from removing other products', async () => {
+      const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
+      repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'other-store' });
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+      await expect(service.remove('1', vendorUser as any)).rejects.toThrow('Vous ne pouvez supprimer que vos propres produits');
     });
   });
 });

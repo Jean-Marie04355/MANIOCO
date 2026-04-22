@@ -284,4 +284,63 @@ describe('OrdersService', () => {
       expect(orderRepoMock.update).toHaveBeenCalledWith('1', { status: OrderStatus.PAID });
     });
   });
+
+  describe('findByCustomer', () => {
+    it('admin should see customer orders', async () => {
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findByCustomer('c1', adminUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ customerId: 'c1' });
+    });
+
+    it('customer should see their own orders', async () => {
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findByCustomer('client-1', clientUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ customerId: 'client-1' });
+    });
+
+    it('should throw ForbiddenException for other customer orders', async () => {
+      await expect(service.findByCustomer('other', clientUser)).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('findByStore', () => {
+    it('admin should see store orders', async () => {
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findByStore('s1', adminUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ storeId: 's1' });
+    });
+
+    it('vendeur should see their own store orders', async () => {
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 's1' });
+      orderRepoMock.find.mockResolvedValue([]);
+      await service.findByStore('s1', vendeurUser);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ storeId: 's1' });
+    });
+
+    it('should throw ForbiddenException if vendeur accesses other store', async () => {
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 's1' });
+      await expect(service.findByStore('other', vendeurUser)).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw ForbiddenException for clients', async () => {
+      await expect(service.findByStore('s1', clientUser)).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('updateStatus - restrictions', () => {
+    it('should throw ForbiddenException if client tries to update status', async () => {
+      const order = { id: '1', customerId: 'client-1', storeId: 's1' };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      await expect(service.updateStatus('1', OrderStatus.DELIVERED, clientUser)).rejects.toThrow(ForbiddenException);
+    });
+  });
+
+  describe('findOneById', () => {
+    it('should return order by ID', async () => {
+      const order = { id: '1' };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      const result = await service.findOneById('1');
+      expect(result).toEqual(order);
+    });
+  });
 });
