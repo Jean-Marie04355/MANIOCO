@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { OrdersController } from './orders.controller';
 import { OrdersService } from './orders.service';
+import { RolesService } from '../roles/roles.service';
 import { OrderStatus } from '../../common/enum/order-status.enum';
 import { UserRole } from '../../common/enum/role.enum';
 
@@ -22,7 +23,15 @@ describe('OrdersController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [OrdersController],
-      providers: [{ provide: OrdersService, useValue: serviceMock }],
+      providers: [
+        { provide: OrdersService, useValue: serviceMock },
+        {
+          provide: RolesService,
+          useValue: {
+            findByName: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<OrdersController>(OrdersController);

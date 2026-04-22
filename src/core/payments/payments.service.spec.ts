@@ -27,7 +27,9 @@ describe('PaymentsService', () => {
     };
     ordersServiceMock = {
       updateStatus: jest.fn(),
+      updateStatusInternal: jest.fn(),
       findOne: jest.fn(),
+      findOneById: jest.fn(),
       cancelOrder: jest.fn(),
     };
     queueServiceMock = {
@@ -123,7 +125,7 @@ describe('PaymentsService', () => {
         id: 'local-1',
         orderId: 'order-1',
       });
-      ordersServiceMock.findOne.mockResolvedValue({
+      ordersServiceMock.findOneById.mockResolvedValue({
         id: 'order-1',
         customerId: 'cust-1',
         totalAmount: 1000,
@@ -151,7 +153,7 @@ describe('PaymentsService', () => {
         id: 'local-1',
         orderId: 'order-1',
       });
-      ordersServiceMock.findOne.mockResolvedValue({
+      ordersServiceMock.findOneById.mockResolvedValue({
         id: 'order-1',
         customerId: 'cust-1',
       });
@@ -170,7 +172,7 @@ describe('PaymentsService', () => {
         id: 'local-1',
         orderId: 'order-1',
       });
-      ordersServiceMock.findOne.mockResolvedValue(null);
+      ordersServiceMock.findOneById.mockResolvedValue(null);
 
       await service.handleWebhook({});
       expect(userRepoMock.findOne).not.toHaveBeenCalled();
