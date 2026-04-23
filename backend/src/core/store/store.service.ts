@@ -71,6 +71,8 @@ export class StoreService {
       address: store.address,
       city: store.city,
       phone: store.phone,
+      ownerId: store.ownerId,
+      payoutAccountId: store.payoutAccountId,
     };
   }
 

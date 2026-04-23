@@ -11,6 +11,7 @@ import { Order } from './order.entity';
 import { Order as MongoOrder, OrderSchema } from './schemas/order.schema';
 import { PaymentsModule } from '../payments/payments.module';
 import { StoreModule } from '../store/store.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 import { ProductsModule } from '../products/products.module';
 import { RolesModule } from '../roles/roles.module';
 
@@ -29,6 +30,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       : TypeOrmModule.forFeature([Order]),
     PaymentsModule,
     StoreModule,
+    NotificationsModule,
     ProductsModule,
     RolesModule,
   ],

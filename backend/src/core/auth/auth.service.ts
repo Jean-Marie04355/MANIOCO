@@ -150,7 +150,16 @@ export class AuthService {
     };
   }
 
-  me(user: AuthenticatedUser): AuthenticatedUser {
-    return user;
+  async me(user: AuthenticatedUser) {
+    // On charge l'utilisateur complet depuis la BDD pour inclure le champ 'name'
+    const fullUser = await this.usersService.findOne(user.userId);
+    return {
+      id: fullUser.id,
+      name: fullUser.name,
+      email: fullUser.email,
+      role: fullUser.role,
+      userId: fullUser.id,
+      profilePhoto: fullUser.profilePhoto,
+    };
   }
 }

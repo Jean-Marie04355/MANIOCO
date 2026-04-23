@@ -1,4 +1,5 @@
 "use client";
+import { useState, useEffect } from 'react';
 import {
   LayoutDashboard, Users, ShoppingBag, ShoppingCart, FolderTree,
   Megaphone, Bell, Flag, Clock, Image as ImageIcon, Settings,
@@ -7,7 +8,9 @@ import {
   Gift, BarChart3, Store, UserCheck, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
+import api from '@/lib/axios';
+import { useAuth } from '@/features/auth/AuthContext';
 
 interface SidebarProps {
   mode: 'admin' | 'super-admin' | 'client' | 'seller';
@@ -15,15 +18,47 @@ interface SidebarProps {
 
 export default function Sidebar({ mode }: SidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { user, logout } = useAuth();
+  const [orderCount, setOrderCount] = useState<number | null>(null);
+  const [chatCount, setChatCount] = useState<number | null>(null);
 
+  useEffect(() => {
+    if (mode === 'seller' && user) {
+      const fetchCounts = async () => {
+        try {
+          // Récupérer le storeId d'abord
+          const storesRes = await api.get('/stores');
+          const currentUserId = user.id || (user as any).userId;
+          const myStore = storesRes.data.find((s: any) => s.ownerId === currentUserId);
+          
+          if (myStore) {
+            // Compter les commandes
+            const ordersRes = await api.get(`/orders/store/${myStore.id}`);
+            setOrderCount(ordersRes.data.length);
+
+            // Compter les conversations
+            const chatRes = await api.get('/chat/conversations');
+            setChatCount(chatRes.data.length);
+          }
+        } catch (error) {
+          console.error("Erreur récupération des compteurs sidebar", error);
+        }
+      };
+      fetchCounts();
+    }
+  }, [mode, user]);
   const isActive = (href: string) => {
     if (href === '#') return false;
-    // Correspondance exacte uniquement pour la page d'accueil du dashboard (pour éviter d'être actif sur les sous-pages)
     if (['/dashboard/super-admin', '/dashboard/admin', '/dashboard/client', '/dashboard/seller'].includes(href)) {
       return pathname === href;
     }
-    // Pour les autres onglets, on reste actif même si on est sur une sous-page
     return pathname === href || pathname.startsWith(href + '/');
+  };
+
+  const handleLogout = () => {
+    logout();
+    router.push('/auth/login');
   };
 
   const getMenuItems = () => {
@@ -65,17 +100,14 @@ export default function Sidebar({ mode }: SidebarProps) {
         ];
       case 'seller':
         return [
-          { icon: LayoutDashboard, label: 'Tableau de bord', active: true },
-          { icon: ShoppingBag, label: 'Mes produits' },
-          { icon: ShoppingCart, label: 'Commandes', badge: "5" },
-          { icon: MessageSquare, label: 'Messages', badge: "3" },
-          { icon: Users, label: 'Clients' },
-          { icon: Gift, label: 'Promotions' },
-          { icon: BarChart3, label: 'Statistiques' },
-          { icon: CreditCard, label: 'Revenus' },
-          { icon: Store, label: 'Paramètres boutique' },
-          { icon: UserCheck, label: 'Abonnement' },
-          { icon: Settings, label: 'Paramètres' },
+          { icon: LayoutDashboard, label: 'Tableau de bord', href: '/dashboard/seller' },
+          { icon: ShoppingBag, label: 'Mes produits', href: '/dashboard/seller/products' },
+          { icon: FolderTree, label: 'Mes catégories', href: '/dashboard/seller/categories' },
+          { icon: ShoppingCart, label: 'Commandes', href: '/dashboard/seller/orders', badge: orderCount && orderCount > 0 ? orderCount.toString() : null },
+          { icon: MessageSquare, label: 'Messages', href: '/dashboard/seller/messages', badge: chatCount && chatCount > 0 ? chatCount.toString() : null },
+          { icon: CreditCard, label: 'Revenus', href: '/dashboard/seller/revenues' },
+          { icon: Store, label: 'Paramètres boutique', href: '/dashboard/seller/settings/store' },
+          { icon: Settings, label: 'Paramètres compte', href: '/dashboard/seller/settings/account' },
         ];
     }
   };
@@ -130,7 +162,7 @@ export default function Sidebar({ mode }: SidebarProps) {
                 {item.label}
               </div>
               {item.badge && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isItemActive ? 'bg-white text-green-600' : 'bg-green-500 text-white'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isItemActive ? 'bg-white text-indigo-600' : 'bg-indigo-500 text-white'}`}>
                   {item.badge}
                 </span>
               )}
@@ -140,9 +172,12 @@ export default function Sidebar({ mode }: SidebarProps) {
       </nav>
 
       <div className={`p-4 mt-auto border-t border-slate-100 dark:border-slate-800`}>
-        <button className="w-full flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-bold text-sm">
-          <LogOut size={18} />
-          Déconnexion
+        <button 
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-bold text-sm"
+        >
+           <LogOut size={18} />
+           Déconnexion
         </button>
       </div>
     </aside>

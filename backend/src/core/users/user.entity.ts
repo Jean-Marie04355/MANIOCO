@@ -29,6 +29,9 @@ export class User {
   permissions: string[];
 
   @Column({ nullable: true })
+  profilePhoto: string;
+
+  @Column({ nullable: true })
   otpCode: string;
 
   @Column({ nullable: true })

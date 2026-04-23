@@ -16,6 +16,8 @@ import { OrderStatus } from '../../common/enum/order-status.enum';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { UserRole } from '../../common/enum/role.enum';
 import { StoreService } from '../store/store.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notification.entity';
 
 @Injectable()
 export class OrdersService {
@@ -29,6 +31,7 @@ export class OrdersService {
     @Inject(forwardRef(() => PaymentsService))
     private readonly paymentsService: PaymentsService,
     private readonly storeService: StoreService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(
@@ -103,6 +106,19 @@ export class OrdersService {
     // 3. Create the order in the database
     const order = await this.orderRepository.create(orderData);
 
+    // 3b. Notify the seller
+    try {
+      await this.notificationsService.create({
+        userId: store.ownerId,
+        type: NotificationType.ORDER,
+        title: 'Nouvelle commande',
+        message: `Vous avez reçu une nouvelle commande de ${validatedTotalAmount.toLocaleString()} FCFA.`,
+        metadata: JSON.stringify({ orderId: order.id }),
+      });
+    } catch (error) {
+      console.error('Erreur lors de la création de la notification de commande', error);
+    }
+
     // 4. Update stocks (Decrement)
     for (const item of validatedItems) {
       const product = await this.productRepository.findOne({
@@ -174,7 +190,10 @@ export class OrdersService {
 
     if (user.role === UserRole.VENDEUR) {
       const store = await this.storeService.findByOwnerId(user.userId);
-      return this.orderRepository.find({ storeId: store.id });
+      return this.orderRepository.find({ 
+        where: { storeId: store.id },
+        relations: ['customer']
+      } as object);
     }
 
     return this.orderRepository.find({ customerId: user.userId });
@@ -212,7 +231,7 @@ export class OrdersService {
       user.role === UserRole.SUPER_ADMIN ||
       user.userId === customerId
     ) {
-      return this.orderRepository.find({ customerId });
+      return this.orderRepository.find({ where: { customerId } } as object);
     }
     throw new ForbiddenException('You do not have access to these orders');
   }
@@ -227,7 +246,10 @@ export class OrdersService {
       if (store.id !== storeId) {
         throw new ForbiddenException('You do not have access to these orders');
       }
-      return this.orderRepository.find({ storeId });
+      return this.orderRepository.find({ 
+        where: { storeId },
+        relations: ['customer']
+      } as object);
     }
 
     throw new ForbiddenException('You do not have access to these orders');

@@ -43,9 +43,19 @@ export class RealtimeGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   @UseGuards(WsJwtGuard)
+  @SubscribeMessage('join_conversation')
+  async joinConversation(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() body: { conversationId: string },
+  ) {
+    await client.join(`conversation_${body.conversationId}`);
+    return { event: 'joined', data: { conversationId: body.conversationId } };
+  }
+
+  @UseGuards(WsJwtGuard)
   @SubscribeMessage('ping')
   ping(
-    @ConnectedSocket() client: Socket & { user?: unknown },
+    @ConnectedSocket() client: Socket & { user?: any },
     @MessageBody() body: unknown,
   ) {
     return {

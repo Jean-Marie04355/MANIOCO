@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { ProductCategoriesService } from './product-categories.service';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
@@ -39,9 +40,9 @@ export class ProductCategoriesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Retrieve all product categories' })
-  findAll() {
-    return this.productCategoriesService.findAll();
+  @ApiOperation({ summary: 'Retrieve all product categories, optionally filtered by storeId' })
+  findAll(@Query('storeId') storeId?: string) {
+    return this.productCategoriesService.findAll(storeId);
   }
 
   @Get(':id')

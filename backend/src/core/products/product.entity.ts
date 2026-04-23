@@ -25,11 +25,17 @@ export class Product {
   @Column({ default: 'FCFA' })
   currency: string;
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   stock: number;
+
+  @Column({ type: 'varchar', default: 'Pièce' })
+  unit: string;
 
   @Column({ nullable: true })
   description: string;
+
+  @Column({ nullable: true })
+  image: string;
 
   @Column({ nullable: true })
   storeId: string;

@@ -21,6 +21,8 @@ import { AdminSeeder } from './common/seeder/admin.seeder';
 import { RolesModule } from './core/roles/roles.module';
 import { PaymentsInfraModule } from './libs/payments/payments-infra.module';
 import { AuditModule } from './core/audit/audit.module';
+import { ChatModule } from './core/chat/chat.module';
+import { NotificationsModule } from './core/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -42,6 +44,8 @@ import { AuditModule } from './core/audit/audit.module';
     QueuesModule,
     PaymentsInfraModule,
     AuditModule,
+    ChatModule,
+    NotificationsModule,
   ],
 
   controllers: [AppController, InfraController],

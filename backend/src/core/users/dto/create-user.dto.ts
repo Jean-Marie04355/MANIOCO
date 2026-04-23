@@ -33,4 +33,8 @@ export class CreateUserDto {
 
   @IsOptional()
   permissions?: string[];
+
+  @ApiProperty({ description: "URL de la photo de profil", required: false })
+  @IsOptional()
+  profilePhoto?: string;
 }
