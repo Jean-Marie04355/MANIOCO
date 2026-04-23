@@ -6,12 +6,15 @@ import helmet from 'helmet';
 import basicAuth from 'express-basic-auth';
 import { ConfigService } from '@nestjs/config';
 import { AdminSeeder } from './common/seeder/admin.seeder';
+import * as express from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Security middlewares
+  // Security and Body Parsing
   app.use(helmet());
+  app.use(express.json({ limit: '10mb' }));
+  app.use(express.urlencoded({ limit: '10mb', extended: true }));
   app.useGlobalPipes(new ValidationPipe());
 
   // Get ConfigService for configuration

@@ -20,6 +20,8 @@ import { QueuesModule } from './libs/queues/queues.module';
 import { AdminSeeder } from './common/seeder/admin.seeder';
 import { RolesModule } from './core/roles/roles.module';
 import { PaymentsInfraModule } from './libs/payments/payments-infra.module';
+import { ChatModule } from './core/chat/chat.module';
+import { NotificationsModule } from './core/notifications/notifications.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { PaymentsInfraModule } from './libs/payments/payments-infra.module';
     RealtimeModule,
     QueuesModule,
     PaymentsInfraModule,
+    ChatModule,
+    NotificationsModule,
   ],
 
   controllers: [AppController, InfraController],

@@ -23,7 +23,10 @@ export class ProductCategoriesService {
     return this.repo.create(createDto);
   }
 
-  async findAll() {
+  async findAll(storeId?: string) {
+    if (storeId) {
+      return this.repo.find({ where: { storeId } } as object);
+    }
     return this.repo.find();
   }
 

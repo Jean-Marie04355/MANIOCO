@@ -1,18 +1,94 @@
 "use client";
 import { Gem, ArrowRight, Mail, Lock, User, Leaf, Globe, Sparkles, ShieldCheck, CheckCircle2, Circle } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import { RoleBtn } from '@/features/auth/components/RoleBtn';
+import { useAuth } from '@/features/auth/AuthContext';
+import api from '@/lib/axios';
 
 export default function AuthPage() {
   const [isSignIn, setIsSignIn] = useState(true);
   const [role, setRole] = useState('client');
   const [agreed, setAgreed] = useState(false);
   const [mounted, setMounted] = useState(false);
+  
+  // Login States
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  // Register States
+  const [registerName, setRegisterName] = useState('');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registerError, setRegisterError] = useState('');
+  const [registerSuccess, setRegisterSuccess] = useState(false);
+  
+  const router = useRouter();
+  const { login } = useAuth();
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError('');
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      const { accessToken } = response.data;
+      if (accessToken) {
+        login(accessToken);
+        // On redirige temporairement en dur vers seller car l'utilisateur travaille dessus
+        router.push('/dashboard/seller');
+      }
+    } catch (err: any) {
+      if (!err.response) {
+        setError("Le serveur (backend) est injoignable.");
+      } else {
+        const msg = err.response?.data?.message;
+        setError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Identifiants incorrects'));
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsRegistering(true);
+    setRegisterError('');
+    setRegisterSuccess(false);
+    try {
+      await api.post('/users', { 
+        name: registerName, 
+        email: registerEmail, 
+        password: registerPassword, 
+        role: role === 'seller' ? 'vendeur' : 'client'
+      });
+      setRegisterSuccess(true);
+      // Auto-switch to login tab and prefill
+      setTimeout(() => {
+        setIsSignIn(true);
+        setEmail(registerEmail);
+        setPassword(registerPassword);
+        setRegisterSuccess(false);
+      }, 1500);
+    } catch (err: any) {
+      if (!err.response) {
+        setRegisterError("Le serveur (backend) est injoignable. Est-il bien démarré ?");
+      } else {
+        const msg = err.response?.data?.message;
+        setRegisterError(Array.isArray(msg) ? msg.join(', ') : (msg || "Erreur lors de l'inscription"));
+      }
+    } finally {
+      setIsRegistering(false);
+    }
+  };
 
   // Système de Particules "Overload Premium"
   const particles = useMemo(() => {
@@ -71,10 +147,31 @@ export default function AuthPage() {
                   <span className="text-3xl font-black italic text-forest-green tracking-tighter">AFRIGARI</span>
                </div>
                <h1 className="text-6xl font-black uppercase text-forest-green mb-10 tracking-tighter italic">Login</h1>
-               <form className="w-full space-y-5 max-w-[340px]">
-                  <Input icon={Mail} placeholder="Adresse Email" />
-                  <Input icon={Lock} type="password" placeholder="Mot de passe" />
-                  <button className="w-full bg-forest-green text-white py-6 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-afrigari-gold transition-all shadow-2xl shadow-forest-green/20 mt-6 active:scale-95">Se Connecter</button>
+               <form onSubmit={handleLogin} className="w-full space-y-5 max-w-[340px]">
+                  {error && <div className="p-3 bg-red-50 text-red-500 text-sm rounded-xl font-bold border border-red-100">{error}</div>}
+                  <Input 
+                    icon={Mail} 
+                    type="email"
+                    placeholder="Adresse Email" 
+                    value={email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                    required
+                  />
+                  <Input 
+                    icon={Lock} 
+                    type="password" 
+                    placeholder="Mot de passe" 
+                    value={password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button 
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-forest-green text-white py-6 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-afrigari-gold transition-all shadow-2xl shadow-forest-green/20 mt-6 active:scale-95 disabled:opacity-70 flex justify-center items-center"
+                  >
+                    {isLoading ? "Connexion..." : "Se Connecter"}
+                  </button>
                </form>
             </div>
          </div>
@@ -86,14 +183,37 @@ export default function AuthPage() {
                   <span className="text-3xl font-black italic text-forest-green tracking-tighter">AFRIGARI</span>
                </div>
                <h1 className="text-5xl font-black uppercase text-forest-green mb-8 tracking-tighter italic">Register</h1>
-               <form className="w-full space-y-4 max-w-[360px]">
+               <form onSubmit={handleRegister} className="w-full space-y-4 max-w-[360px]">
+                  {registerError && <div className="p-3 bg-red-50 text-red-500 text-sm rounded-xl font-bold border border-red-100">{registerError}</div>}
+                  {registerSuccess && <div className="p-3 bg-green-50 text-green-600 text-sm rounded-xl font-bold border border-green-100">Compte créé avec succès !</div>}
+                  
                   <div className="grid grid-cols-2 gap-4 mb-4">
                      <RoleBtn active={role === 'client'} onClick={() => setRole('client')} label="Client" color="forest" />
                      <RoleBtn active={role === 'seller'} onClick={() => setRole('seller')} label="Vendeur" color="gold" />
                   </div>
-                  <Input icon={User} placeholder="Nom Complet" />
-                  <Input icon={Mail} placeholder="Email" />
-                  <Input icon={Lock} type="password" placeholder="Mot de passe" />
+                  <Input 
+                    icon={User} 
+                    placeholder="Nom Complet" 
+                    value={registerName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterName(e.target.value)}
+                    required
+                  />
+                  <Input 
+                    icon={Mail} 
+                    type="email"
+                    placeholder="Email" 
+                    value={registerEmail}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterEmail(e.target.value)}
+                    required
+                  />
+                  <Input 
+                    icon={Lock} 
+                    type="password" 
+                    placeholder="Mot de passe" 
+                    value={registerPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterPassword(e.target.value)}
+                    required
+                  />
                   <div className="flex items-start gap-4 px-2 py-2">
                      <div className="relative h-6 w-6 flex items-center justify-center pt-1">
                         <input type="checkbox" checked={agreed} onChange={() => setAgreed(!agreed)} className="appearance-none h-5 w-5 rounded-lg border-2 border-slate-200 checked:bg-forest-green checked:border-forest-green transition-all cursor-pointer" />
@@ -101,7 +221,13 @@ export default function AuthPage() {
                      </div>
                      <p className="text-[11px] font-bold text-forest-green/50 leading-relaxed">J'accepte les <span className="text-forest-green font-black underline">règles de confidentialité</span>.</p>
                   </div>
-                  <button disabled={!agreed} className={`w-full py-6 rounded-[24px] font-black text-sm uppercase tracking-widest transition-all shadow-xl ${agreed ? 'bg-forest-green text-white hover:bg-afrigari-gold active:scale-95' : 'bg-slate-100 text-slate-300 cursor-not-allowed'}`}>Créer Compte</button>
+                  <button 
+                    type="submit"
+                    disabled={!agreed || isRegistering} 
+                    className={`w-full py-6 rounded-[24px] font-black text-sm uppercase tracking-widest transition-all shadow-xl flex justify-center items-center ${(agreed && !isRegistering) ? 'bg-forest-green text-white hover:bg-afrigari-gold active:scale-95' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                  >
+                    {isRegistering ? "Création..." : "Créer Compte"}
+                  </button>
                </form>
             </div>
          </div>

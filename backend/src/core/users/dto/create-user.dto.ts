@@ -30,4 +30,8 @@ export class CreateUserDto {
   @IsOptional()
   @IsIn([UserRole.CLIENT, UserRole.VENDEUR, UserRole.LIVREUR])
   role?: UserRole;
+
+  @ApiProperty({ description: "URL de la photo de profil", required: false })
+  @IsOptional()
+  profilePhoto?: string;
 }
