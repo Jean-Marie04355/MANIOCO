@@ -68,4 +68,10 @@ export class InfraController {
       details: status,
     };
   }
+
+  @Get('queues/stats')
+  @ApiOperation({ summary: 'Get BullMQ statistics' })
+  async getQueueStats() {
+    return this.queues.getAllQueuesStats();
+  }
 }

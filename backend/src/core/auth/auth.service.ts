@@ -58,6 +58,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       userId: user.id,
+      name: user.name,
     };
 
     const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '1d';
@@ -132,6 +133,7 @@ export class AuthService {
       email: user.email,
       role: user.role,
       userId: user.id,
+      name: user.name,
     };
 
     const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '1d';

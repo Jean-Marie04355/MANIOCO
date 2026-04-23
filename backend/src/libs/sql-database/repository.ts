@@ -10,8 +10,12 @@ export class SqlRepository<T extends { id: string | number }>
     return this.repo.find(options as FindManyOptions<T>);
   }
 
-  findOne(criteria: object): Promise<T | null> {
-    return this.repo.findOne({ where: criteria as FindOptionsWhere<T> });
+  findOne(criteria: any): Promise<T | null> {
+    const { withDeleted, ...where } = criteria;
+    return this.repo.findOne({ 
+      where: where as FindOptionsWhere<T>,
+      withDeleted: !!withDeleted 
+    });
   }
 
   async create(data: Partial<T>): Promise<T> {
@@ -34,6 +38,10 @@ export class SqlRepository<T extends { id: string | number }>
 
   async softDelete(id: string | number): Promise<void> {
     await this.repo.softDelete(id);
+  }
+
+  async restore(id: string | number): Promise<void> {
+    await this.repo.restore(id);
   }
 
   save(entity: T): Promise<T> {

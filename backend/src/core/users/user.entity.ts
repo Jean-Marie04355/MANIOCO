@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   DeleteDateColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { UserRole } from '../../common/enum/role.enum';
 
@@ -24,12 +25,18 @@ export class User {
   @Column({ type: 'varchar', default: UserRole.CLIENT })
   role: UserRole;
 
+  @Column({ type: 'simple-array', nullable: true })
+  permissions: string[];
+
   @Column({ nullable: true })
   otpCode: string;
 
   @Column({ nullable: true })
   otpExpiresAt: Date;
 
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;

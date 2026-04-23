@@ -10,12 +10,15 @@ import { User } from './user.entity';
 import { hashPassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
 import { IBaseRepository } from '../../database/index';
+import { AuditService } from '../audit/audit.service';
+import { AuditAction } from '../audit/audit-log.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject('USER_REPOSITORY')
     private readonly userRepository: IBaseRepository<User>,
+    private readonly auditService: AuditService,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -24,6 +27,14 @@ export class UsersService {
 
   async findAll(): Promise<User[]> {
     return this.userRepository.find();
+  }
+
+  async findAllWithDeleted(): Promise<User[]> {
+    return this.userRepository.find({ withDeleted: true });
+  }
+
+  async restore(id: string) {
+    return this.userRepository.restore(id);
   }
 
   async create(createUserDto: CreateUserDto) {
@@ -61,11 +72,16 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.userRepository.findOne({ id });
+    const user = await this.userRepository.findOne({ id, withDeleted: true });
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
     return user;
+  }
+
+  async hardDelete(id: string) {
+    await this.findOne(id);
+    return this.userRepository.delete(id);
   }
 
   async remove(id: string) {

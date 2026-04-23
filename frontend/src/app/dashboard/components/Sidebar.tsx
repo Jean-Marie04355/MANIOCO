@@ -1,10 +1,10 @@
 "use client";
-import { 
-  LayoutDashboard, Users, ShoppingBag, ShoppingCart, FolderTree, 
-  Megaphone, Bell, Flag, Clock, Image as ImageIcon, Settings, 
+import {
+  LayoutDashboard, Users, ShoppingBag, ShoppingCart, FolderTree,
+  Megaphone, Bell, Flag, Clock, Image as ImageIcon, Settings,
   ShieldCheck, Database, Terminal, Activity, Server, Shield, Leaf,
   Heart, MessageSquare, Star, MapPin, CreditCard, HelpCircle, LogOut,
-  Gift, BarChart3, Store, UserCheck
+  Gift, BarChart3, Store, UserCheck, ChevronRight
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -15,7 +15,7 @@ interface SidebarProps {
 
 export default function Sidebar({ mode }: SidebarProps) {
   const pathname = usePathname();
-  
+
   const isActive = (href: string) => {
     if (href === '#') return false;
     // Correspondance exacte uniquement pour la page d'accueil du dashboard (pour éviter d'être actif sur les sous-pages)
@@ -46,16 +46,9 @@ export default function Sidebar({ mode }: SidebarProps) {
         return [
           { icon: LayoutDashboard, label: 'Tableau de bord', active: true, href: '/dashboard/super-admin' },
           { icon: Users, label: 'Utilisateurs', href: '/dashboard/super-admin/users' },
-          { icon: ShieldCheck, label: 'Admins & Rôles', href: '#' },
-          { icon: Shield, label: 'Permissions', href: '#' },
-          { icon: ShoppingBag, label: 'Produits', href: '#' },
-          { icon: ShoppingCart, label: 'Commandes', href: '#' },
-          { icon: FolderTree, label: 'Catégories', href: '#' },
-          { icon: Megaphone, label: 'Annonces', href: '#' },
-          { icon: Terminal, label: 'Tâches (BullMQ)', href: '#' },
-          { icon: Database, label: 'Logs système', href: '#' },
-          { icon: Server, label: 'Monitoring', href: '#' },
-          { icon: Database, label: 'Stockage (S3)', href: '#' },
+          { icon: ShieldCheck, label: 'Admins & Rôles', href: '/dashboard/super-admin/admins' },
+          { icon: Shield, label: 'Permissions', href: '/dashboard/super-admin/permissions' },
+          { icon: Database, label: 'Logs système', href: '/dashboard/super-admin/logs' },
         ];
       case 'client':
         return [
@@ -91,9 +84,8 @@ export default function Sidebar({ mode }: SidebarProps) {
   const isAdminOrSuper = mode === 'admin' || mode === 'super-admin';
 
   return (
-    <aside className={`w-64 h-screen fixed left-0 top-0 flex flex-col border-r transition-colors duration-300 ${
-      isAdminOrSuper ? (mode === 'admin' ? 'bg-slate-900' : 'bg-[#0f111a]') : 'bg-white'
-    } border-slate-200 dark:border-slate-800`}>
+    <aside className={`w-64 h-screen fixed left-0 top-0 flex flex-col border-r transition-colors duration-300 ${isAdminOrSuper ? (mode === 'admin' ? 'bg-slate-900' : 'bg-[#0f111a]') : 'bg-white'
+      } border-slate-200 dark:border-slate-800`}>
       <div className="p-6 flex items-center gap-3">
         <div className="relative w-10 h-10 flex items-center justify-center">
           <Leaf className="text-green-500 fill-green-500 absolute -rotate-12 translate-x-[-4px] translate-y-[2px]" size={22} />
@@ -103,6 +95,21 @@ export default function Sidebar({ mode }: SidebarProps) {
         <span className={`${isAdminOrSuper ? 'text-white' : 'text-slate-900'} font-black text-2xl tracking-tighter`}>Afrigari</span>
       </div>
 
+      {mode === 'super-admin' && (
+        <div className="px-4 mb-6">
+          <Link href="/dashboard/super-admin/profile" className="flex items-center gap-4 bg-white/40 p-4 rounded-[30px] border border-white hover:bg-white hover:shadow-xl transition-all group">
+            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white font-black italic shadow-lg shadow-indigo-100 group-hover:rotate-12 transition-transform">
+              SA
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest italic group-hover:text-indigo-600 transition-colors">Super_Admin</p>
+              <p className="text-xs font-black text-slate-800 italic uppercase">Maître Administrateur</p>
+            </div>
+            <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-all" />
+          </Link>
+        </div>
+      )}
+
       <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-1 custom-scrollbar">
         {menuItems.map((item: any, index: number) => {
           const isItemActive = item.href ? isActive(item.href) : item.active;
@@ -110,23 +117,22 @@ export default function Sidebar({ mode }: SidebarProps) {
             <Link
               key={index}
               href={item.href || "#"}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                isItemActive 
-                  ? (mode === 'client' ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' : 
-                     mode === 'seller' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' :
-                     mode === 'admin' ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' :
-                     'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20')
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isItemActive
+                  ? (mode === 'client' ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' :
+                    mode === 'seller' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' :
+                      mode === 'admin' ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' :
+                        'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20')
                   : (isAdminOrSuper ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50')
-              }`}
+                }`}
             >
               <div className="flex items-center gap-3">
                 <item.icon size={18} />
                 {item.label}
               </div>
               {item.badge && (
-                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isItemActive ? 'bg-white text-green-600' : 'bg-green-500 text-white'}`}>
-                   {item.badge}
-                 </span>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isItemActive ? 'bg-white text-green-600' : 'bg-green-500 text-white'}`}>
+                  {item.badge}
+                </span>
               )}
             </Link>
           );
@@ -135,8 +141,8 @@ export default function Sidebar({ mode }: SidebarProps) {
 
       <div className={`p-4 mt-auto border-t border-slate-100 dark:border-slate-800`}>
         <button className="w-full flex items-center gap-3 px-3 py-2 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-bold text-sm">
-           <LogOut size={18} />
-           Déconnexion
+          <LogOut size={18} />
+          Déconnexion
         </button>
       </div>
     </aside>

@@ -28,6 +28,9 @@ export class CreateUserDto {
     required: false,
   })
   @IsOptional()
-  @IsIn([UserRole.CLIENT, UserRole.VENDEUR, UserRole.LIVREUR])
+  @IsIn([UserRole.CLIENT, UserRole.VENDEUR, UserRole.LIVREUR, UserRole.ADMIN])
   role?: UserRole;
+
+  @IsOptional()
+  permissions?: string[];
 }
