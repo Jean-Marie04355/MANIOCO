@@ -148,7 +148,8 @@ export class AuthService {
     };
   }
 
-  me(user: AuthenticatedUser): AuthenticatedUser {
-    return user;
+  async me(user: AuthenticatedUser): Promise<User> {
+    const fullUser = await this.usersService.findOne(user.userId as string);
+    return fullUser;
   }
 }
