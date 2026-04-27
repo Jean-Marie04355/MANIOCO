@@ -8,10 +8,10 @@ import {
   ChevronRight, Terminal
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-
 export default function LuxuryLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLevel, setFilterLevel] = useState('all');
 
@@ -19,7 +19,8 @@ export default function LuxuryLogsPage() {
     fetchLogs();
   }, []);
 
-  const fetchLogs = async () => {
+  const fetchLogs = async (isRef = false) => {
+    if (isRef) setIsRefreshing(true);
     try {
       const token = localStorage.getItem('accessToken');
       const res = await fetch('http://localhost:3000/audit-logs', {
@@ -30,7 +31,39 @@ export default function LuxuryLogsPage() {
         setLogs(data);
       }
     } catch (err) { console.error(err); }
-    finally { setLoading(false); }
+    finally { 
+        setLoading(false); 
+        if (isRef) setIsRefreshing(false);
+    }
+  };
+
+  const handleExport = () => {
+    const dataToExport = filterLevel === 'all' && !searchQuery ? logs : filtered;
+    if (dataToExport.length === 0) return alert('Aucune donnée à extraire.');
+
+    const headers = ['Horodatage', 'Agent', 'Email Admin', 'Action', 'Détails'];
+    const csvRows = [headers.join(',')];
+
+    dataToExport.forEach(log => {
+      const date = new Date(log.createdAt).toLocaleString('fr-FR');
+      const values = [
+        date,
+        `"${log.adminName || ''}"`,
+        `"${log.adminEmail || ''}"`,
+        `"${log.action || ''}"`,
+        `"${(log.details || '').replace(/"/g, '""')}"`
+      ];
+      csvRows.push(values.join(','));
+    });
+
+    const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Afrigari_Surveillance_Logs_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const getIntensityIcon = (action: string) => {
@@ -67,12 +100,14 @@ export default function LuxuryLogsPage() {
             </p>
             <div className="flex gap-4">
                 <button 
-                    onClick={fetchLogs}
+                    onClick={() => fetchLogs(true)}
                     className="w-16 h-16 bg-white border border-slate-100 rounded-3xl flex items-center justify-center text-slate-300 hover:text-indigo-600 hover:shadow-xl transition-all"
                 >
-                    <RefreshCcw size={22} />
+                    <RefreshCcw size={22} className={isRefreshing ? 'animate-spin text-indigo-600' : ''} />
                 </button>
-                <button className="bg-indigo-600 text-white px-10 py-5 rounded-[30px] text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-indigo-200 flex items-center gap-4 hover:-translate-y-2 transition-all">
+                <button 
+                    onClick={handleExport}
+                    className="bg-indigo-600 text-white px-10 py-5 rounded-[30px] text-[11px] font-black uppercase tracking-[0.3em] shadow-2xl shadow-indigo-200 flex items-center gap-4 hover:-translate-y-2 transition-all">
                     <Download size={18} />
                     Extraire les Données
                 </button>

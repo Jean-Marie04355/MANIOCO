@@ -10,6 +10,13 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 export class NotificationsController {
   constructor(private readonly notificationsService: NotificationsService) {}
 
+  @Get('unread/count')
+  @ApiOperation({ summary: 'Compter les notifications non lues' })
+  async countUnread(@Request() req: any) {
+    const userId = req.user.id || req.user.userId;
+    return this.notificationsService.countUnread(userId);
+  }
+
   @Get()
   @ApiOperation({ summary: 'Récupérer les notifications de l\'utilisateur connecté' })
   async findAll(@Request() req: any) {

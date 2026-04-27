@@ -14,6 +14,7 @@ import { StoreModule } from '../store/store.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ProductsModule } from '../products/products.module';
 import { RolesModule } from '../roles/roles.module';
+import { User } from '../users/user.entity';
 
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
@@ -27,7 +28,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       ? MongooseModule.forFeature([
           { name: MongoOrder.name, schema: OrderSchema },
         ])
-      : TypeOrmModule.forFeature([Order]),
+      : TypeOrmModule.forFeature([Order, User]),
     PaymentsModule,
     StoreModule,
     NotificationsModule,
@@ -44,6 +45,20 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
         dbType === 'mongodb'
           ? getModelToken(MongoOrder.name)
           : getRepositoryToken(Order),
+      ],
+      useFactory: (config: ConfigService, engine: unknown) => {
+        return config.get('DB_TYPE') === 'mongodb'
+          ? new NoSqlRepository(engine as never)
+          : new SqlRepository(engine as never);
+      },
+    },
+    {
+      provide: 'USER_REPOSITORY',
+      inject: [
+        ConfigService,
+        dbType === 'mongodb'
+          ? getModelToken('User') // Placeholder if mongo
+          : getRepositoryToken(User),
       ],
       useFactory: (config: ConfigService, engine: unknown) => {
         return config.get('DB_TYPE') === 'mongodb'

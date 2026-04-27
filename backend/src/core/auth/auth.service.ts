@@ -12,6 +12,8 @@ import { IQueueService } from '../../common/interfaces/queue.interface';
 import { comparePassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
 import { User } from '../users/user.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/notification.entity';
 
 import type { AuthenticatedUser } from './strategies/jwt.strategy';
 
@@ -33,6 +35,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     @Inject('QUEUE_SERVICE')
     private readonly queueService: IQueueService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async login(email: string, password: string): Promise<LoginResponse> {
@@ -45,6 +48,27 @@ export class AuthService {
     if (!ok) {
       throw new UnauthorizedException();
     }
+
+    // Vérification de suspension temporelle
+    if (user.suspensionUntil && new Date() < user.suspensionUntil) {
+        // Log a security alert for attempted login on suspended account
+        this.notificationsService.create({
+          userId: user.id, // User gets notified too
+          type: NotificationType.SECURITY,
+          title: 'Accès suspendu',
+          message: `Tentative de connexion sur votre compte suspendu jusqu'au ${user.suspensionUntil.toLocaleDateString()}.`
+        }).catch(() => {});
+
+        throw new UnauthorizedException({
+            statusCode: 403,
+            message: 'ACCOUNT_SUSPENDED',
+            suspensionUntil: user.suspensionUntil,
+            reason: user.suspensionReason || 'Violation des conditions d\'utilisation'
+        });
+    }
+
+    // On laisse passer la connexion même si non vérifié pour permettre l'accès à la page KYC
+    // Le frontend se chargera de la redirection vers la page de validation
 
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
       throw new UnauthorizedException(
@@ -71,7 +95,10 @@ export class AuthService {
         name: user.name,
         email: user.email,
         role: user.role,
-      },
+        isVerified: user.isVerified,
+        kycStatus: user.kycStatus,
+        kycRejectionReasons: user.kycRejectionReasons,
+      } as any,
     };
   }
 
@@ -139,6 +166,14 @@ export class AuthService {
     const expiresIn = this.configService.get('JWT_EXPIRES_IN') || '1d';
     const accessToken = await this.jwtService.signAsync(payload, { expiresIn });
 
+    // Global security alert for admin login
+    this.notificationsService.create({
+      userId: user.id,
+      type: NotificationType.SECURITY,
+      title: 'Accès Administration',
+      message: `Votre compte s'est connecté au portail sécurisé Afrigari.`
+    }).catch(() => {});
+
     return {
       accessToken,
       user: {
@@ -159,6 +194,9 @@ export class AuthService {
       email: fullUser.email,
       role: fullUser.role,
       userId: fullUser.id,
+      isVerified: fullUser.isVerified,
+      kycStatus: fullUser.kycStatus,
+      kycRejectionReasons: fullUser.kycRejectionReasons,
       profilePhoto: fullUser.profilePhoto,
     };
   }

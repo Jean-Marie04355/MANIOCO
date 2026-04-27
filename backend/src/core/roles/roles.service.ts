@@ -59,6 +59,8 @@ export class RolesService {
           Permission.USERS_VIEW,
           Permission.USERS_MANAGE,
           Permission.STORES_MANAGE,
+          Permission.ORDERS_VIEW,
+          Permission.ORDERS_MANAGE,
         ],
       },
       {

@@ -6,7 +6,6 @@ import {
     User, ShoppingBag, Shield, CheckCircle2, XCircle, RefreshCcw
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
-
 export default function StylishUsersPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -43,6 +42,37 @@ export default function StylishUsersPage() {
     const sellerCount = users.filter(u => u.role === 'vendeur').length;
     const adminCount = users.filter(u => u.role === 'admin').length;
 
+    const handleExport = () => {
+        const dataToExport = filtered;
+        if (dataToExport.length === 0) return alert('Aucune donnée à extraire.');
+
+        const headers = ['ID', 'Nom', 'Email', 'Rôle', 'Date de création', 'Statut'];
+        const csvRows = [headers.join(',')];
+
+        dataToExport.forEach(u => {
+            const date = new Date(u.createdAt).toLocaleDateString('fr-FR');
+            const status = u.deletedAt ? 'Suspendu' : 'Actif';
+            const values = [
+                `"${u.id}"`,
+                `"${(u.name || '').replace(/"/g, '""')}"`,
+                `"${u.email || ''}"`,
+                `"${u.role || ''}"`,
+                date,
+                status
+            ];
+            csvRows.push(values.join(','));
+        });
+
+        const csvContent = "data:text/csv;charset=utf-8,\uFEFF" + csvRows.join('\n');
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `Afrigari_Utilisateurs_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     return (
         <div className="flex bg-slate-50 min-h-screen text-slate-800 font-sans">
             <Sidebar mode="super-admin" />
@@ -60,7 +90,10 @@ export default function StylishUsersPage() {
                             Surveillance centralisée des comptes Clients, Marchands et Staff.
                         </p>
                     </div>
-                    <button className="bg-white border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 px-8 py-4 rounded-[24px] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-sm hover:shadow-xl">
+                    <button 
+                        onClick={handleExport}
+                        className="bg-white border-2 border-slate-100 hover:border-indigo-600 hover:text-indigo-600 px-8 py-4 rounded-[24px] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 shadow-sm hover:shadow-xl"
+                    >
                         <Download size={16} />
                         Exporter CSV
                     </button>

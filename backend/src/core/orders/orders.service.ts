@@ -12,6 +12,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { Store } from '../store/store.entity';
 import { Product } from '../products/product.entity';
+import { User } from '../users/user.entity';
 import { OrderStatus } from '../../common/enum/order-status.enum';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { UserRole } from '../../common/enum/role.enum';
@@ -28,6 +29,8 @@ export class OrdersService {
     private readonly storeRepository: IBaseRepository<Store>,
     @Inject('PRODUCT_REPOSITORY')
     private readonly productRepository: IBaseRepository<Product>,
+    @Inject('USER_REPOSITORY')
+    private readonly userRepository: IBaseRepository<User>,
     @Inject(forwardRef(() => PaymentsService))
     private readonly paymentsService: PaymentsService,
     private readonly storeService: StoreService,
@@ -106,8 +109,9 @@ export class OrdersService {
     // 3. Create the order in the database
     const order = await this.orderRepository.create(orderData);
 
-    // 3b. Notify the seller
+    // 3b. Notify the seller and admins
     try {
+      // Notify Seller
       await this.notificationsService.create({
         userId: store.ownerId,
         type: NotificationType.ORDER,
@@ -115,6 +119,9 @@ export class OrdersService {
         message: `Vous avez reçu une nouvelle commande de ${validatedTotalAmount.toLocaleString()} FCFA.`,
         metadata: JSON.stringify({ orderId: order.id }),
       });
+
+      // Notify Admins (Logic moved to a private method to keep it clean)
+      this.notifyAdminsOfNewOrder(order, validatedTotalAmount);
     } catch (error) {
       console.error('Erreur lors de la création de la notification de commande', error);
     }
@@ -148,6 +155,29 @@ export class OrdersService {
       throw new BadRequestException(
         `Unable to initiate payment: ${errorMessage}. The order has been cancelled and stock restored.`,
       );
+    }
+  }
+
+  private async notifyAdminsOfNewOrder(order: Order, amount: number) {
+    try {
+      const admins = await this.userRepository.find({
+        where: [
+          { role: UserRole.ADMIN },
+          { role: UserRole.SUPER_ADMIN }
+        ]
+      } as any);
+
+      for (const admin of admins) {
+        await this.notificationsService.create({
+          userId: admin.id,
+          type: NotificationType.ORDER,
+          title: 'Nouvelle vente Afrigari',
+          message: `Une commande de ${amount.toLocaleString()} FCFA vient d'être passée (#${order.id.split('-')[0]}).`,
+          metadata: JSON.stringify({ orderId: order.id })
+        });
+      }
+    } catch (error) {
+      console.error('Failed to notify admins of new order', error);
     }
   }
 
@@ -185,7 +215,10 @@ export class OrdersService {
 
   async findAll(user: AuthenticatedUser): Promise<Order[]> {
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
-      return this.orderRepository.find();
+      return this.orderRepository.find({
+        relations: ['customer', 'store'],
+        order: { createdAt: 'DESC' }
+      } as any);
     }
 
     if (user.role === UserRole.VENDEUR) {

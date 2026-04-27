@@ -14,11 +14,18 @@ import {
 } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
 export default function SellerDashboard() {
   const { user } = useAuth();
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    if (user && !user.isVerified) {
+      router.push('/dashboard/seller/verification');
+    }
+  }, [user, router]);
   const [stats, setStats] = useState({
     totalSales: 0,
     totalRevenue: 0,

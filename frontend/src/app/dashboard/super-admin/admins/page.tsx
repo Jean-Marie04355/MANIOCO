@@ -7,7 +7,6 @@ import {
   Activity, Award, Anchor
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
-
 export default function StylishAdminsPage() {
   const [admins, setAdmins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

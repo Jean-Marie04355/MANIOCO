@@ -83,7 +83,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User restored' })
   @ApiParam({ name: 'id', type: String })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Patch(':id/restore')
   async restore(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
     const target = await this.usersService.findOne(id);
@@ -139,8 +139,8 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
   async remove(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
-    if (admin.role !== UserRole.SUPER_ADMIN && admin.userId !== id) {
-      throw new ForbiddenException('Only the account owner or a Super Admin can perform this action.');
+    if (admin.role !== UserRole.SUPER_ADMIN && admin.role !== UserRole.ADMIN && admin.userId !== id) {
+      throw new ForbiddenException('Only administrators or the account owner can perform this action.');
     }
     
     const target = await this.usersService.findOne(id);
@@ -163,7 +163,7 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User permanently deleted' })
   @ApiParam({ name: 'id', type: String })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Delete(':id/permanent')
   async hardDelete(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
     const target = await this.usersService.findOne(id);
@@ -204,6 +204,34 @@ export class UsersController {
         targetId: id,
       });
     }
+
+    return result;
+  }
+
+  @ApiOperation({ summary: 'Submit KYC documents (Sellers)' })
+  @UseGuards(JwtAuthGuard)
+  @Patch(':id/kyc/submit')
+  async submitKyc(@Param('id') id: string, @Body() data: any, @CurrentUser() user: AuthenticatedUser) {
+    if (user.userId !== id) {
+      throw new ForbiddenException('You can only submit your own KYC.');
+    }
+    return this.usersService.submitKyc(id, data);
+  }
+
+  @ApiOperation({ summary: 'Review KYC documents (Admins)' })
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @Patch(':id/kyc/review')
+  async reviewKyc(@Param('id') id: string, @Body() data: any, @CurrentUser() admin: AuthenticatedUser) {
+    const result = await this.usersService.reviewKyc(id, data);
+    
+    await this.auditService.log({
+      adminName: admin.name || 'Admin',
+      adminEmail: admin.email,
+      action: AuditAction.UPDATE_USER,
+      details: `A examiné le dossier KYC de ${result.email} (Statut: ${data.status})`,
+      targetId: id,
+    });
 
     return result;
   }

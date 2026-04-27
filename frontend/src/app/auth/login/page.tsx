@@ -47,6 +47,15 @@ export default function AuthPage() {
         router.push('/dashboard/seller');
       }
     } catch (err: any) {
+      if (err.response?.data?.message === 'ACCOUNT_SUSPENDED') {
+          const { suspensionUntil, reason } = err.response.data;
+          router.push(`/auth/suspended?until=${suspensionUntil}&reason=${encodeURIComponent(reason)}`);
+          return;
+      }
+      if (err.response?.data?.message === 'PENDING_VALIDATION') {
+          router.push('/auth/pending-validation');
+          return;
+      }
       if (!err.response) {
         setError("Le serveur (backend) est injoignable.");
       } else {

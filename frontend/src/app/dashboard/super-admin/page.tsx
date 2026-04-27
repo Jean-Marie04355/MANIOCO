@@ -28,18 +28,25 @@ export default function ProfessionalSuperAdminDashboard() {
     try {
       const token = localStorage.getItem('accessToken');
       const headers = { 'Authorization': `Bearer ${token}` };
-      const [uRes, logRes, statsRes] = await Promise.all([
+      const [uRes, logRes, statsRes, onlineRes] = await Promise.all([
         fetch('http://localhost:3000/users', { headers }),
         fetch('http://localhost:3000/audit-logs', { headers }),
-        fetch('http://localhost:3000/audit-logs/stats', { headers })
+        fetch('http://localhost:3000/audit-logs/stats', { headers }),
+        fetch('http://localhost:3000/realtime/online-count', { headers })
       ]);
 
       if (uRes.ok) {
+        let onlineCount = 0;
+        if (onlineRes && onlineRes.ok) {
+            const onlineData = await onlineRes.json();
+            onlineCount = onlineData.count || 0;
+        }
+
         const users = await uRes.json();
         const c = users.filter((u: any) => u.role === 'client').length;
         const s = users.filter((u: any) => u.role === 'vendeur').length;
         const a = users.filter((u: any) => u.role === 'admin' && !u.deletedAt).length;
-        setStats({ users: c + s, admins: a, online: Math.floor(Math.random() * 5) + 2, clients: c, sellers: s });
+        setStats({ users: c + s, admins: a, online: onlineCount, clients: c, sellers: s });
         setPieData([
             { name: 'Admins', value: a, color: '#10b981' },
             { name: 'Clients', value: c, color: '#3b82f6' },
@@ -144,7 +151,7 @@ export default function ProfessionalSuperAdminDashboard() {
                     <div className="flex justify-between items-center mb-10">
                         <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight italic">Flux d'Activité <span className="text-indigo-600">Live</span></h3>
                     </div>
-                    <div className="h-[280px] w-full">
+                    <div className="h-[280px] w-full" style={{ minHeight: '280px', minWidth: '0' }}>
                         {mounted && (
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData}>
@@ -166,7 +173,7 @@ export default function ProfessionalSuperAdminDashboard() {
 
                 <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm relative flex flex-col items-center justify-center">
                     <h3 className="absolute top-8 left-8 text-lg font-bold text-slate-900 uppercase tracking-tight italic">Démographie</h3>
-                    <div className="h-[220px] w-full mt-6">
+                    <div className="h-[220px] w-full mt-6" style={{ minHeight: '220px', minWidth: '0' }}>
                         {mounted && (
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>

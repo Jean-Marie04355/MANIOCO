@@ -37,6 +37,39 @@ export class User {
   @Column({ nullable: true })
   otpExpiresAt: Date;
 
+  @Column({ default: true })
+  isVerified: boolean;
+
+  @Column({ type: 'datetime', nullable: true })
+  suspensionUntil: Date;
+
+  @Column({ nullable: true })
+  suspensionReason: string;
+
+  // --- KYC / VENDOR VERIFICATION ---
+  @Column({ nullable: true })
+  dob: string; // Date of birth
+
+  @Column({ nullable: true })
+  nationality: string;
+
+  @Column({ nullable: true })
+  phoneNumber: string;
+
+  @Column({ nullable: true })
+  idCardFront: string; // URL
+
+  @Column({ nullable: true })
+  idCardBack: string; // URL
+
+  @Column({ nullable: true })
+  sellerSelfie: string; // URL
+
+  @Column({ type: 'varchar', default: 'NOT_SUBMITTED' })
+  kycStatus: 'NOT_SUBMITTED' | 'PENDING' | 'REJECTED' | 'APPROVED';
+
+  @Column({ type: 'text', nullable: true })
+  kycRejectionReasons: string; // JSON: { dob: '...', nationality: '...', ... }
 
   @CreateDateColumn()
   createdAt: Date;
