@@ -25,6 +25,9 @@ export class User {
   role: UserRole;
 
   @Column({ nullable: true })
+  profilePhoto: string;
+
+  @Column({ nullable: true })
   otpCode: string;
 
   @Column({ nullable: true })

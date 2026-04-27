@@ -1,0 +1,10 @@
+node_modules/
+.tools/
+data/
+.env
+.env*
+dist/
+.next/
+*.log
+*.sqlite
+*.bat

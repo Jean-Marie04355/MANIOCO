@@ -9,7 +9,7 @@ export class Store {
   @Column()
   name: string;
 
-  @Column()
+  @Column({ unique: true })
   ownerId: string;
 
   @Column({ nullable: true })

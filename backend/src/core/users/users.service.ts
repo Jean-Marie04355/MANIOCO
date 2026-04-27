@@ -10,12 +10,14 @@ import { User } from './user.entity';
 import { hashPassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
 import { IBaseRepository } from '../../database/index';
+import { S3StorageService } from '../../libs/storage/s3-storage.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject('USER_REPOSITORY')
     private readonly userRepository: IBaseRepository<User>,
+    private readonly storageService: S3StorageService,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
@@ -78,6 +80,27 @@ export class UsersService {
     if (updateUserDto.password) {
       updateUserDto.password = await hashPassword(updateUserDto.password);
     }
+
+    // Handle Base64 profile photo upload to S3
+    if (updateUserDto.profilePhoto && updateUserDto.profilePhoto.startsWith('data:image')) {
+      try {
+        const base64Data = updateUserDto.profilePhoto.split(',')[1];
+        const mimeType = updateUserDto.profilePhoto.split(';')[0].split(':')[1];
+        const extension = mimeType.split('/')[1];
+        const buffer = Buffer.from(base64Data, 'base64');
+        
+        const fileUrl = await this.storageService.uploadFile({
+          buffer,
+          originalname: `profile-${id}-${Date.now()}.${extension}`,
+          mimetype: mimeType,
+        });
+        
+        updateUserDto.profilePhoto = fileUrl;
+      } catch (error) {
+        console.error('Erreur lors de l\'upload de la photo de profil vers S3', error);
+      }
+    }
+
     return this.userRepository.update(id, updateUserDto || {});
   }
 }

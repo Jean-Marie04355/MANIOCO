@@ -40,6 +40,47 @@ export class S3StorageService implements IStorageService {
       },
       forcePathStyle: true,
     });
+
+    // Create bucket if it doesn't exist
+    this.ensureBucketExists();
+  }
+
+  private async ensureBucketExists() {
+    try {
+      const { CreateBucketCommand, HeadBucketCommand } = await import('@aws-sdk/client-s3');
+      try {
+        await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucketName }));
+      } catch (error) {
+        this.logger.log(`Bucket ${this.bucketName} not found, creating it...`);
+        await this.s3Client.send(new CreateBucketCommand({ Bucket: this.bucketName }));
+        this.logger.log(`Bucket ${this.bucketName} created successfully.`);
+      }
+
+      // Always ensure public read policy is applied
+      try {
+        const policy = {
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: '*',
+              Action: ['s3:GetObject'],
+              Resource: [`arn:aws:s3:::${this.bucketName}/*`],
+            },
+          ],
+        };
+        const { PutBucketPolicyCommand } = await import('@aws-sdk/client-s3');
+        await this.s3Client.send(new PutBucketPolicyCommand({
+          Bucket: this.bucketName,
+          Policy: JSON.stringify(policy),
+        }));
+        this.logger.log(`Public access policy ensured for bucket ${this.bucketName}.`);
+      } catch (error) {
+        this.logger.error(`Could not set bucket policy: ${(error as Error).message}`);
+      }
+    } catch (error) {
+      this.logger.error(`Could not ensure bucket existence: ${(error as Error).message}`);
+    }
   }
 
   async uploadFile(
