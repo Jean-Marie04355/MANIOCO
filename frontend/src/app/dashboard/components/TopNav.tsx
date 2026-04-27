@@ -3,7 +3,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Bell, ChevronDown, User, LogOut, Settings } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthContext';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/axios';
 
 interface TopNavProps {
@@ -14,6 +14,7 @@ interface TopNavProps {
 export default function TopNav({ title, isAdmin }: TopNavProps) {
   const { user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -103,11 +104,9 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
   };
 
   return (
-    <header className={`h-16 flex items-center justify-between px-8 sticky top-0 z-20 ${
-      isAdmin ? 'bg-white border-b border-slate-100' : 'bg-[#151921] border-b border-slate-800'
-    }`}>
+    <header className={`h-16 flex items-center justify-between px-8 sticky top-0 z-20 bg-white border-b border-slate-100`}>
       <div className="flex items-center gap-4">
-        <h1 className={`text-lg font-bold ${isAdmin ? 'text-slate-900' : 'text-white'}`}>{title}</h1>
+        <h1 className="text-lg font-bold text-slate-900">{title}</h1>
       </div>
 
       <div className="flex items-center gap-6">
@@ -118,13 +117,13 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               className={`p-2 rounded-xl transition-colors relative ${
                 isNotificationsOpen 
-                  ? (isAdmin ? 'bg-orange-50 text-orange-500' : 'bg-slate-800 text-white')
-                  : (isAdmin ? 'hover:bg-slate-100 text-slate-500' : 'hover:bg-slate-800 text-slate-400')
+                  ? (pathname.includes('/admin') ? 'bg-emerald-50 text-emerald-500' : 'bg-orange-50 text-orange-500')
+                  : 'hover:bg-slate-100 text-slate-500'
               }`}
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-rose-500 text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-white shadow-lg animate-bounce">
+                <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-white shadow-lg animate-bounce ${pathname.includes('/admin') ? 'bg-emerald-500' : 'bg-orange-500'}`}>
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -135,7 +134,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                 <div className="px-6 pb-4 border-b border-slate-50 flex justify-between items-center">
                   <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span className="text-[10px] font-black text-orange-500 bg-orange-50 px-2 py-0.5 rounded-full">{unreadCount} NOUVELLES</span>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${pathname.includes('/admin') ? 'text-emerald-500 bg-emerald-50' : 'text-orange-500 bg-orange-50'}`}>{unreadCount} NOUVELLES</span>
                   )}
                 </div>
                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
@@ -148,7 +147,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                       <div 
                         key={notif.id} 
                         onClick={() => markAsRead(notif.id)}
-                        className={`px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0 ${!notif.isRead ? 'bg-orange-50/10' : ''}`}
+                        className={`px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0 ${!notif.isRead ? (pathname.includes('/admin') ? 'bg-emerald-50/10' : 'bg-orange-50/10') : ''}`}
                       >
                         <div className="flex justify-between items-start mb-1">
                           <p className={`text-xs font-black ${!notif.isRead ? 'text-slate-900' : 'text-slate-400'}`}>{notif.title}</p>
@@ -163,7 +162,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                   <button 
                     onClick={markAllAsRead}
                     disabled={unreadCount === 0}
-                    className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] hover:text-orange-500 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className={`text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${pathname.includes('/admin') ? 'hover:text-emerald-500' : 'hover:text-orange-500'}`}
                   >
                     Tout marquer comme lu
                   </button>
@@ -202,21 +201,33 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                   <p className="text-xs text-slate-500 truncate">{user?.email}</p>
                 </div>
                 
-                <Link 
-                  href="/dashboard/seller/settings/account" 
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <User size={16} /> Mon Profil
-                </Link>
-                
-                <Link 
-                  href="/dashboard/seller/settings/store" 
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                  onClick={() => setIsDropdownOpen(false)}
-                >
-                  <Settings size={16} /> Ma Boutique
-                </Link>
+                {pathname.includes('/admin') || pathname.includes('/super-admin') ? (
+                  <Link 
+                    href={pathname.includes('/super-admin') ? "/dashboard/super-admin/profile" : "/dashboard/admin/profile"} 
+                    className={`flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors ${pathname.includes('/admin') && !pathname.includes('/super-admin') ? 'hover:text-emerald-600 hover:bg-emerald-50' : 'hover:text-indigo-600'}`}
+                    onClick={() => setIsDropdownOpen(false)}
+                  >
+                    <User size={16} /> Mon Profil
+                  </Link>
+                ) : (
+                  <>
+                    <Link 
+                      href="/dashboard/seller/settings/account" 
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <User size={16} /> Mon Profil
+                    </Link>
+                    
+                    <Link 
+                      href="/dashboard/seller/settings/store" 
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                      onClick={() => setIsDropdownOpen(false)}
+                    >
+                      <Settings size={16} /> Ma Boutique
+                    </Link>
+                  </>
+                )}
 
                 <div className="h-px bg-slate-100 my-1"></div>
 

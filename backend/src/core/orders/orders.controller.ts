@@ -38,6 +38,15 @@ export class OrdersController {
     return this.ordersService.findAll(user);
   }
 
+  @Get('stats/admin')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.ORDERS_MANAGE)
+  @ApiOperation({ summary: "Statistiques réelles pour le dashboard admin" })
+  getAdminStats() {
+    return this.ordersService.getAdminDashboardStats();
+  }
+
   @Get(':id')
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, PermissionsGuard)

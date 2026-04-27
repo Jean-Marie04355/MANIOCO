@@ -1,8 +1,52 @@
+"use client";
+import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TopNav from '../components/TopNav';
-import { Users, ShoppingBag, ShoppingCart, TrendingUp, MoreVertical, ExternalLink } from 'lucide-react';
+import { 
+  Users, ShoppingCart, TrendingUp, MoreVertical, 
+  ExternalLink, Loader2, ShieldCheck, MessageSquare 
+} from 'lucide-react';
+import api from '@/lib/axios';
+
+interface Stats {
+  totalRevenue: number;
+  totalSalesCount: number;
+  customersCount: number;
+  sellersCount: number;
+  pendingKycCount: number;
+  activeTicketsCount: number;
+  totalUsers: number;
+}
 
 export default function AdminDashboard() {
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await api.get('/orders/stats/admin');
+        setStats(res.data);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des stats admin", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex bg-slate-50 min-h-screen">
+        <Sidebar mode="admin" />
+        <main className="flex-1 ml-64 flex items-center justify-center">
+          <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="flex bg-slate-50 min-h-screen">
       <Sidebar mode="admin" />
@@ -11,55 +55,101 @@ export default function AdminDashboard() {
         <TopNav title="Tableau de bord" isAdmin={true} />
         
         <div className="p-8 space-y-8">
-          {/* Stats Cards */}
+          {/* Main Info Banner */}
+          <div className="bg-orange-500 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl shadow-orange-500/20">
+             <div className="relative z-10">
+                <h2 className="text-3xl font-black mb-2">Bonjour, Admin !</h2>
+                <p className="text-orange-100 font-medium">Voici l'état actuel de votre plateforme Afrigari aujourd'hui.</p>
+             </div>
+             <div className="absolute right-[-20px] top-[-20px] w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+          </div>
+
+          {/* Real Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard icon={Users} label="Utilisateurs" value="1,248" change="+12%" color="blue" />
-            <StatCard icon={ShoppingBag} label="Produits" value="532" change="+8%" color="green" />
-            <StatCard icon={ShoppingCart} label="Commandes" value="2,156" change="+15%" color="orange" />
-            <StatCard icon={TrendingUp} label="Revenus" value="12.450.000" suffix="FCFA" change="+20%" color="emerald" />
+            <StatCard 
+              icon={Users} 
+              label="Utilisateurs" 
+              value={stats?.totalUsers.toLocaleString() || "0"} 
+              change={`${stats?.customersCount} clients`} 
+              color="blue" 
+            />
+            <StatCard 
+              icon={ShieldCheck} 
+              label="Vendeurs" 
+              value={stats?.sellersCount.toLocaleString() || "0"} 
+              change={`${stats?.pendingKycCount} à vérifier`} 
+              color="orange" 
+              urgent={stats!.pendingKycCount > 0}
+            />
+            <StatCard 
+              icon={ShoppingCart} 
+              label="Ventes Totales" 
+              value={stats?.totalSalesCount.toLocaleString() || "0"} 
+              change="Total validés" 
+              color="green" 
+            />
+            <StatCard 
+              icon={TrendingUp} 
+              label="Revenu (Commissions)" 
+              value={stats?.totalRevenue.toLocaleString() || "0"} 
+              suffix="FCFA" 
+              change="Cumul plateforme" 
+              color="emerald" 
+            />
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Orders Chart Mockup */}
-            <div className="lg:col-span-2 bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-slate-900 text-lg">Commandes <span className="text-slate-400 font-medium text-sm ml-2">(30 derniers jours)</span></h3>
-                <button className="text-slate-400 hover:text-slate-900 transition-colors"><MoreVertical size={20} /></button>
+            {/* Revenue Overview */}
+            <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100">
+              <div className="flex justify-between items-center mb-8">
+                <div>
+                  <h3 className="font-black text-slate-900 text-xl tracking-tight">Performance Financière</h3>
+                  <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Revenus cumulés sur les ventes</p>
+                </div>
+                <div className="flex gap-2">
+                   <div className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100">Taux: 10%</div>
+                </div>
               </div>
-              <div className="h-64 flex items-end justify-between gap-2 px-2">
-                {[40, 60, 30, 80, 50, 90, 70, 60, 85, 45, 95, 60, 40].map((h, i) => (
-                  <div key={i} className="flex-1 bg-green-500/10 rounded-t-lg relative group transition-all hover:bg-green-500/30">
-                    <div style={{ height: `${h}%` }} className="absolute bottom-0 left-0 right-0 bg-green-500 rounded-t-lg transition-all"></div>
+              
+              <div className="h-64 flex items-end justify-between gap-3 px-2">
+                {[40, 60, 30, 80, 50, 90, 70, 60, 85, 45, 95, 60, 40, 70, 50].map((h, i) => (
+                  <div key={i} className="flex-1 bg-slate-50 rounded-t-xl relative group transition-all hover:bg-orange-50">
+                    <div style={{ height: `${h}%` }} className="absolute bottom-0 left-0 right-0 bg-orange-500/20 rounded-t-xl group-hover:bg-orange-500 transition-all duration-300"></div>
                   </div>
                 ))}
               </div>
             </div>
 
-            {/* Donut Chart Mockup */}
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-              <h3 className="font-bold text-slate-900 text-lg mb-6">Répartition des commandes</h3>
-              <div className="flex flex-col items-center">
-                <div className="relative w-48 h-48 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border-[15px] border-slate-50"></div>
-                  <div className="absolute inset-0 rounded-full border-[15px] border-green-500 border-t-orange-400 border-r-blue-400 transform -rotate-45"></div>
-                  <div className="text-center z-10">
-                    <p className="text-2xl font-black text-slate-900">2,156</p>
-                    <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Total</p>
-                  </div>
-                </div>
-                <div className="mt-8 w-full space-y-3">
-                  <LegendItem color="bg-blue-400" label="En attente" percentage="35%" />
-                  <LegendItem color="bg-green-500" label="Confirmées" percentage="45%" />
-                  <LegendItem color="bg-orange-400" label="Expédiées" percentage="15%" />
-                  <LegendItem color="bg-red-400" label="Annulées" percentage="5%" />
-                </div>
+            {/* Quick Actions / Alerts */}
+            <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex flex-col">
+              <h3 className="font-black text-slate-900 text-xl mb-8 tracking-tight">Actions Prioritaires</h3>
+              <div className="space-y-4 flex-1">
+                <ActionItem 
+                  icon={ShieldCheck} 
+                  label="Vérifications KYC" 
+                  count={stats?.pendingKycCount || 0} 
+                  color="bg-amber-500" 
+                  href="/dashboard/admin/users"
+                />
+                <ActionItem 
+                  icon={MessageSquare} 
+                  label="Tickets Support" 
+                  count={stats?.activeTicketsCount || 0} 
+                  color="bg-blue-500" 
+                  href="/dashboard/admin/support"
+                />
+                <ActionItem 
+                  icon={ShoppingCart} 
+                  label="Commandes en cours" 
+                  count={0} // To be implemented later if needed
+                  color="bg-emerald-500" 
+                  href="/dashboard/admin/orders"
+                />
               </div>
+              <button className="mt-8 w-full py-4 bg-slate-900 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] hover:bg-slate-800 transition-all">
+                Optimiser la plateforme
+              </button>
             </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-             <ListCard title="Activités récentes" items={activities} />
-             <ListCard title="Top produits" items={topProducts} />
           </div>
         </div>
       </main>
@@ -67,73 +157,43 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ icon: Icon, label, value, change, color, suffix = "" }: any) {
+function StatCard({ icon: Icon, label, value, change, color, suffix = "", urgent = false }: any) {
   const colors: any = {
     blue: 'text-blue-500 bg-blue-50',
-    green: 'text-emerald-500 bg-emerald-50',
     orange: 'text-orange-500 bg-orange-50',
-    emerald: 'text-green-500 bg-green-50',
+    green: 'text-emerald-500 bg-emerald-50',
+    emerald: 'text-emerald-600 bg-emerald-50',
   };
   return (
-    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-      <div className="flex items-center gap-4 mb-4">
-        <div className={`p-3 rounded-2xl ${colors[color]}`}><Icon size={22} /></div>
-        <p className="text-slate-400 text-sm font-bold uppercase tracking-widest">{label}</p>
+    <div className={`bg-white p-7 rounded-[2rem] shadow-sm border ${urgent ? 'border-orange-200 ring-2 ring-orange-500/5' : 'border-slate-100'} hover:shadow-md transition-all duration-300`}>
+      <div className="flex items-center gap-4 mb-5">
+        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${colors[color]}`}><Icon size={22} /></div>
+        <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-tight">{label}</p>
       </div>
-      <div className="flex items-baseline gap-2">
-        <h4 className="text-2xl font-black text-slate-900">{value} <span className="text-sm font-bold text-slate-400">{suffix}</span></h4>
-        <span className="text-xs font-bold text-green-500">{change} ce mois</span>
+      <div>
+        <h4 className="text-2xl font-black text-slate-900 flex items-baseline gap-1">
+          {value} <span className="text-[10px] font-bold text-slate-400 tracking-normal">{suffix}</span>
+        </h4>
+        <span className={`text-[10px] font-black uppercase tracking-wider ${urgent ? 'text-orange-500' : 'text-slate-400 opacity-60'}`}>{change}</span>
       </div>
     </div>
   );
 }
 
-function LegendItem({ color, label, percentage }: any) {
+function ActionItem({ icon: Icon, label, count, color, href }: any) {
   return (
-    <div className="flex items-center justify-between">
+    <a href={href} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer group">
+      <div className="flex items-center gap-4">
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${color} shadow-lg shadow-${color.split('-')[1]}-500/20`}>
+          <Icon size={18} />
+        </div>
+        <span className="text-sm font-bold text-slate-700">{label}</span>
+      </div>
       <div className="flex items-center gap-2">
-        <div className={`w-3 h-3 rounded-full ${color}`}></div>
-        <span className="text-slate-500 text-sm font-medium">{label}</span>
+        <span className={`px-2.5 py-1 rounded-full text-white text-[10px] font-black ${count > 0 ? color : 'bg-slate-300'}`}>
+          {count}
+        </span>
       </div>
-      <span className="text-slate-900 text-sm font-bold">{percentage}</span>
-    </div>
+    </a>
   );
 }
-
-function ListCard({ title, items }: any) {
-  return (
-    <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="font-bold text-slate-900 text-lg">{title}</h3>
-        <button className="text-green-500 text-xs font-bold hover:underline flex items-center gap-1">
-          Voir tout <ExternalLink size={12} />
-        </button>
-      </div>
-      <div className="space-y-6">
-        {items.map((item: any, i: number) => (
-          <div key={i} className="flex items-center gap-4">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white bg-slate-100`}>
-               {item.img ? <img src={item.img} className="w-full h-full rounded-full object-cover" /> : item.icon}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-slate-900 truncate">{item.title}</p>
-              <p className="text-xs text-slate-400">{item.desc}</p>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const activities = [
-  { title: "Nouvelle commande #CMD-1258", desc: "il y a 2 minutes", icon: "📦" },
-  { title: "Utilisateur John Doe inscrit", desc: "il y a 10 minutes", icon: "👤" },
-  { title: "Produit 'Riz local' ajouté", desc: "il y a 1 heure", icon: "🏷️" },
-];
-
-const topProducts = [
-  { title: "Riz local", desc: "1,245 ventes", img: "https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&q=80&w=100" },
-  { title: "Huile rouge", desc: "854 ventes", img: "https://images.unsplash.com/photo-1474979266404-7eaacbadb8c5?auto=format&fit=crop&q=80&w=100" },
-  { title: "Maïs", desc: "745 ventes", img: "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&q=80&w=100" },
-];

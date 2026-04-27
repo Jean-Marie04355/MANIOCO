@@ -88,14 +88,11 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
           { icon: LayoutDashboard, label: 'Tableau de bord', href: '/dashboard/admin' },
           { icon: Clock, label: 'Tâches en attente', href: '/dashboard/admin/tasks' },
           { icon: Users, label: 'Utilisateurs', href: '/dashboard/admin/users' },
-          { icon: ShoppingBag, label: 'Produits', href: '/dashboard/admin/products' },
           { icon: ShoppingCart, label: 'Commandes', href: '/dashboard/admin/orders' },
-          { icon: FolderTree, label: 'Catégories', href: '/dashboard/admin/categories' },
           { icon: Megaphone, label: 'Annonces', href: '/dashboard/admin/ads' },
           { icon: Bell, label: 'Notifications', href: '/dashboard/admin/notifications', badge: notificationCount > 0 ? notificationCount.toString() : undefined },
-          { icon: Flag, label: 'Signalements', href: '/dashboard/admin/reports' },
-          { icon: ImageIcon, label: 'Médias', href: '/dashboard/admin/media' },
-          { icon: Settings, label: 'Paramètres', href: '/dashboard/admin/settings' },
+          { icon: HelpCircle, label: 'Support Vendeurs', href: '/dashboard/admin/support' },
+          { icon: Flag, label: 'Signalements', href: '/dashboard/admin/reports' }
         ];
       case 'super-admin':
         return [
@@ -159,6 +156,21 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
               <p className="text-xs font-black text-slate-800 italic uppercase">Maître Administrateur</p>
             </div>
             <ChevronRight size={18} className="text-slate-300 group-hover:translate-x-1 transition-all" />
+          </Link>
+        </div>
+      )}
+
+      {mode === 'admin' && (
+        <div className="px-4 mb-6">
+          <Link href="/dashboard/admin/profile" className="flex items-center gap-4 bg-white/5 p-4 rounded-[30px] border border-white/10 hover:bg-white/10 transition-all group">
+            <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+              AD
+            </div>
+            <div className="flex-1">
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-emerald-400 transition-colors">Admin_Local</p>
+              <p className="text-xs font-black text-white uppercase">{user?.name || 'Administrateur'}</p>
+            </div>
+            <ChevronRight size={18} className="text-slate-500 group-hover:text-white transition-all" />
           </Link>
         </div>
       )}

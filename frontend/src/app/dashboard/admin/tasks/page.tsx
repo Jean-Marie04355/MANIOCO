@@ -1,72 +1,103 @@
 "use client";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { 
     Clock, 
     ShieldAlert, 
     MessageSquare, 
-    CheckCircle2, 
     ChevronRight, 
-    AlertCircle, 
     Search,
     Filter,
     UserCheck,
-    BellRing
+    Loader2,
+    CheckCircle2
 } from 'lucide-react';
 import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
+import api from '@/lib/axios';
 
 export default function AdminTasksPage() {
-    const tasks = [
-        {
-            id: 1,
-            type: "KYC",
-            title: "Vérification d'identité - Jean Dupont",
-            description: "Le vendeur Jean Dupont a soumis son dossier complet (CNI + Selfie).",
-            status: "Urgent",
-            time: "Il y a 15 min",
-            color: "amber"
-        },
-        {
-            id: 2,
-            type: "SECURITY",
-            title: "Tentative d'accès suspecte",
-            description: "Connexion détectée depuis une IP inhabituelle sur le compte Admin #04.",
-            status: "Critique",
-            time: "Il y a 1h",
-            color: "rose"
-        },
-        {
-            id: 3,
-            type: "SUPPORT",
-            title: "Demande d'assistance - Boutique 'Samba Style'",
-            description: "Le vendeur ne parvient pas à configurer ses frais de livraison.",
-            status: "Normal",
-            time: "Il y a 3h",
-            color: "blue"
-        },
-        {
-            id: 4,
-            type: "KYC",
-            title: "Correction reçue - Marie Kouadio",
-            description: "Documents corrigés suite au rejet du selfie (flou). À ré-examiner.",
-            status: "Urgent",
-            time: "Il y a 5h",
-            color: "amber"
-        },
-        {
-            id: 5,
-            type: "SUPPORT",
-            title: "Question facturation - Client Alpha",
-            description: "Demande d'information sur le remboursement de la commande #AF-902.",
-            status: "Normal",
-            time: "Hier",
-            color: "blue"
-        }
-    ];
+    const router = useRouter();
+    const [tasks, setTasks] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTasks = async () => {
+            try {
+                const [usersRes, ticketsRes] = await Promise.all([
+                    api.get('/users'),
+                    api.get('/support/tickets/all')
+                ]);
+
+                const newTasks: any[] = [];
+
+                // KYC Tasks
+                const pendingKyc = usersRes.data.filter((u: any) => u.kycStatus === 'PENDING');
+                pendingKyc.forEach((user: any) => {
+                    newTasks.push({
+                        id: `kyc-${user.id}`,
+                        type: "KYC",
+                        title: `Vérification d'identité - ${user.name || user.email}`,
+                        description: `Le marchand a soumis son dossier KYC (Pièces d'identité, informations). Action requise pour l'approbation.`,
+                        status: "Urgent",
+                        time: new Date(user.createdAt).toLocaleDateString('fr-FR'),
+                        color: "amber",
+                        link: `/dashboard/admin/users`
+                    });
+                });
+
+                // Support Tickets Tasks
+                const openTickets = ticketsRes.data.filter((t: any) => t.status === 'OPEN' || t.status === 'IN_PROGRESS');
+                openTickets.forEach((ticket: any) => {
+                    newTasks.push({
+                        id: `ticket-${ticket.id}`,
+                        type: "SUPPORT",
+                        title: `Demande d'assistance - ${ticket.seller?.name || 'Vendeur'}`,
+                        description: `Sujet : ${ticket.subject} (${ticket.category}). Un retour est attendu du support.`,
+                        status: ticket.status === 'OPEN' ? "Urgent" : "Normal",
+                        time: new Date(ticket.createdAt).toLocaleDateString('fr-FR'),
+                        color: "blue",
+                        link: `/dashboard/admin/support/${ticket.id}`
+                    });
+                });
+
+                // Sort tasks: Urgent first, then by date
+                newTasks.sort((a, b) => {
+                    if (a.status === 'Urgent' && b.status !== 'Urgent') return -1;
+                    if (a.status !== 'Urgent' && b.status === 'Urgent') return 1;
+                    return 0; // Kept simple for now
+                });
+
+                setTasks(newTasks);
+            } catch (error) {
+                console.error("Erreur chargement des tâches admin", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchTasks();
+    }, []);
+
+    const kycCount = tasks.filter(t => t.type === 'KYC').length;
+    const supportCount = tasks.filter(t => t.type === 'SUPPORT').length;
+    const securityCount = tasks.filter(t => t.type === 'SECURITY').length;
+
+    if (isLoading) {
+        return (
+            <div className="flex bg-[#F8FAFC] min-h-screen">
+                <Sidebar mode="admin" />
+                <main className="flex-1 ml-64 flex items-center justify-center">
+                    <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-[#F8FAFC]">
             <Sidebar mode="admin" />
-            <div className="lg:pl-72 flex flex-col min-h-screen">
+            <div className="lg:pl-64 flex flex-col min-h-screen">
                 <TopNav title="Centre de Tâches" isAdmin={true} />
                 
                 <main className="p-8 space-y-10">
@@ -75,7 +106,7 @@ export default function AdminTasksPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
                             <h1 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900 leading-none">
-                                Tâches en <span className="text-orange-500">attente</span>
+                                Tâches en <span className="text-emerald-500">attente</span>
                             </h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">
                                 Gérer les flux de travail et les urgences administratives
@@ -95,9 +126,9 @@ export default function AdminTasksPage() {
 
                     {/* Quick Stats Grid */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <TaskStatCard icon={<UserCheck className="text-amber-500" />} label="Dossiers KYC" count={12} color="amber" />
-                        <TaskStatCard icon={<ShieldAlert className="text-rose-500" />} label="Alertes Sécurité" count={3} color="rose" />
-                        <TaskStatCard icon={<MessageSquare className="text-blue-500" />} label="Tickets Support" count={8} color="blue" />
+                        <TaskStatCard icon={<UserCheck className="text-amber-500" />} label="Dossiers KYC" count={kycCount} color="amber" />
+                        <TaskStatCard icon={<ShieldAlert className="text-rose-500" />} label="Alertes Sécurité" count={securityCount} color="rose" />
+                        <TaskStatCard icon={<MessageSquare className="text-blue-500" />} label="Tickets Support" count={supportCount} color="blue" />
                     </div>
 
                     {/* Task List */}
@@ -107,8 +138,18 @@ export default function AdminTasksPage() {
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Status / Temps</span>
                         </div>
                         
-                        {tasks.map((task) => (
-                            <div key={task.id} className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/50 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        {tasks.length === 0 ? (
+                            <div className="text-center py-16 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
+                                <CheckCircle2 size={48} className="mx-auto text-emerald-500 opacity-50 mb-4" />
+                                <h3 className="font-bold text-slate-800 text-lg">Aucune tâche en attente !</h3>
+                                <p className="text-slate-400 text-sm mt-1">Excellent travail, la plateforme est à jour.</p>
+                            </div>
+                        ) : tasks.map((task) => (
+                            <div 
+                                onClick={() => router.push(task.link)}
+                                key={task.id} 
+                                className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6"
+                            >
                                 <div className="flex items-start gap-6">
                                     <div className={`w-14 h-14 rounded-3xl flex items-center justify-center border-2 transition-all group-hover:scale-110 ${
                                         task.color === 'amber' ? 'bg-amber-50 border-amber-100 text-amber-500' :
@@ -120,7 +161,7 @@ export default function AdminTasksPage() {
                                         {task.type === 'SUPPORT' && <MessageSquare size={24} />}
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-orange-500 transition-colors uppercase italic">{task.title}</h3>
+                                        <h3 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-emerald-500 transition-colors uppercase italic">{task.title}</h3>
                                         <p className="text-sm text-slate-400 font-medium leading-relaxed mt-1 max-w-xl">{task.description}</p>
                                     </div>
                                 </div>
@@ -136,19 +177,12 @@ export default function AdminTasksPage() {
                                         </span>
                                         <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-2">{task.time}</p>
                                     </div>
-                                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-slate-900 group-hover:text-white transition-all shadow-inner">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
                                         <ChevronRight size={20} />
                                     </div>
                                 </div>
                             </div>
                         ))}
-                    </div>
-
-                    {/* Footer / Load More */}
-                    <div className="pt-6 flex justify-center">
-                        <button className="flex items-center gap-3 px-8 py-4 bg-white border border-slate-200 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 hover:text-slate-900 hover:border-slate-900 transition-all active:scale-95">
-                            <Clock size={14} /> Charger plus de tâches
-                        </button>
                     </div>
 
                 </main>
@@ -176,3 +210,5 @@ function TaskStatCard({ icon, label, count, color }: any) {
         </div>
     );
 }
+
+

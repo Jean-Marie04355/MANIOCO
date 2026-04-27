@@ -19,6 +19,7 @@ import { UserRole } from '../../common/enum/role.enum';
 import { StoreService } from '../store/store.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/notification.entity';
+import { SupportService } from '../support/support.service';
 
 @Injectable()
 export class OrdersService {
@@ -35,6 +36,7 @@ export class OrdersService {
     private readonly paymentsService: PaymentsService,
     private readonly storeService: StoreService,
     private readonly notificationsService: NotificationsService,
+    private readonly supportService: SupportService,
   ) {}
 
   async create(
@@ -110,20 +112,23 @@ export class OrdersService {
       });
     }
 
-    // 3. Create the order in the database
+    // 3. Calculate platform commission (default 10%)
+    const DEFAULT_COMMISSION_RATE = 10.0;
+    const commissionAmount = (validatedTotalAmount * DEFAULT_COMMISSION_RATE) / 100;
+
+    // 4. Create the order in the database
     const orderData = {
       ...createOrderDto,
       totalAmount: validatedTotalAmount,
+      commissionRate: DEFAULT_COMMISSION_RATE,
+      commissionAmount: commissionAmount,
       items: validatedItems,
     };
 
     const order = await this.orderRepository.create(orderData);
 
-<<<<<<< HEAD
-    // 3b. Notify the seller and admins
-=======
-    // 4. Notify the seller
->>>>>>> origin/feature/seller-products
+    // Notify the seller and admins
+
     try {
       // Notify Seller
       await this.notificationsService.create({
@@ -134,7 +139,7 @@ export class OrdersService {
         metadata: JSON.stringify({ orderId: order.id }),
       });
 
-      // Notify Admins (Logic moved to a private method to keep it clean)
+      // Notify Admins
       this.notifyAdminsOfNewOrder(order, validatedTotalAmount);
     } catch (error) {
       console.error('Notification error:', error);
@@ -326,5 +331,31 @@ export class OrdersService {
   async updateStatusInternal(id: string, status: OrderStatus): Promise<Order | null> {
     await this.orderRepository.update(id, { status });
     return this.orderRepository.findOne({ id } as object);
+  }
+
+  async getAdminDashboardStats() {
+    const orders = await this.orderRepository.find();
+    const users = await this.userRepository.find();
+    
+    const paidStatuses = [OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
+    
+    const totalSalesCount = orders.filter(o => paidStatuses.includes(o.status)).length;
+    const totalRevenue = orders
+      .filter(o => paidStatuses.includes(o.status))
+      .reduce((sum, o) => sum + Number(o.commissionAmount || 0), 0);
+
+    const sellersCount = users.filter(u => u.role === UserRole.VENDEUR).length;
+    const pendingKycCount = users.filter(u => u.kycStatus === 'PENDING').length;
+    const activeTicketsCount = await this.supportService.countActiveTickets();
+
+    return {
+      totalRevenue,
+      totalSalesCount,
+      customersCount: users.filter(u => u.role === UserRole.CLIENT).length,
+      sellersCount,
+      pendingKycCount,
+      activeTicketsCount,
+      totalUsers: users.length
+    };
   }
 }

@@ -71,7 +71,10 @@ export default function SellerDashboard() {
 
           // Calculer les stats
           const successfulOrders = orders.filter((o: any) => ['PAID', 'SHIPPED', 'DELIVERED'].includes(o.status));
-          const totalRevenue = successfulOrders.reduce((acc: number, o: any) => acc + Number(o.totalAmount), 0);
+          const totalRevenue = successfulOrders.reduce((acc: number, o: any) => {
+             const commission = Number(o.commissionAmount) || (Number(o.totalAmount) * 0.10);
+             return acc + (Number(o.totalAmount) - commission);
+          }, 0);
           const uniqueClients = new Set(orders.map((o: any) => o.customerId)).size;
 
           setStats({
@@ -102,7 +105,8 @@ export default function SellerDashboard() {
             const orderDate = new Date(order.createdAt);
             const monthEntry = last6Months.find(m => m.month === orderDate.getMonth() && m.year === orderDate.getFullYear());
             if (monthEntry) {
-              monthEntry.revenue += Number(order.totalAmount);
+              const commission = Number(order.commissionAmount) || (Number(order.totalAmount) * 0.10);
+              monthEntry.revenue += (Number(order.totalAmount) - commission);
             }
           });
 
@@ -234,7 +238,10 @@ export default function SellerDashboard() {
                             <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${
                               order.status === 'DELIVERED' ? 'bg-green-50 text-green-600' : 'bg-orange-50 text-orange-600'
                             }`}>{order.status}</span>
-                            <span className="text-sm font-black text-slate-900">{Number(order.totalAmount).toLocaleString()} FCFA</span>
+                            <div className="text-right">
+                               <span className="text-sm font-black text-slate-900">{(Number(order.totalAmount) - (Number(order.commissionAmount) || (Number(order.totalAmount) * 0.10))).toLocaleString()} FCFA</span>
+                               <p className="text-[9px] font-bold text-slate-400 mt-0.5 uppercase tracking-widest">Net reçu</p>
+                             </div>
                          </div>
                       </div>
                    ))}

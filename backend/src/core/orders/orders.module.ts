@@ -14,7 +14,9 @@ import { StoreModule } from '../store/store.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { ProductsModule } from '../products/products.module';
 import { RolesModule } from '../roles/roles.module';
+import { SupportModule } from '../support/support.module';
 import { User } from '../users/user.entity';
+
 
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
@@ -34,7 +36,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
     NotificationsModule,
     ProductsModule,
     RolesModule,
+    SupportModule,
   ],
+
   controllers: [OrdersController],
   providers: [
     OrdersService,
