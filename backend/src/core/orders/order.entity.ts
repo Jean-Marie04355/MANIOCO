@@ -46,6 +46,8 @@ export class Order {
     productName: string;
     quantity: number;
     price: number;
+    unit: string;
+    productImage?: string;
   }[];
 
   @CreateDateColumn()

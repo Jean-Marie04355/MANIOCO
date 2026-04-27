@@ -38,7 +38,7 @@ export class StoreService {
           _id: new Types.ObjectId(ownerId),
         });
       } else {
-        owner = await this.userRepository.findOne({ id: ownerId });
+        owner = await this.userRepository.findOne({ id: ownerId } as object);
       }
     } catch (_error) {
       if (_error instanceof Error) {
@@ -79,7 +79,7 @@ export class StoreService {
   async findAll(city?: string) {
     let stores;
     if (city) {
-      stores = await this.storeRepository.find({ city });
+      stores = await this.storeRepository.find({ where: { city } } as object);
     } else {
       stores = await this.storeRepository.find();
     }
@@ -136,7 +136,7 @@ export class StoreService {
   }
 
   async findOne(id: string) {
-    const store = await this.storeRepository.findOne({ id });
+    const store = await this.storeRepository.findOne({ id } as object);
     if (!store) throw new NotFoundException(`Store with ID ${id} not found`);
     return store;
   }
@@ -152,7 +152,7 @@ export class StoreService {
   }
 
   async findByOwnerId(ownerId: string) {
-    const store = await this.storeRepository.findOne({ ownerId });
+    const store = await this.storeRepository.findOne({ ownerId } as object);
     if (!store)
       throw new NotFoundException(
         `Store for user with ID ${ownerId} not found.`,

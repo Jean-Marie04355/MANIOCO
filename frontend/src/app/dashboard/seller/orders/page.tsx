@@ -20,6 +20,7 @@ export default function SellerOrders() {
   const { user } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDate, setSelectedDate] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [hasStore, setHasStore] = useState(false);
   const [storeId, setStoreId] = useState<string | null>(null);
@@ -42,11 +43,13 @@ export default function SellerOrders() {
           const mappedOrders: Order[] = response.data.map((order: any) => ({
             id: order.id.split('-')[0].toUpperCase(), // Format court pour l'ID
             realId: order.id, // Pour les appels API
-            client: order.customer ? `${order.customer.firstName} ${order.customer.lastName}` : "Client Inconnu",
+            realDate: order.createdAt, // On garde la date brute pour le filtrage
+            client: order.customer ? order.customer.name : "Client Inconnu",
             date: new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
             amount: `${Number(order.totalAmount).toLocaleString()} FCFA`,
             status: mapStatus(order.status),
-            items: order.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0
+            itemCount: order.items?.reduce((acc: number, item: any) => acc + item.quantity, 0) || 0,
+            items: order.items || [] // On garde les détails des produits
           }));
           
           setOrders(mappedOrders);
@@ -164,18 +167,41 @@ export default function SellerOrders() {
                 </div>
                 
                 <div className="flex items-center gap-3 w-full md:w-auto">
-                  <button className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 hover:bg-slate-50 transition-all">
-                    <Filter size={18} />
-                    Filtrer par date
-                  </button>
+                  <div className="relative group">
+                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                      <Filter size={18} />
+                    </div>
+                    <input 
+                      type="date" 
+                      className="pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all appearance-none cursor-pointer"
+                      value={selectedDate}
+                      onChange={(e) => setSelectedDate(e.target.value)}
+                    />
+                    {selectedDate && (
+                      <button 
+                        onClick={() => setSelectedDate("")}
+                        className="absolute -top-2 -right-2 w-5 h-5 bg-slate-900 text-white rounded-full flex items-center justify-center text-[10px] hover:bg-red-500 transition-colors shadow-lg"
+                        title="Réinitialiser le filtre"
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
               <OrderTable 
-                orders={orders.filter(o => 
-                  o.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                  o.client.toLowerCase().includes(searchTerm.toLowerCase())
-                )} 
+                orders={orders.filter(o => {
+                  const matchesSearch = o.id.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                                      o.client.toLowerCase().includes(searchTerm.toLowerCase());
+                  
+                  if (!selectedDate) return matchesSearch;
+                  
+                  const orderDate = new Date(o.realDate).toISOString().split('T')[0];
+                  const matchesDate = orderDate === selectedDate;
+                  
+                  return matchesSearch && matchesDate;
+                })} 
                 onStatusChange={handleStatusChange}
               />
 

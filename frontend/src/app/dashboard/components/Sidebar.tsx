@@ -5,7 +5,7 @@ import {
   Megaphone, Bell, Flag, Clock, Image as ImageIcon, Settings,
   ShieldCheck, Database, Terminal, Activity, Server, Shield, Leaf,
   Heart, MessageSquare, Star, MapPin, CreditCard, HelpCircle, LogOut,
-  Gift, BarChart3, Store, UserCheck, ChevronRight, ShoppingBag
+  Gift, BarChart3, Store, UserCheck, ChevronRight, ShoppingBag, FolderTree
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -21,8 +21,8 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
   const router = useRouter();
   const { user, logout } = useAuth();
   
-  const [orderCount, setOrderCount] = useState(0);
-  const [chatCount, setChatCount] = useState(0);
+  const [orderCount, setOrderCount] = useState<number | null>(0);
+  const [chatCount, setChatCount] = useState<number | null>(0);
   const [notificationCount, setNotificationCount] = useState(0);
 
   useEffect(() => {
@@ -40,11 +40,21 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
             const myStore = storesRes.data.find((s: any) => s.ownerId === currentUserId);
 
             if (myStore) {
+              // Commandes
               const ordersRes = await api.get(`/orders/store/${myStore.id}`);
-              setOrderCount(ordersRes.data.length);
+              const totalOrders = ordersRes.data.length;
+              const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${myStore.id}`) || '0');
+              
+              if (pathname === '/dashboard/seller/orders') {
+                localStorage.setItem(`lastSeenOrders_${myStore.id}`, totalOrders.toString());
+                setOrderCount(null);
+              } else {
+                setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
+              }
 
-              const chatRes = await api.get('/chat/conversations');
-              setChatCount(chatRes.data.length);
+              // Chat / Messages
+              const chatRes = await api.get('/chat/unread-count');
+              setChatCount(chatRes.data > 0 ? chatRes.data : null);
             }
           }
         } catch (error) {
@@ -56,7 +66,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
       const interval = setInterval(fetchCounts, 60000);
       return () => clearInterval(interval);
     }
-  }, [mode, user]);
+  }, [mode, user, pathname]);
 
   const isActive = (href: string) => {
     if (href === '#') return false;
@@ -78,10 +88,14 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
           { icon: LayoutDashboard, label: 'Tableau de bord', href: '/dashboard/admin' },
           { icon: Clock, label: 'Tâches en attente', href: '/dashboard/admin/tasks' },
           { icon: Users, label: 'Utilisateurs', href: '/dashboard/admin/users' },
+          { icon: ShoppingBag, label: 'Produits', href: '/dashboard/admin/products' },
           { icon: ShoppingCart, label: 'Commandes', href: '/dashboard/admin/orders' },
+          { icon: FolderTree, label: 'Catégories', href: '/dashboard/admin/categories' },
           { icon: Megaphone, label: 'Annonces', href: '/dashboard/admin/ads' },
           { icon: Bell, label: 'Notifications', href: '/dashboard/admin/notifications', badge: notificationCount > 0 ? notificationCount.toString() : undefined },
           { icon: Flag, label: 'Signalements', href: '/dashboard/admin/reports' },
+          { icon: ImageIcon, label: 'Médias', href: '/dashboard/admin/media' },
+          { icon: Settings, label: 'Paramètres', href: '/dashboard/admin/settings' },
         ];
       case 'super-admin':
         return [
@@ -104,13 +118,15 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
       case 'seller':
         return [
           { icon: LayoutDashboard, label: 'Tableau de bord', href: '/dashboard/seller' },
-          { icon: Store, label: 'Ma Boutique', href: '/dashboard/seller/store' },
-          { icon: ShoppingBag, label: 'Produits', href: '/dashboard/seller/products' },
-          { icon: Clock, label: 'Commandes', href: '/dashboard/seller/orders', badge: orderCount > 0 ? orderCount.toString() : undefined },
-          { icon: MessageSquare, label: 'Chat', href: '/dashboard/seller/chat', badge: chatCount > 0 ? chatCount.toString() : undefined },
-          { icon: BarChart3, label: 'Statistiques', href: '/dashboard/seller/analytics' },
+          { icon: ShoppingBag, label: 'Mes produits', href: '/dashboard/seller/products' },
+          { icon: FolderTree, label: 'Mes catégories', href: '/dashboard/seller/categories' },
+          { icon: ShoppingCart, label: 'Commandes', href: '/dashboard/seller/orders', badge: orderCount && orderCount > 0 ? orderCount.toString() : null },
+          { icon: MessageSquare, label: 'Messages', href: '/dashboard/seller/messages', badge: (chatCount && chatCount > 0 && pathname !== '/dashboard/seller/messages') ? chatCount.toString() : null },
+          { icon: CreditCard, label: 'Revenus', href: '/dashboard/seller/revenues' },
           { icon: Gift, label: 'Promotions', href: '/dashboard/seller/promotions' },
-          { icon: UserCheck, label: 'Profil Vendeur', href: '/dashboard/seller/profile' },
+          { icon: HelpCircle, label: 'Aide & Support', href: '/dashboard/seller/support' },
+          { icon: Store, label: 'Paramètres boutique', href: '/dashboard/seller/settings/store' },
+          { icon: UserCheck, label: 'Profil Personnel', href: '/dashboard/seller/profile' },
         ];
       default:
         return [];

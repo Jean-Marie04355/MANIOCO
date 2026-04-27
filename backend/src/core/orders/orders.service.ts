@@ -43,29 +43,33 @@ export class OrdersService {
     // 1. Check if the store exists and has a payout account
     const store = await this.storeRepository.findOne({
       id: createOrderDto.storeId,
-    });
+    } as object);
+    
     if (!store) {
       throw new NotFoundException(`Store not found`);
     }
 
     if (!store.payoutAccountId) {
       throw new BadRequestException(
-        `This store is not yet configured to receive payments.`,
+        `This store is not yet configured to receive payments. The seller must provide a FedaPay subaccount ID.`,
       );
     }
 
     // 2. Validate products and recalculate the actual total amount
     let validatedTotalAmount = 0;
-    const validatedItems: {
-      productId: string;
-      productName: string;
-      quantity: number;
-      price: number;
-    }[] = [];
+    const validatedItems: any[] = [];
+    
+    const UNIT_FACTORS: Record<string, number> = {
+      'Sac': 50,
+      'Demi-sac': 25,
+      'Kg': 1,
+      'Demi-kg': 0.5
+    };
+
     for (const item of createOrderDto.items) {
       const product = await this.productRepository.findOne({
         id: item.productId,
-      });
+      } as object);
 
       if (!product) {
         throw new BadRequestException(
@@ -74,42 +78,52 @@ export class OrdersService {
       }
 
       // Check if the product belongs to the store
-      if (
-        String(product.storeId) !== String(createOrderDto.storeId)
-      ) {
+      if (String(product.storeId) !== String(createOrderDto.storeId)) {
         throw new BadRequestException(
           `The product ${product.name} does not belong to this store.`,
         );
       }
 
-      // Check stock
-      if (product.stock < item.quantity) {
+      // Check stock based on unit conversion
+      const factor = UNIT_FACTORS[item.unit] || 1;
+      const totalWeightNeeded = item.quantity * factor;
+
+      if (product.stock < totalWeightNeeded) {
         throw new BadRequestException(
-          `Insufficient stock for product ${product.name} (Available: ${product.stock})`,
+          `Stock insuffisant pour le produit ${product.name} (Disponible: ${product.stock} kg, Demandé: ${totalWeightNeeded} kg)`,
         );
       }
 
-      const unitPrice = Number(product.price);
-      validatedTotalAmount += unitPrice * item.quantity;
+      // Calculate price based on the weight requested
+      const basePricePerKg = Number(product.price);
+      const priceForRequestedUnit = basePricePerKg * factor;
+      const itemTotalCost = priceForRequestedUnit * item.quantity;
+      
+      validatedTotalAmount += itemTotalCost;
 
       validatedItems.push({
         ...item,
-        productName: product.name, // Secure the name
-        price: unitPrice, // Secure the price
+        productName: product.name,
+        productImage: product.image,
+        price: priceForRequestedUnit, // Save the calculated price for the specific unit (e.g., 30000 for 1 Sac)
+        unit: item.unit,
       });
     }
 
-    // Overwrite the amount sent by the client with the calculated amount
+    // 3. Create the order in the database
     const orderData = {
       ...createOrderDto,
       totalAmount: validatedTotalAmount,
       items: validatedItems,
     };
 
-    // 3. Create the order in the database
     const order = await this.orderRepository.create(orderData);
 
+<<<<<<< HEAD
     // 3b. Notify the seller and admins
+=======
+    // 4. Notify the seller
+>>>>>>> origin/feature/seller-products
     try {
       // Notify Seller
       await this.notificationsService.create({
@@ -123,21 +137,22 @@ export class OrdersService {
       // Notify Admins (Logic moved to a private method to keep it clean)
       this.notifyAdminsOfNewOrder(order, validatedTotalAmount);
     } catch (error) {
-      console.error('Erreur lors de la création de la notification de commande', error);
+      console.error('Notification error:', error);
     }
 
-    // 4. Update stocks (Decrement)
+    // 5. Update stocks
     for (const item of validatedItems) {
-      const product = await this.productRepository.findOne({
-        id: item.productId,
-      });
+      const factor = UNIT_FACTORS[item.unit] || 1;
+      const totalWeightToDeduct = item.quantity * factor;
+      
+      const product = await this.productRepository.findOne({ id: item.productId } as object);
       await this.productRepository.update(product.id, {
-        stock: product.stock - item.quantity,
+        stock: product.stock - totalWeightToDeduct,
       });
     }
 
     try {
-      // 5. Initiate payment transaction
+      // 6. Initiate payment
       const paymentTx = await this.paymentsService.createTransaction(
         order,
         store.payoutAccountId,
@@ -185,13 +200,13 @@ export class OrdersService {
    * Restores product stock for a given order
    */
   async restoreStock(orderId: string): Promise<void> {
-    const order = await this.orderRepository.findOne({ id: orderId });
+    const order = await this.orderRepository.findOne({ id: orderId } as object);
     if (!order?.items) return;
 
     for (const item of order.items) {
       const product = await this.productRepository.findOne({
-        id: item.productId,
-      });
+        where: { id: item.productId },
+      } as object);
       if (product) {
         await this.productRepository.update(product.id, {
           stock: product.stock + item.quantity,
@@ -204,13 +219,13 @@ export class OrdersService {
    * Cancels an order and restores its stock
    */
   async cancelOrder(id: string): Promise<Order | null> {
-    const order = await this.orderRepository.findOne({ id });
+    const order = await this.orderRepository.findOne({ id } as object);
     if (!order || order.status === OrderStatus.CANCELLED) return order;
 
     await this.orderRepository.update(id, { status: OrderStatus.CANCELLED });
     await this.restoreStock(id);
     
-    return this.orderRepository.findOne({ id });
+    return this.orderRepository.findOne({ id } as object);
   }
 
   async findAll(user: AuthenticatedUser): Promise<Order[]> {
@@ -229,11 +244,11 @@ export class OrdersService {
       } as object);
     }
 
-    return this.orderRepository.find({ customerId: user.userId });
+    return this.orderRepository.find({ where: { customerId: user.userId }, relations: ['store'] } as object);
   }
 
   async findOne(id: string, user: AuthenticatedUser): Promise<Order | null> {
-    const order = await this.orderRepository.findOne({ id });
+    const order = await this.orderRepository.findOne({ id, relations: ['customer', 'store'] } as object);
     if (!order) {
       throw new NotFoundException(`Commande avec l'ID ${id} non trouvée`);
     }
@@ -271,7 +286,7 @@ export class OrdersService {
 
   async findByStore(storeId: string, user: AuthenticatedUser): Promise<Order[]> {
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
-      return this.orderRepository.find({ storeId });
+      return this.orderRepository.find({ where: { storeId } } as object);
     }
 
     if (user.role === UserRole.VENDEUR) {
@@ -301,7 +316,7 @@ export class OrdersService {
   }
 
   async findOneById(id: string): Promise<Order | null> {
-    return this.orderRepository.findOne({ id });
+    return this.orderRepository.findOne({ id } as object);
   }
 
   /**
@@ -310,6 +325,6 @@ export class OrdersService {
    */
   async updateStatusInternal(id: string, status: OrderStatus): Promise<Order | null> {
     await this.orderRepository.update(id, { status });
-    return this.orderRepository.findOne({ id });
+    return this.orderRepository.findOne({ id } as object);
   }
 }

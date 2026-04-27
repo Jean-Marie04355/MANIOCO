@@ -73,7 +73,7 @@ export default function ProductTable({ products, onDelete, onEdit }: ProductTabl
                   <td className="px-8 py-5 text-center">
                     <div className="flex flex-col items-center gap-1">
                       <span className={`text-sm font-black ${product.stock === 0 ? "text-red-500" : "text-slate-700"}`}>
-                        {product.stock} <span className="text-[10px] font-bold text-slate-400">{product.unit || 'Pièce'}</span>
+                        {product.stock} <span className="text-[10px] font-bold text-slate-400">{product.unit || 'Sac'}</span>
                       </span>
                       <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
                          <div 

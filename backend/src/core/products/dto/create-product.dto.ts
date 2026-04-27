@@ -23,7 +23,7 @@ export class CreateProductDto {
   stock?: number;
 
   @ApiPropertyOptional({ example: 'Kg', description: 'Unité de mesure du stock' })
-  @IsIn(['Pièce', 'Kg', 'Demi'])
+  @IsIn(['Sac', 'Demi-sac', 'Kg', 'Demi-kg'])
   @IsOptional()
   unit?: string;
 

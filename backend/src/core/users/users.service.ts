@@ -38,7 +38,7 @@ export class UsersService {
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ email });
+    return this.userRepository.findOne({ email } as object);
   }
 
   async findAll(): Promise<any[]> {
@@ -74,7 +74,7 @@ export class UsersService {
     await this.userRepository.restore(id);
     
     // 2. On récupère le compte (en incluant les supprimés au cas où) pour forcer le nettoyage
-    const user = await this.userRepository.findOne({ id, withDeleted: true });
+    const user = await this.userRepository.findOne({ id, withDeleted: true } as any);
     if (user) {
       user.suspensionUntil = null;
       user.suspensionReason = null;
@@ -152,7 +152,7 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.userRepository.findOne({ id, withDeleted: true });
+    const user = await this.userRepository.findOne({ id, withDeleted: true } as any);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
