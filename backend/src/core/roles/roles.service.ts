@@ -16,7 +16,7 @@ export class RolesService {
   }
 
   async findByName(name: string) {
-    return this.roleRepository.findOne({ name });
+    return this.roleRepository.findOne({ name } as object);
   }
 
   async create(data: Partial<Role>) {
@@ -28,7 +28,7 @@ export class RolesService {
   }
 
   async update(id: string, data: Partial<Role>) {
-    const role = await this.roleRepository.findOne({ id });
+    const role = await this.roleRepository.findOne({ id } as object);
     if (!role) {
       throw new NotFoundException(`Role with ID ${id} not found.`);
     }
@@ -41,7 +41,7 @@ export class RolesService {
   }
 
   async remove(id: string) {
-    const role = await this.roleRepository.findOne({ id });
+    const role = await this.roleRepository.findOne({ id } as object);
     if (!role) {
       throw new NotFoundException(`Role with ID ${id} not found.`);
     }

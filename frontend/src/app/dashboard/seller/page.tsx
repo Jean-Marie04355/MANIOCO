@@ -12,6 +12,15 @@ import {
   Loader2,
   Package
 } from 'lucide-react';
+import { 
+  AreaChart, 
+  Area, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import Link from 'next/link';
@@ -28,6 +37,7 @@ export default function SellerDashboard() {
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
   const [recentMessages, setRecentMessages] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -66,7 +76,30 @@ export default function SellerDashboard() {
 
           setRecentOrders(orders.slice(0, 5));
           setRecentMessages(conversations.slice(0, 3));
-          setTopProducts(products.slice(0, 4)); // Simulé: on prend les premiers produits
+          setTopProducts(products.slice(0, 4));
+
+          // 5. Préparer les données du graphique (6 derniers mois)
+          const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
+          const last6Months = Array.from({ length: 6 }, (_, i) => {
+            const d = new Date();
+            d.setMonth(d.getMonth() - (5 - i));
+            return {
+              month: d.getMonth(),
+              year: d.getFullYear(),
+              monthName: months[d.getMonth()],
+              revenue: 0
+            };
+          });
+
+          successfulOrders.forEach((order: any) => {
+            const orderDate = new Date(order.createdAt);
+            const monthEntry = last6Months.find(m => m.month === orderDate.getMonth() && m.year === orderDate.getFullYear());
+            if (monthEntry) {
+              monthEntry.revenue += Number(order.totalAmount);
+            }
+          });
+
+          setChartData(last6Months);
         }
       } catch (error) {
         console.error("Erreur chargement dashboard vendeur", error);
@@ -107,9 +140,58 @@ export default function SellerDashboard() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
              {/* Simple visual placeholders for charts as they were mock in original */}
-             <div className="lg:col-span-2 bg-white p-6 rounded-[2rem] border border-slate-200/60 shadow-sm flex flex-col justify-center items-center text-slate-300">
-                <TrendingUp size={48} className="mb-4 opacity-20" />
-                <p className="font-bold text-xs uppercase tracking-widest opacity-50">L'évolution des ventes s'affichera ici avec plus de données</p>
+             <div className="lg:col-span-2 bg-white p-6 rounded-[2rem] border border-slate-200/60 shadow-sm min-h-[300px]">
+                <div className="flex justify-between items-center mb-6">
+                   <h3 className="text-lg font-bold text-slate-900">Évolution des revenus</h3>
+                   <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Revenus (FCFA)</span>
+                   </div>
+                </div>
+                <div className="h-[220px] w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={chartData}>
+                      <defs>
+                        <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#f97316" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#f97316" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                      <XAxis 
+                        dataKey="monthName" 
+                        axisLine={false} 
+                        tickLine={false} 
+                        tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}}
+                        dy={10}
+                      />
+                      <YAxis 
+                        hide={true} 
+                        domain={['auto', 'auto']}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          borderRadius: '16px', 
+                          border: 'none', 
+                          boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)',
+                          fontSize: '12px',
+                          fontWeight: 'bold'
+                        }}
+                        formatter={(value: any) => [`${value.toLocaleString()} FCFA`, 'Revenu']}
+                        labelStyle={{ color: '#94a3b8', marginBottom: '4px' }}
+                      />
+                      <Area 
+                        type="monotone" 
+                        dataKey="revenue" 
+                        stroke="#f97316" 
+                        strokeWidth={3}
+                        fillOpacity={1} 
+                        fill="url(#colorRev)" 
+                        animationDuration={1500}
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
              </div>
 
              <div className="bg-white p-6 rounded-[2rem] border border-slate-200/60 shadow-sm">

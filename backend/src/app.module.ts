@@ -22,6 +22,7 @@ import { RolesModule } from './core/roles/roles.module';
 import { PaymentsInfraModule } from './libs/payments/payments-infra.module';
 import { ChatModule } from './core/chat/chat.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
+import { SupportModule } from './core/support/support.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { NotificationsModule } from './core/notifications/notifications.module';
     PaymentsInfraModule,
     ChatModule,
     NotificationsModule,
+    SupportModule,
   ],
 
   controllers: [AppController, InfraController],

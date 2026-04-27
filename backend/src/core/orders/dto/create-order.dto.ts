@@ -2,6 +2,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsEnum,
+  IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -29,6 +30,15 @@ export class OrderItemDto {
   @IsNumber()
   @IsNotEmpty()
   price: number;
+
+  @ApiProperty({
+    description: 'Unit of measure for the ordered quantity',
+    example: 'Sac',
+    enum: ['Sac', 'Demi-sac', 'Kg', 'Demi-kg'],
+  })
+  @IsIn(['Sac', 'Demi-sac', 'Kg', 'Demi-kg'])
+  @IsNotEmpty()
+  unit: string;
 }
 
 export class CreateOrderDto {

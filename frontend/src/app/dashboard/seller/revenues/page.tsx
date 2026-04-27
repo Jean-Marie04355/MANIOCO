@@ -45,11 +45,11 @@ export default function SellerRevenues() {
           const ordersRes = await api.get(`/orders/store/${myStore.id}`);
           const orders = ordersRes.data;
 
-          // 3. Mapper les commandes en transactions
+          // 3. Mapper les commandes en transactions (montant brut pour l'historique)
           const mappedTransactions: Transaction[] = orders.map((order: any) => ({
             id: `TX-${order.id.split('-')[0].toUpperCase()}`,
             orderId: order.id.split('-')[0].toUpperCase(),
-            amount: Number(order.totalAmount),
+            amount: Number(order.totalAmount), // On affiche le montant total payé par le client
             status: mapOrderStatusToTxStatus(order.status),
             date: new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
           }));
@@ -81,16 +81,17 @@ export default function SellerRevenues() {
     }
   };
 
+  // Le total affiché dans la carte est le NET (90%)
   const totalRevenue = transactions
     .filter(t => t.status === 'COMPLETED')
-    .reduce((acc, t) => acc + t.amount, 0);
+    .reduce((acc, t) => acc + (t.amount * 0.9), 0);
 
+  // Les ventes en cours sont affichées en BRUT (montant client) pour la traçabilité
   const pendingRevenue = transactions
     .filter(t => t.status === 'PENDING')
     .reduce((acc, t) => acc + t.amount, 0);
 
   const currentMonthSales = transactions.filter(t => {
-    const txDate = new Date(t.date); // Note: Simplified date check
     return t.status === 'COMPLETED';
   }).length;
 
@@ -132,12 +133,12 @@ export default function SellerRevenues() {
               
               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end h-full">
                 <div>
-                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Revenus totaux générés</p>
+                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Revenus nets (après commission 10%)</p>
                   <div className="flex items-baseline gap-2">
                     <h2 className="text-5xl font-black">{totalRevenue.toLocaleString('fr-FR')}</h2>
                     <span className="text-xl text-slate-400 font-bold">FCFA</span>
                   </div>
-                  <p className="text-sm text-slate-400 mt-4 max-w-md">Cet argent a été transféré directement sur votre compte FedaPay lors de la validation des commandes.</p>
+                  <p className="text-sm text-slate-400 mt-4 max-w-md">Vos revenus nets après déduction de la commission de service Afrigari.</p>
                 </div>
                 
                 <div className="mt-6 md:mt-0 p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md">
