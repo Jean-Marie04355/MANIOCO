@@ -35,13 +35,21 @@ export default function Sidebar({ mode }: SidebarProps) {
           const myStore = storesRes.data.find((s: any) => s.ownerId === currentUserId);
           
           if (myStore) {
-            // Compter les commandes
+            // Compter les commandes avec logique lastSeen
             const ordersRes = await api.get(`/orders/store/${myStore.id}`);
-            setOrderCount(ordersRes.data.length);
+            const totalOrders = ordersRes.data.length;
+            const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${myStore.id}`) || '0');
+            
+            if (pathname === '/dashboard/seller/orders') {
+              localStorage.setItem(`lastSeenOrders_${myStore.id}`, totalOrders.toString());
+              setOrderCount(null);
+            } else {
+              setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
+            }
 
-            // Compter les conversations
-            const chatRes = await api.get('/chat/conversations');
-            setChatCount(chatRes.data.length);
+            // Compter les conversations non lues
+            const chatRes = await api.get('/chat/unread-count');
+            setChatCount(chatRes.data > 0 ? chatRes.data : null);
           }
         } else if (mode === 'client') {
           // Notifications
@@ -50,15 +58,15 @@ export default function Sidebar({ mode }: SidebarProps) {
           setOrderCount(unreadCount > 0 ? unreadCount : null); // Reusing orderCount for notifications badge
 
           // Messages
-          const chatRes = await api.get('/chat/conversations');
-          setChatCount(chatRes.data.length);
+          const chatRes = await api.get('/chat/unread-count'); // Using unread count here too
+          setChatCount(chatRes.data > 0 ? chatRes.data : null);
         }
       } catch (error) {
         console.error("Erreur récupération des compteurs sidebar", error);
       }
     };
     fetchCounts();
-  }, [mode, user]);
+  }, [mode, user, pathname]);
   
   const isActive = (href: string) => {
     if (href === '#') return false;
@@ -82,7 +90,6 @@ export default function Sidebar({ mode }: SidebarProps) {
           { icon: ShoppingBag, label: 'Produits' },
           { icon: ShoppingCart, label: 'Commandes' },
           { icon: FolderTree, label: 'Catégories' },
-          { icon: Megaphone, label: 'Annonces' },
           { icon: Bell, label: 'Notifications' },
           { icon: Flag, label: 'Signalements' },
           { icon: Clock, label: 'Tâches en attente' },
@@ -123,8 +130,9 @@ export default function Sidebar({ mode }: SidebarProps) {
           { icon: ShoppingBag, label: 'Mes produits', href: '/dashboard/seller/products' },
           { icon: FolderTree, label: 'Mes catégories', href: '/dashboard/seller/categories' },
           { icon: ShoppingCart, label: 'Commandes', href: '/dashboard/seller/orders', badge: orderCount && orderCount > 0 ? orderCount.toString() : null },
-          { icon: MessageSquare, label: 'Messages', href: '/dashboard/seller/messages', badge: chatCount && chatCount > 0 ? chatCount.toString() : null },
+          { icon: MessageSquare, label: 'Messages', href: '/dashboard/seller/messages', badge: (chatCount && chatCount > 0 && pathname !== '/dashboard/seller/messages') ? chatCount.toString() : null },
           { icon: CreditCard, label: 'Revenus', href: '/dashboard/seller/revenues' },
+          { icon: HelpCircle, label: 'Aide & Support', href: '/dashboard/seller/support' },
           { icon: Store, label: 'Paramètres boutique', href: '/dashboard/seller/settings/store' },
           { icon: Settings, label: 'Paramètres compte', href: '/dashboard/seller/settings/account' },
         ];

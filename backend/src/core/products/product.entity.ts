@@ -28,7 +28,7 @@ export class Product {
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   stock: number;
 
-  @Column({ type: 'varchar', default: 'Pièce' })
+  @Column({ type: 'varchar', default: 'Sac' })
   unit: string;
 
   @Column({ nullable: true })

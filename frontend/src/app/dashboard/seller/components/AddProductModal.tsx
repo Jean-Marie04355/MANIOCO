@@ -18,6 +18,13 @@ interface Category {
   name: string;
 }
 
+const UNIT_FACTORS: Record<string, number> = {
+  'Sac': 50,
+  'Demi-sac': 25,
+  'Kg': 1,
+  'Demi-kg': 0.5
+};
+
 export default function ProductModal({ isOpen, onClose, onSuccess, storeId, productToEdit }: ProductModalProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -29,11 +36,11 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
     categoryId: '',
     price: '',
     stock: 1,
-    unit: 'Pièce',
+    unit: 'Sac',
     description: ''
   });
 
-  const [prevUnit, setPrevUnit] = useState('Pièce');
+  const [prevUnit, setPrevUnit] = useState('Sac');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -46,13 +53,13 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
           categoryId: productToEdit.categoryId || (productToEdit.category?.id || ''),
           price: productToEdit.price.toString(),
           stock: productToEdit.stock,
-          unit: productToEdit.unit || 'Pièce',
+          unit: productToEdit.unit || 'Sac',
           description: productToEdit.description || ''
         });
-        setPrevUnit(productToEdit.unit || 'Pièce');
+        setPrevUnit(productToEdit.unit || 'Sac');
         setImagePreview(productToEdit.image || productToEdit.profilePhoto || null);
       } else {
-        const initialUnit = 'Pièce';
+        const initialUnit = 'Sac';
         setFormData({ name: '', categoryId: categories[0]?.id || '', price: '', stock: 1, unit: initialUnit, description: '' });
         setPrevUnit(initialUnit);
         setImagePreview(null);
@@ -97,31 +104,22 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
     const oldUnit = formData.unit;
     if (oldUnit === newUnit) return;
 
-    const factors: Record<string, number> = {
-      'Kg': 1,
-      'Demi': 0.5,
-      'Pièce': 1
-    };
+    const oldFactor = UNIT_FACTORS[oldUnit] || 1;
+    const newFactor = UNIT_FACTORS[newUnit] || 1;
 
-    const oldFactor = factors[oldUnit] || 1;
-    const newFactor = factors[newUnit] || 1;
-
-    // Si on passe de Kg à Demi ou vice-versa, on convertit
-    if ((oldUnit === 'Kg' && newUnit === 'Demi') || (oldUnit === 'Demi' && newUnit === 'Kg')) {
-      const priceNum = parseFloat(formData.price);
-      if (!isNaN(priceNum)) {
-        const newPrice = priceNum * (newFactor / oldFactor);
-        const newStock = formData.stock * (oldFactor / newFactor);
-        
-        setFormData(prev => ({
-          ...prev,
-          unit: newUnit,
-          price: newPrice.toString(),
-          stock: newStock
-        }));
-      } else {
-        setFormData(prev => ({ ...prev, unit: newUnit }));
-      }
+    const priceNum = parseFloat(formData.price);
+    if (!isNaN(priceNum) && priceNum > 0) {
+      // Calculate new price based on the ratio of the new factor to the old factor
+      const newPrice = priceNum * (newFactor / oldFactor);
+      // Calculate new stock based on the ratio of the old factor to the new factor
+      const newStock = formData.stock * (oldFactor / newFactor);
+      
+      setFormData(prev => ({
+        ...prev,
+        unit: newUnit,
+        price: newPrice.toString(),
+        stock: newStock
+      }));
     } else {
       setFormData(prev => ({ ...prev, unit: newUnit }));
     }
@@ -268,20 +266,16 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                     onChange={(e) => handleUnitChange(e.target.value)}
                     className="bg-transparent border-none outline-none text-xs font-black text-orange-500 uppercase tracking-widest cursor-pointer shrink-0"
                   >
-                    <option value="Pièce">Pièce</option>
+                    <option value="Sac">Sac (50 kg)</option>
+                    <option value="Demi-sac">Demi-sac (25 kg)</option>
                     <option value="Kg">Kg</option>
-                    <option value="Demi">Demi</option>
+                    <option value="Demi-kg">Demi-kg (0.5 kg)</option>
                   </select>
                 </div>
                 <div className="px-2 space-y-1">
-                  {formData.unit === 'Kg' && formData.price && (
+                  {formData.price && !isNaN(parseFloat(formData.price)) && (
                     <p className="text-[10px] text-slate-400 font-bold">
-                      ℹ️ Prix estimé : {parseFloat(formData.price) / 2} FCFA pour 0.5 Kg (Demi)
-                    </p>
-                  )}
-                  {formData.unit === 'Demi' && (
-                    <p className="text-[10px] text-slate-400 font-bold">
-                      ℹ️ 1 Demi = 0.5 Kg | Prix au Kg : {parseFloat(formData.price) * 2} FCFA
+                      ℹ️ Prix équivalent : {(parseFloat(formData.price) / (UNIT_FACTORS[formData.unit] || 1)).toFixed(0)} FCFA le Kg
                     </p>
                   )}
                 </div>

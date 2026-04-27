@@ -38,8 +38,10 @@ export class FedaPayProvider implements IPaymentProvider {
           description: params.description,
           currency: { iso: 'XOF' },
           callback_url: params.callbackUrl,
-          subaccount: params.sellerPayoutAccountId ? { id: params.sellerPayoutAccountId } : undefined,
-          commission: this.configService.get<number>('PLATFORM_COMMISSION_PERCENT', 10),
+          subaccount: params.sellerPayoutAccountId ? { 
+            id: params.sellerPayoutAccountId,
+            amount: Math.floor(params.amount * (1 - (this.configService.get<number>('PLATFORM_COMMISSION_PERCENT', 10) / 100))) 
+          } : undefined,
           include: 'payouts',
         }),
       });

@@ -2,11 +2,51 @@
 
 Backend NestJS (TypeScript) avec :
 
-- **Users** (SQL via TypeORM ou Mongo via Mongoose selon `DB_TYPE`)
-- **Files** (storage `json` / `mongo` / `postgres` selon `STORAGE_TYPE`)
-- **Authentification JWT** (login + guards + rôles)
+- **Users** : Système complet d'authentification et de rôles.
+- **Stockage S3** : Gestion des images via Minio/AWS S3 avec conversion automatique.
+- **Notifications** : Système d'alertes en temps réel pour les commandes et messages.
+- **Produits** : Gestion intelligente des stocks (Conversion Kg/Demi).
 
-## Démarrage rapide
+## 🚀 Fonctionnalités principales
+
+### 🧑‍💻 Gestion des Utilisateurs
+*   **Inscription / Connexion** : Sécurisée par JWT (JSON Web Tokens).
+*   **Rôles (RBAC)** : Distinction entre Clients, Vendeurs et Administrateurs.
+*   **Profil** : Modification des informations et de la photo de profil (stockée sur S3).
+
+### 🛒 Gestion des Produits & Vues
+*   **Vue Vendeur** (Opérationnelle) : Ajout, modification, suppression et gestion intelligente des stocks (Conversion Kg/Demi).
+*   **Autres Vues** (En développement par collaborateur) : Interfaces dédiées aux Clients (Achat), aux Livreurs (Suivi) et aux Administrateurs.
+*   **Catégories spécialisées** : Gari (blanc, jaune), Tapioca, Fécule de manioc, Farine de manioc, Attiéké.
+
+### 📦 Commandes & Messagerie
+*   **Notifications en temps réel** : Alertes instantanées pour chaque nouvelle commande ou nouveau message reçu.
+*   **Messagerie Intégrée** : Chat direct entre acheteurs et vendeurs pour faciliter les transactions.
+*   **Suivi** : Tableau de bord récapitulatif des ventes et des revenus.
+
+## ⚖️ Règles de Gestion
+
+*   **Paiement Obligatoire** : Une commande est confirmée uniquement après validation du paiement via **FedaPay**.
+*   **Annulation** : Une commande peut être annulée avant le début de la préparation ou automatiquement après un délai de non-paiement.
+*   **Protection du Stock** : Un vendeur ne peut techniquement pas vendre plus que son stock disponible.
+*   **Validation Client** : Le client doit obligatoirement fournir un numéro de téléphone valide pour commander.
+*   **Avis & Commentaires** : Les avis clients ne sont autorisés qu'**après** la livraison effective du produit.
+
+## 🛠 Architecture Technique
+*   **Backend** : NestJS (Node.js) + TypeORM (SQLite/Postgres) ou Mongoose (MongoDB).
+*   **Frontend** : Next.js 15+ avec Tailwind CSS pour un design moderne et premium.
+*   **Storage** : Minio (compatible S3) pour une gestion performante des médias.
+
+## 📅 Planning du Projet
+
+*   **Semaines 1 - 2** : Analyse des besoins, Cahier des charges et Conception UI/UX.
+*   **Semaines 3 - 4** : Développement du Backend Core (Auth JWT, API, Intégration S3).
+*   **Semaines 5 - 6** : Développement du Frontend (Dashboard Vendeur finalisé, Stocks, Profil). Développement des autres vues (Client, Livreur) en parallèle par collaborateur.
+*   **Semaine 7** : Intégration des services tiers (Paiement FedaPay, Notifications Temps Réel).
+*   **Semaine 8** : Phase intensive de Tests (QA), Sécurisation et corrections de bugs.
+*   **Semaine 9** : Déploiement final, Documentation et Livraison.
+
+## 🚀 Démarrage rapide
 
 ### Prérequis
 

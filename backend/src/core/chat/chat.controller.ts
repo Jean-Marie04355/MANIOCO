@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Query, Patch, Delete } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/user.decorator';
@@ -29,11 +29,11 @@ export class ChatController {
 
   @Post('messages')
   @ApiOperation({ summary: 'Envoyer un message' })
-  sendMessage(
+  async sendMessage(
     @CurrentUser() user: AuthenticatedUser,
-    @Body() body: { conversationId: string; text: string; image?: string }
+    @Body() body: { conversationId?: string; customerId?: string; text: string; image?: string }
   ) {
-    return this.chatService.sendMessage(user.userId, body.conversationId, body.text, body.image);
+    return this.chatService.sendMessage(user.userId, body.conversationId, body.text, body.image, body.customerId);
   }
 
   @Post('conversations/init')
@@ -43,5 +43,47 @@ export class ChatController {
     @Body() body: { storeId: string }
   ) {
     return this.chatService.findOrCreateConversation(user.userId, body.storeId);
+  }
+
+  @Get('unread-count')
+  @ApiOperation({ summary: 'Obtenir le nombre de messages non lus' })
+  getUnreadCount(@CurrentUser() user: AuthenticatedUser) {
+    return this.chatService.getUnreadCount(user);
+  }
+
+  @Patch('conversations/:id/read')
+  @ApiOperation({ summary: 'Marquer les messages d\'une conversation comme lus' })
+  markConversationAsRead(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.chatService.markConversationAsRead(id, user);
+  }
+
+  @Patch('conversations/:id/unread')
+  @ApiOperation({ summary: 'Marquer les messages d\'une conversation comme non lus' })
+  markConversationAsUnread(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.chatService.markConversationAsUnread(id, user);
+  }
+
+  @Delete('conversations/:id')
+  @ApiOperation({ summary: 'Supprimer une conversation' })
+  deleteConversation(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.chatService.deleteConversation(id, user);
+  }
+
+  @Delete('messages/:id')
+  @ApiOperation({ summary: 'Supprimer un message' })
+  deleteMessage(
+    @Param('id') id: string,
+    @CurrentUser() user: AuthenticatedUser
+  ) {
+    return this.chatService.deleteMessage(id, user);
   }
 }
