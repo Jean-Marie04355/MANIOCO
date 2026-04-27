@@ -24,12 +24,14 @@ export default function Sidebar({ mode }: SidebarProps) {
   const [chatCount, setChatCount] = useState<number | null>(null);
 
   useEffect(() => {
-    if (mode === 'seller' && user) {
-      const fetchCounts = async () => {
-        try {
+    const fetchCounts = async () => {
+      if (!user) return;
+      const currentUserId = user.id || (user as any).userId;
+
+      try {
+        if (mode === 'seller') {
           // Récupérer le storeId d'abord
           const storesRes = await api.get('/stores');
-          const currentUserId = user.id || (user as any).userId;
           const myStore = storesRes.data.find((s: any) => s.ownerId === currentUserId);
           
           if (myStore) {
@@ -41,12 +43,21 @@ export default function Sidebar({ mode }: SidebarProps) {
             const chatRes = await api.get('/chat/conversations');
             setChatCount(chatRes.data.length);
           }
-        } catch (error) {
-          console.error("Erreur récupération des compteurs sidebar", error);
+        } else if (mode === 'client') {
+          // Notifications
+          const notifRes = await api.get('/notifications');
+          const unreadCount = notifRes.data.filter((n: any) => !n.isRead).length;
+          setOrderCount(unreadCount > 0 ? unreadCount : null); // Reusing orderCount for notifications badge
+
+          // Messages
+          const chatRes = await api.get('/chat/conversations');
+          setChatCount(chatRes.data.length);
         }
-      };
-      fetchCounts();
-    }
+      } catch (error) {
+        console.error("Erreur récupération des compteurs sidebar", error);
+      }
+    };
+    fetchCounts();
   }, [mode, user]);
   
   const isActive = (href: string) => {
@@ -95,16 +106,16 @@ export default function Sidebar({ mode }: SidebarProps) {
         ];
       case 'client':
         return [
-          { icon: LayoutDashboard, label: 'Tableau de bord', active: true },
-          { icon: ShoppingBag, label: 'Mes commandes' },
-          { icon: Heart, label: 'Mes favoris' },
-          { icon: MessageSquare, label: 'Messages', badge: "2" },
-          { icon: Star, label: 'Mes avis' },
-          { icon: MapPin, label: 'Mes adresses' },
-          { icon: CreditCard, label: 'Mes paiements' },
-          { icon: Bell, label: 'Notifications' },
-          { icon: Settings, label: 'Paramètres' },
-          { icon: HelpCircle, label: 'Aide & support' },
+          { icon: LayoutDashboard, label: 'Tableau de bord', href: '/dashboard/client' },
+          { icon: ShoppingBag, label: 'Mes commandes', href: '/dashboard/client/orders' },
+          { icon: Heart, label: 'Mes favoris', href: '/dashboard/client/favorites' },
+          { icon: MessageSquare, label: 'Messages', badge: chatCount && chatCount > 0 ? chatCount.toString() : null, href: '/dashboard/client/messages' },
+          { icon: Star, label: 'Mes avis', href: '/dashboard/client/reviews' },
+          { icon: MapPin, label: 'Mes adresses', href: '/dashboard/client/addresses' },
+          { icon: CreditCard, label: 'Mes paiements', href: '/dashboard/client/payments' },
+          { icon: Bell, label: 'Notifications', badge: orderCount && orderCount > 0 ? orderCount.toString() : null, href: '/dashboard/client/notifications' },
+          { icon: Settings, label: 'Paramètres', href: '/dashboard/client/profile' },
+          { icon: HelpCircle, label: 'Aide & support', href: '/dashboard/client/help' },
         ];
       case 'seller':
         return [

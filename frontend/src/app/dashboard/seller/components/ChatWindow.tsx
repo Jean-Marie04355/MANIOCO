@@ -27,7 +27,9 @@ interface Message {
 interface Conversation {
   id: string;
   customerId: string;
-  customer: { firstName: string; lastName: string; avatar?: string };
+  storeId: string;
+  customer?: { firstName: string; lastName: string; avatar?: string; name?: string };
+  store?: { name: string; logo?: string };
   lastMessageText: string;
   lastMessageAt: string;
 }
@@ -184,13 +186,15 @@ export default function ChatWindow() {
                 className={`p-4 flex gap-3 cursor-pointer transition-colors ${activeConv?.id === c.id ? 'bg-orange-50/50 border-r-4 border-orange-500' : 'hover:bg-slate-50'}`}
               >
                 <div className="relative">
-                   <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black">
-                     {c.customer?.firstName?.[0]}{c.customer?.lastName?.[0]}
+                   <div className="w-12 h-12 rounded-full bg-forest-night/5 flex items-center justify-center text-forest-night font-black">
+                     {c.store ? c.store.name[0] : (c.customer?.firstName?.[0] || 'U')}
                    </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-sm font-bold text-slate-800 truncate">{c.customer?.firstName} {c.customer?.lastName}</h4>
+                    <h4 className="text-sm font-bold text-slate-800 truncate">
+                      {c.store ? c.store.name : `${c.customer?.firstName} ${c.customer?.lastName}`}
+                    </h4>
                     <span className="text-[10px] font-bold text-slate-400">
                       {c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                     </span>
@@ -210,11 +214,13 @@ export default function ChatWindow() {
             {/* Chat Header */}
             <div className="p-6 bg-white border-b border-slate-100 flex justify-between items-center">
               <div className="flex items-center gap-4">
-                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black text-sm">
-                   {activeConv.customer?.firstName?.[0]}{activeConv.customer?.lastName?.[0]}
+                 <div className="w-10 h-10 rounded-full bg-forest-night/5 flex items-center justify-center text-forest-night font-black text-sm">
+                   {activeConv.store ? activeConv.store.name[0] : (activeConv.customer?.firstName?.[0] || 'U')}
                  </div>
                  <div>
-                    <h4 className="text-sm font-black text-slate-900">{activeConv.customer?.firstName} {activeConv.customer?.lastName}</h4>
+                    <h4 className="text-sm font-black text-slate-900">
+                      {activeConv.store ? activeConv.store.name : `${activeConv.customer?.firstName} ${activeConv.customer?.lastName}`}
+                    </h4>
                     <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">En ligne</p>
                  </div>
               </div>
