@@ -1,168 +1,327 @@
+"use client";
 import Sidebar from '../components/Sidebar';
-import TopNav from '../components/TopNav';
-import { Shield, Zap, Database, Globe, Layers, AlertCircle, Terminal, HardDrive } from 'lucide-react';
+import { 
+    Users, Shield, Activity, TrendingUp, Bell, Search, 
+    Zap, Globe, Lock, ChevronRight, PieChart as PieIcon,
+    ShoppingBag, UserCheck, Loader2, Clock, Terminal,
+    RefreshCw, ShieldCheck, CheckCircle2, AlertCircle
+} from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 
-export default function SuperAdminDashboard() {
+export default function ProfessionalSuperAdminDashboard() {
+  const [stats, setStats] = useState({ users: 0, admins: 0, online: 0, clients: 0, sellers: 0 });
+  const [chartData, setChartData] = useState<any[]>([]);
+  const [pieData, setPieData] = useState<any[]>([]);
+  const [recentLogs, setRecentLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [commandLoading, setCommandLoading] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{ msg: string, type: 'success' | 'alert' } | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    fetchAllData();
+  }, []);
+
+  const fetchAllData = async () => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const headers = { 'Authorization': `Bearer ${token}` };
+      const [uRes, logRes, statsRes, onlineRes] = await Promise.all([
+        fetch('http://localhost:3000/users', { headers }),
+        fetch('http://localhost:3000/audit-logs', { headers }),
+        fetch('http://localhost:3000/audit-logs/stats', { headers }),
+        fetch('http://localhost:3000/realtime/online-count', { headers })
+      ]);
+
+      if (uRes.ok) {
+        let onlineCount = 0;
+        if (onlineRes && onlineRes.ok) {
+            const onlineData = await onlineRes.json();
+            onlineCount = onlineData.count || 0;
+        }
+
+        const users = await uRes.json();
+        const c = users.filter((u: any) => u.role === 'client').length;
+        const s = users.filter((u: any) => u.role === 'vendeur').length;
+        const a = users.filter((u: any) => u.role === 'admin' && !u.deletedAt).length;
+        setStats({ users: c + s, admins: a, online: onlineCount, clients: c, sellers: s });
+        setPieData([
+            { name: 'Admins', value: a, color: '#10b981' },
+            { name: 'Clients', value: c, color: '#3b82f6' },
+            { name: 'Vendeurs', value: s, color: '#f43f5e' }
+        ]);
+      }
+
+      if (statsRes.ok) {
+        const rawStats = await statsRes.json();
+        const daysData = [];
+        const now = new Date();
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date(now);
+            d.setDate(d.getDate() - i);
+            const dateStr = d.toISOString().split('T')[0];
+            const match = rawStats.find((s: any) => s.date.startsWith(dateStr));
+            daysData.push({ name: d.toLocaleDateString('fr-FR', { weekday: 'short' }), actions: match ? match.count : 0 });
+        }
+        setChartData(daysData);
+      }
+
+      if (logRes.ok) {
+        const logs = await logRes.json();
+        setRecentLogs(logs.slice(0, 6));
+      }
+    } catch (err) { console.error(err); }
+    finally { setLoading(false); }
+  };
+
+  const handleCommand = async (type: 'sync' | 'audit') => {
+      setCommandLoading(type);
+      
+      // Simulation de traitement lourd
+      await new Promise(r => setTimeout(r, 1500));
+
+      if (type === 'sync') {
+          await fetchAllData();
+          showNotification("Synchronisation des Citoyens terminée avec succès", "success");
+      } else {
+          showNotification("Audit Alpha terminé. 0 vulnérabilité détectée.", "success");
+      }
+      setCommandLoading(null);
+  };
+
+  const showNotification = (msg: string, type: 'success' | 'alert') => {
+      setNotification({ msg, type });
+      setTimeout(() => setNotification(null), 4000);
+  };
+
   return (
-    <div className="flex bg-[#0b0e14] min-h-screen text-slate-300">
+    <div className="flex bg-[#F4F7FE] min-h-screen text-slate-700 font-sans selection:bg-indigo-100 relative">
       <Sidebar mode="super-admin" />
-
-      <main className="flex-1 ml-64">
-        <TopNav title="System Control Center" isAdmin={false} />
-
-        <div className="p-8 space-y-8">
-          {/* Infrastructure Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <StatCard icon={Globe} label="Total Requêtes" value="245,532" change="+18%" color="indigo" />
-            <StatCard icon={Shield} label="Admins Actifs" value="12" change="+2" color="purple" />
-            <StatCard icon={Layers} label="Background Jobs" value="45,231" change="+22%" color="orange" />
-            <StatCard icon={Zap} label="API Latency" value="24" suffix="ms" change="-15%" color="green" />
-          </div>
-
-          {/* Technical Monitors */}
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <MonitorCard title="Redis (Cache)" status="Actif" metrics={[
-              { label: "Utilisation mémoire", value: "65%" },
-              { label: "Clés", value: "12,452" }
-            ]} color="red" />
-            <MonitorCard title="BullMQ (Jobs)" status="Actif" metrics={[
-              { label: "Jobs en attente", value: "32" },
-              { label: "Jobs échoués", value: "3" }
-            ]} color="pink" />
-            <MonitorCard title="WebSocket" status="Actif" metrics={[
-              { label: "Connexions", value: "562" },
-              { label: "Messages / min", value: "1,245" }
-            ]} color="green" />
-            <MonitorCard title="Stockage S3" status="Online" metrics={[
-              { label: "Total fichiers", value: "12,450" },
-              { label: "Utilisation", value: "320 GB" }
-            ]} color="blue" />
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* System Logs */}
-            <div className="lg:col-span-2 bg-[#151921] p-6 rounded-3xl border border-slate-800">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-white text-lg flex items-center gap-2">
-                  <Terminal size={20} className="text-indigo-400" /> Logs Système
-                </h3>
-                <span className="text-[10px] bg-slate-800 px-2 py-1 rounded text-slate-400 font-bold uppercase">Live</span>
+      
+      {/* Notifications Crystal Overlay */}
+      {notification && (
+          <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] animate-notification">
+              <div className={`px-8 py-4 rounded-2xl shadow-2xl backdrop-blur-xl border flex items-center gap-4 ${notification.type === 'success' ? 'bg-emerald-50/90 border-emerald-100 text-emerald-600' : 'bg-rose-50/90 border-rose-100 text-rose-600'}`}>
+                  {notification.type === 'success' ? <CheckCircle2 size={20} /> : <AlertCircle size={20} />}
+                  <span className="text-xs font-bold uppercase tracking-wider">{notification.msg}</span>
               </div>
-              <div className="space-y-4 font-mono text-xs">
-                {systemLogs.map((log, i) => (
-                  <div key={i} className="flex gap-4 p-2 rounded hover:bg-white/5 transition-colors group">
-                    <span className="text-slate-600">[{log.time}]</span>
-                    <span className={log.color}>{log.event}</span>
-                    <span className="text-slate-500 italic ml-auto opacity-0 group-hover:opacity-100">{log.ip}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+          </div>
+      )}
 
-            {/* Storage Gauge */}
-            <div className="bg-[#151921] p-6 rounded-3xl border border-slate-800">
-              <h3 className="font-bold text-white text-lg mb-8 flex items-center gap-2">
-                <HardDrive size={20} className="text-blue-400" /> Utilisation Stockage
-              </h3>
-              <div className="flex flex-col items-center">
-                <div className="relative w-48 h-48 flex items-center justify-center">
-                  <div className="absolute inset-0 rounded-full border-[10px] border-slate-800"></div>
-                  <div className="absolute inset-0 rounded-full border-[10px] border-indigo-500 border-t-transparent transform rotate-45 animate-pulse"></div>
-                  <div className="text-center">
-                    <p className="text-3xl font-black text-white">320 GB</p>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">sur 1 TB</p>
-                  </div>
+      <main className="flex-1 ml-72 p-8">
+        
+        <header className="mb-10 flex justify-between items-center">
+            <div>
+                <div className="flex items-center gap-2 text-indigo-600 mb-1">
+                    <Zap size={16} className="fill-indigo-600" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest opacity-70">Afrigari Central Control</span>
                 </div>
-                <div className="mt-8 w-full space-y-4">
-                  <StorageItem label="Images" size="120 GB" color="bg-blue-500" />
-                  <StorageItem label="Vidéos" size="150 GB" color="bg-purple-500" />
-                  <StorageItem label="Documents" size="30 GB" color="bg-indigo-500" />
+                <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Console de <span className="text-indigo-600">Surveillance</span></h1>
+            </div>
+            <div className="flex items-center gap-4">
+                <div className="text-right hidden sm:block">
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Niveau de Sécurité</p>
+                    <p className="text-xs font-bold text-emerald-500 uppercase">Protocole Alpha Actif</p>
                 </div>
-              </div>
+                <div className="w-12 h-12 bg-white rounded-xl shadow-sm border border-slate-200 flex items-center justify-center text-slate-400">
+                    <Bell size={20} />
+                </div>
             </div>
-          </div>
+        </header>
 
-          {/* System Alerts */}
-          <div className="bg-red-500/10 border border-red-500/20 p-6 rounded-3xl">
-            <h3 className="text-red-500 font-bold mb-4 flex items-center gap-2">
-              <AlertCircle size={18} /> Alertes Système Critiques
-            </h3>
-            <div className="space-y-3">
-              <p className="text-sm text-red-300">• Espace disque élevé sur le serveur (85% utilisé) <span className="text-red-500/50 text-[10px] ml-2">il y a 5 min</span></p>
-              <p className="text-sm text-red-300">• Plusieurs échecs de jobs détectés dans BullMQ <span className="text-red-500/50 text-[10px] ml-2">il y a 15 min</span></p>
+        {loading ? (
+             <div className="flex flex-col items-center justify-center h-[60vh]">
+                <Loader2 className="animate-spin text-indigo-600 mb-4" size={40} />
+                <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Initialisation...</span>
+            </div>
+        ) : (
+          <div className="space-y-8 animate-reveal">
+            
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <CompactStatCard label="Citoyens" value={stats.users} icon={Users} color="blue" />
+                <CompactStatCard label="Garde" value={stats.admins} icon={Shield} color="emerald" />
+                <CompactStatCard label="Marchands" value={stats.sellers} icon={ShoppingBag} color="purple" />
+                <CompactStatCard label="Live" value={stats.online} icon={Activity} color="indigo" pulse />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm flex flex-col">
+                    <div className="flex justify-between items-center mb-10">
+                        <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight italic">Flux d'Activité <span className="text-indigo-600">Live</span></h3>
+                    </div>
+                    <div className="h-[280px] w-full" style={{ minHeight: '280px', minWidth: '0' }}>
+                        {mounted && (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData}>
+                                    <defs>
+                                        <linearGradient id="colorAct" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.1}/>
+                                            <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                                        </linearGradient>
+                                    </defs>
+                                    <XAxis dataKey="name" fontSize={10} fontWeight={700} axisLine={false} tickLine={false} stroke="#94a3b8" />
+                                    <YAxis fontSize={9} axisLine={false} tickLine={false} stroke="#94a3b8" />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Area type="monotone" dataKey="actions" stroke="#4f46e5" strokeWidth={3} fill="url(#colorAct)" animationDuration={1000} />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        )}
+                    </div>
+                </div>
+
+                <div className="bg-white border border-slate-200 rounded-3xl p-8 shadow-sm relative flex flex-col items-center justify-center">
+                    <h3 className="absolute top-8 left-8 text-lg font-bold text-slate-900 uppercase tracking-tight italic">Démographie</h3>
+                    <div className="h-[220px] w-full mt-6" style={{ minHeight: '220px', minWidth: '0' }}>
+                        {mounted && (
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie data={pieData} innerRadius={65} outerRadius={85} paddingAngle={8} dataKey="value" stroke="none">
+                                        {pieData.map((e, i) => <Cell key={i} fill={e.color} />)}
+                                    </Pie>
+                                    <Tooltip />
+                                </PieChart>
+                            </ResponsiveContainer>
+                        )}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[10px] text-center">
+                            <div className="text-2xl font-black text-slate-900 tracking-tighter italic">{stats.users + stats.admins}</div>
+                            <div className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Total</div>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 w-full mt-6">
+                        <LegendItem label="Garde" color="#10b981" />
+                        <LegendItem label="Clients" color="#3b82f6" />
+                        <LegendItem label="Vendeurs" color="#f43f5e" />
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 bg-white border border-slate-200 rounded-3xl p-8 shadow-sm">
+                    <div className="flex justify-between items-center mb-8 border-b border-slate-50 pb-4">
+                        <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight italic flex items-center gap-2">
+                             <Terminal size={18} className="text-indigo-600" /> Flux d'Audit Récent
+                        </h3>
+                    </div>
+                    <div className="space-y-4">
+                        {recentLogs.map((log, i) => (
+                            <div key={i} className="flex items-center gap-4 py-3 hover:bg-slate-50 rounded-xl px-2 transition-all group">
+                                <div className="text-[9px] font-bold text-slate-300 w-12 font-mono">
+                                    {new Date(log.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                </div>
+                                <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shadow-[0_0_8px_rgba(79,70,229,0.4)]"></div>
+                                <div className="flex-1">
+                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-tighter bg-slate-50 px-2 py-0.5 rounded-md mr-3">{log.adminName}</span>
+                                    <span className="text-xs font-medium text-slate-700 group-hover:text-indigo-600 transition-colors uppercase italic tracking-tighter">{log.details}</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* Accès Rapides FONCTIONNELS */}
+                <div className="bg-slate-900 rounded-3xl p-8 text-white shadow-xl flex flex-col justify-between group overflow-hidden relative">
+                    <div className="relative z-10">
+                        <h3 className="text-xl font-black italic uppercase tracking-tighter mb-4">Commandes_Alpha</h3>
+                        <p className="text-white/40 text-[10px] font-medium leading-relaxed mb-8">Maintenance système et audits de sécurité.</p>
+                        <div className="space-y-3">
+                             <QuickBtn 
+                                label="Sync Citoyens" 
+                                icon={RefreshCw} 
+                                onClick={() => handleCommand('sync')}
+                                loading={commandLoading === 'sync'}
+                             />
+                             <QuickBtn 
+                                label="Protocole Sécurité" 
+                                icon={ShieldCheck} 
+                                onClick={() => handleCommand('audit')}
+                                loading={commandLoading === 'audit'}
+                             />
+                        </div>
+                    </div>
+                    <div className="absolute -right-10 -bottom-10 opacity-10 group-hover:scale-110 transition-transform duration-1000">
+                        <Zap size={200} />
+                    </div>
+                </div>
             </div>
           </div>
-        </div>
+        )}
       </main>
+
+      <style jsx global>{`
+        @keyframes reveal {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes notification {
+            0% { opacity: 0; transform: translate(-50%, -20px); }
+            10% { opacity: 1; transform: translate(-50%, 0); }
+            90% { opacity: 1; transform: translate(-50%, 0); }
+            100% { opacity: 0; transform: translate(-50%, -20px); }
+        }
+        .animate-reveal { animation: reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .animate-notification { animation: notification 4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+      `}</style>
     </div>
   );
 }
 
-function StatCard({ icon: Icon, label, value, change, color, suffix = "" }: any) {
-  const colors: any = {
-    indigo: 'text-indigo-400 bg-indigo-400/10',
-    purple: 'text-purple-400 bg-purple-400/10',
-    orange: 'text-orange-400 bg-orange-400/10',
-    green: 'text-emerald-400 bg-emerald-400/10',
-  };
-  return (
-    <div className="bg-[#151921] p-6 rounded-3xl border border-slate-800 hover:border-slate-700 transition-all group">
-      <div className="flex items-center gap-4 mb-4">
-        <div className={`p-3 rounded-2xl ${colors[color]} group-hover:scale-110 transition-transform`}><Icon size={22} /></div>
-        <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.2em]">{label}</p>
-      </div>
-      <div className="flex items-baseline gap-2">
-        <h4 className="text-2xl font-black text-white">{value}<span className="text-sm text-slate-500 ml-1">{suffix}</span></h4>
-        <span className="text-[10px] font-bold text-green-500">{change}</span>
-      </div>
-    </div>
-  );
+function CompactStatCard({ label, value, icon: Icon, color, pulse }: any) {
+    const colors: any = {
+        blue: "text-blue-600 bg-blue-50 border-blue-100 shadow-blue-50",
+        emerald: "text-emerald-600 bg-emerald-50 border-emerald-100 shadow-emerald-50",
+        purple: "text-purple-600 bg-purple-50 border-purple-100 shadow-purple-50",
+        indigo: "text-indigo-600 bg-indigo-50 border-indigo-100 shadow-indigo-50",
+    };
+    return (
+        <div className={`p-6 bg-white border rounded-[24px] shadow-sm flex items-center gap-5 hover:shadow-md transition-all group overflow-hidden`}>
+            <div className={`w-12 h-12 rounded-xl flex items-center justify-center transition-all group-hover:scale-110 ${colors[color].split(' ')[0]} ${colors[color].split(' ')[1]}`}>
+                <Icon size={24} />
+            </div>
+            <div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5 italic">{label}</p>
+                <div className="flex items-center gap-2">
+                    <h4 className="text-2xl font-black text-slate-900 leading-none">{value}</h4>
+                    {pulse && <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]"></div>}
+                </div>
+            </div>
+        </div>
+    );
 }
 
-function MonitorCard({ title, status, metrics, color }: any) {
-  const colors: any = {
-    red: 'border-red-500/50 text-red-500',
-    pink: 'border-pink-500/50 text-pink-500',
-    green: 'border-emerald-500/50 text-emerald-500',
-    blue: 'border-blue-500/50 text-blue-500',
-  };
-  return (
-    <div className="bg-[#151921] p-5 rounded-2xl border border-slate-800 relative overflow-hidden group">
-      <div className={`absolute top-0 right-0 w-24 h-24 blur-3xl -mr-12 -mt-12 bg-${color}-500/10`}></div>
-      <div className="flex justify-between items-center mb-4">
-        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest">{title}</h4>
-        <span className={`text-[10px] font-black uppercase flex items-center gap-1 ${colors[color]}`}>
-          <div className={`w-1.5 h-1.5 rounded-full bg-current animate-pulse`}></div> {status}
-        </span>
-      </div>
-      <div className="space-y-3 relative z-10">
-        {metrics.map((m: any, i: number) => (
-          <div key={i} className="flex justify-between items-center">
-            <span className="text-[10px] text-slate-500">{m.label}</span>
-            <span className="text-xs font-bold text-white">{m.value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+        return (
+            <div className="bg-slate-900 text-white p-3 rounded-xl shadow-2xl border border-slate-700">
+                <p className="text-base font-black italic">{payload[0].value} <span className="text-[10px]">Actions</span></p>
+            </div>
+        );
+    }
+    return null;
+};
+
+function LegendItem({ label, color }: any) {
+    return (
+        <div className="flex flex-col items-center">
+            <div className={`w-3 h-1 rounded-full mb-1`} style={{ backgroundColor: color }}></div>
+            <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest italic">{label}</span>
+        </div>
+    );
 }
 
-function StorageItem({ label, size, color }: any) {
-  return (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${color}`}></div>
-        <span className="text-[10px] text-slate-400 font-bold uppercase">{label}</span>
-      </div>
-      <span className="text-xs font-black text-white">{size}</span>
-    </div>
-  );
+function QuickBtn({ label, icon: Icon, onClick, loading }: any) {
+    return (
+        <button 
+            onClick={onClick}
+            disabled={loading}
+            className="w-full flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white hover:text-slate-900 transition-all font-bold uppercase text-[9px] tracking-widest italic group/btn disabled:opacity-50"
+        >
+            <div className="flex items-center gap-3">
+                {loading ? <Loader2 size={14} className="animate-spin" /> : <Icon size={14} />}
+                {label}
+            </div>
+            {!loading && <ChevronRight size={14} className="group-hover/btn:translate-x-1 transition-transform" />}
+        </button>
+    );
 }
-
-const systemLogs = [
-  { time: "00:45:21", event: "Connexion admin réussie", color: "text-green-400", ip: "192.168.1.10" },
-  { time: "00:44:10", event: "Modification rôle admin", color: "text-blue-400", ip: "192.168.1.12" },
-  { time: "00:42:05", event: "Suppression utilisateur", color: "text-red-400", ip: "192.168.1.15" },
-  { time: "00:38:15", event: "Échec de connexion", color: "text-orange-400", ip: "192.168.1.20" },
-  { time: "00:35:50", event: "Upload fichier sur S3", color: "text-indigo-400", ip: "192.168.1.18" },
-];

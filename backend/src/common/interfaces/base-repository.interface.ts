@@ -7,5 +7,6 @@ export interface IBaseRepository<T> {
   delete(id: string | number): Promise<void>;
   count(options?: object): Promise<number>;
   softDelete(id: string | number): Promise<void>;
+  restore(id: string | number): Promise<void>;
   save(entity: T): Promise<T>;
 }

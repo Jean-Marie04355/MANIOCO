@@ -20,6 +20,7 @@ import { QueuesModule } from './libs/queues/queues.module';
 import { AdminSeeder } from './common/seeder/admin.seeder';
 import { RolesModule } from './core/roles/roles.module';
 import { PaymentsInfraModule } from './libs/payments/payments-infra.module';
+import { AuditModule } from './core/audit/audit.module';
 import { ChatModule } from './core/chat/chat.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { SupportModule } from './core/support/support.module';
@@ -43,6 +44,7 @@ import { SupportModule } from './core/support/support.module';
     RealtimeModule,
     QueuesModule,
     PaymentsInfraModule,
+    AuditModule,
     ChatModule,
     NotificationsModule,
     SupportModule,

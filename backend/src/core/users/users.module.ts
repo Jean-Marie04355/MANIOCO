@@ -18,17 +18,23 @@ import { SqlRepository } from '../../libs/sql-database/repository';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { RolesModule } from '../roles/roles.module';
 
+import { Store } from '../store/store.entity';
+import { Product } from '../products/product.entity';
+import { Order } from '../orders/order.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
+
 // dbType calculated via env (NestJS handles loading the .env via ConfigModule globally)
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
 @Module({
   imports: [
     RolesModule,
+    NotificationsModule,
     dbType === 'mongodb'
       ? MongooseModule.forFeature([
           { name: MongoUser.name, schema: UserSchema },
         ])
-      : TypeOrmModule.forFeature([User]),
+      : TypeOrmModule.forFeature([User, Store, Product, Order]),
   ],
   controllers: [UsersController],
   providers: [

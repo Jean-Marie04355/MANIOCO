@@ -73,4 +73,10 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
       .findByIdAndUpdate(id, { deletedAt: new Date() } as object)
       .exec();
   }
+
+  async restore(id: string | number): Promise<void> {
+    await this.repo
+      .findByIdAndUpdate(id, { deletedAt: null } as object)
+      .exec();
+  }
 }

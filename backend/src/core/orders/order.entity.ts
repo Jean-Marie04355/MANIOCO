@@ -39,6 +39,13 @@ export class Order {
   })
   status: OrderStatus;
 
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  commissionRate: number;
+
+  @Column('decimal', { precision: 12, scale: 2, default: 0 })
+  commissionAmount: number;
+
+
   // Stockage des items en format JSON pour la flexibilité (compatible SQLite/Postgres)
   @Column('simple-json', { nullable: true })
   items: {

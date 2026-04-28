@@ -48,6 +48,10 @@ export class AbstractRepository<T extends { id: string | number }>
     await this.repo.softDelete(id);
   }
 
+  async restore(id: string | number): Promise<void> {
+    await this.repo.restore(id);
+  }
+
   save(entity: T): Promise<T> {
     return this.repo.save(entity);
   }

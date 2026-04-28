@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { io, Socket } from 'socket.io-client';
 import api from '@/lib/axios';
 
 interface User {
@@ -8,6 +9,12 @@ interface User {
   name: string;
   email: string;
   role: string;
+  isVerified: boolean;
+  kycStatus: 'NOT_SUBMITTED' | 'PENDING' | 'REJECTED' | 'APPROVED';
+  kycRejectionReasons: string | null;
+  dob: string | null;
+  nationality: string | null;
+  phoneNumber: string | null;
   profilePhoto?: string;
 }
 
@@ -18,6 +25,7 @@ interface AuthContextType {
   login: (token: string, userData?: User) => void;
   logout: () => void;
   fetchUser: () => Promise<void>;
+  socket: Socket | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,21 +34,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-  // Initialize auth state from localStorage on mount
   useEffect(() => {
     const initializeAuth = async () => {
       if (typeof window !== 'undefined') {
-        const storedToken = localStorage.getItem('afrigari_jwt');
+        const storedToken = localStorage.getItem('accessToken');
         if (storedToken) {
           setToken(storedToken);
+          api.defaults.headers.common['Authorization'] = `Bearer ${storedToken}`;
           try {
-            // Fetch user data if we have a token
             const response = await api.get('/auth/me');
             setUser(response.data);
           } catch (error) {
-            console.error("Failed to fetch user with stored token", error);
-            localStorage.removeItem('afrigari_jwt');
+            console.error("Session invalide");
+            localStorage.removeItem('accessToken');
             setToken(null);
           }
         }
@@ -51,10 +59,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     initializeAuth();
   }, []);
 
+  useEffect(() => {
+    if (token && user) {
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000/realtime';
+        const newSocket = io(socketUrl, {
+            auth: { token },
+            transports: ['websocket']
+        });
+        setSocket(newSocket);
+        return () => { newSocket.disconnect(); };
+    } else if (socket) {
+        socket.disconnect();
+        setSocket(null);
+    }
+  }, [token, user]);
+
   const login = (newToken: string, userData?: User) => {
     if (typeof window !== 'undefined') {
-      localStorage.setItem('afrigari_jwt', newToken);
+      localStorage.setItem('accessToken', newToken);
     }
+    api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`;
     setToken(newToken);
     if (userData) {
       setUser(userData);
@@ -65,8 +89,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = () => {
     if (typeof window !== 'undefined') {
-      localStorage.removeItem('afrigari_jwt');
+      localStorage.removeItem('accessToken');
     }
+    api.defaults.headers.common['Authorization'] = '';
     setToken(null);
     setUser(null);
     window.location.href = '/auth/login';
@@ -76,13 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       const response = await api.get('/auth/me');
       setUser(response.data);
-    } catch (error) {
-      console.error("Failed to fetch user", error);
-    }
+    } catch (error) {}
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, isLoading, login, logout, fetchUser }}>
+    <AuthContext.Provider value={{ user, token, isLoading, login, logout, fetchUser, socket }}>
       {children}
     </AuthContext.Provider>
   );

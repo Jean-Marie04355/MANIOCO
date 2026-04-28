@@ -9,7 +9,7 @@ export class RolesService {
   constructor(
     @Inject('ROLE_REPOSITORY')
     private readonly roleRepository: IBaseRepository<Role>,
-  ) {}
+  ) { }
 
   async findAll() {
     return this.roleRepository.find();
@@ -31,10 +31,6 @@ export class RolesService {
     const role = await this.roleRepository.findOne({ id } as object);
     if (!role) {
       throw new NotFoundException(`Role with ID ${id} not found.`);
-    }
-
-    if (role.isSystem) {
-      throw new ForbiddenException('System roles cannot be modified.');
     }
 
     return this.roleRepository.update(id, data);
@@ -60,11 +56,11 @@ export class RolesService {
         name: 'admin',
         isSystem: true,
         permissions: [
+          Permission.USERS_VIEW,
           Permission.USERS_MANAGE,
-          Permission.PRODUCTS_MANAGE,
-          Permission.ORDERS_MANAGE,
-          Permission.PRODUCT_CATEGORIES_MANAGE,
           Permission.STORES_MANAGE,
+          Permission.ORDERS_VIEW,
+          Permission.ORDERS_MANAGE,
         ],
       },
       {

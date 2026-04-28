@@ -3,6 +3,7 @@ import { ChevronLeft, ArrowRight, ShieldCheck, Timer, RefreshCw, Leaf, Sparkles,
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/features/auth/AuthContext';
 
 export default function AdminVerifyPage() {
   const router = useRouter();
@@ -13,6 +14,7 @@ export default function AdminVerifyPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const inputRefs = useRef<any>([]);
+  const { login } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -80,7 +82,7 @@ export default function AdminVerifyPage() {
         throw new Error(data.message || 'Le code saisi est invalide ou expiré.');
       }
 
-      localStorage.setItem('accessToken', data.accessToken);
+      login(data.accessToken, data.user);
       
       if (data.user.role === 'super_admin') {
         router.push('/dashboard/super-admin');

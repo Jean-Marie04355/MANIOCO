@@ -34,6 +34,11 @@ export class NotificationsService {
     return { success: true, count: unread.length };
   }
 
+  async countUnread(userId: string): Promise<{ count: number }> {
+    const unread = await this.repo.find({ where: { userId, isRead: false } } as any);
+    return { count: unread.length };
+  }
+
   async delete(id: string) {
     return this.repo.delete(id);
   }

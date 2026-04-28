@@ -40,7 +40,7 @@ export class Product {
   @Column({ nullable: true })
   storeId: string;
 
-  @ManyToOne(() => Store, { nullable: true })
+  @ManyToOne(() => Store, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'storeId' })
   store: Store;
 

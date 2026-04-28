@@ -3,6 +3,7 @@ import {
   PrimaryGeneratedColumn,
   Column,
   DeleteDateColumn,
+  CreateDateColumn,
 } from 'typeorm';
 import { UserRole } from '../../common/enum/role.enum';
 
@@ -24,6 +25,9 @@ export class User {
   @Column({ type: 'varchar', default: UserRole.CLIENT })
   role: UserRole;
 
+  @Column({ type: 'simple-array', nullable: true })
+  permissions: string[];
+
   @Column({ nullable: true })
   profilePhoto: string;
 
@@ -33,6 +37,42 @@ export class User {
   @Column({ nullable: true })
   otpExpiresAt: Date;
 
+  @Column({ default: true })
+  isVerified: boolean;
+
+  @Column({ type: 'datetime', nullable: true })
+  suspensionUntil: Date;
+
+  @Column({ nullable: true })
+  suspensionReason: string;
+
+  // --- KYC / VENDOR VERIFICATION ---
+  @Column({ nullable: true })
+  dob: string; // Date of birth
+
+  @Column({ nullable: true })
+  nationality: string;
+
+  @Column({ nullable: true })
+  phoneNumber: string;
+
+  @Column({ nullable: true })
+  idCardFront: string; // URL
+
+  @Column({ nullable: true })
+  idCardBack: string; // URL
+
+  @Column({ nullable: true })
+  sellerSelfie: string; // URL
+
+  @Column({ type: 'varchar', default: 'NOT_SUBMITTED' })
+  kycStatus: 'NOT_SUBMITTED' | 'PENDING' | 'REJECTED' | 'APPROVED';
+
+  @Column({ type: 'text', nullable: true })
+  kycRejectionReasons: string; // JSON: { dob: '...', nationality: '...', ... }
+
+  @CreateDateColumn()
+  createdAt: Date;
 
   @DeleteDateColumn({ nullable: true })
   deletedAt: Date;

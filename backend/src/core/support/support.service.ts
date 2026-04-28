@@ -40,8 +40,9 @@ export class SupportService {
   }
 
   async getAllTickets(): Promise<Ticket[]> {
-    return this.ticketRepository.find();
+    return this.ticketRepository.find({ relations: ['seller'] } as any);
   }
+
 
   async getTicketDetails(id: string): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({ id });
@@ -84,4 +85,12 @@ export class SupportService {
     await this.ticketRepository.update(id, { status });
     return this.getTicketDetails(id);
   }
+
+  async countActiveTickets(): Promise<number> {
+    const activeStatuses = [TicketStatus.OPEN, TicketStatus.IN_PROGRESS];
+    const tickets = await this.ticketRepository.find();
+    // On filtre manuellement car le dépôt peut varier (SQL/NoSQL)
+    return tickets.filter((t: any) => activeStatuses.includes(t.status)).length;
+  }
 }
+

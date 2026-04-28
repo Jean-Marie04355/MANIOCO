@@ -1,7 +1,29 @@
-# Afrigari — Backend NestJS
+<h1 align="center">
+  Mailpit - email testing for developers
+</h1>
 
-Backend NestJS (TypeScript) avec :
+<div align="center">
+    <a href="https://github.com/axllent/mailpit/actions/workflows/tests.yml"><img src="https://github.com/axllent/mailpit/actions/workflows/tests.yml/badge.svg" alt="CI Tests status"></a>
+    <a href="https://github.com/axllent/mailpit/actions/workflows/release-build.yml"><img src="https://github.com/axllent/mailpit/actions/workflows/release-build.yml/badge.svg" alt="CI build status"></a>
+    <a href="https://github.com/axllent/mailpit/actions/workflows/build-docker.yml"><img src="https://github.com/axllent/mailpit/actions/workflows/build-docker.yml/badge.svg" alt="CI Docker build status"></a>
+    <a href="https://github.com/axllent/mailpit/actions/workflows/codeql-analysis.yml"><img src="https://github.com/axllent/mailpit/actions/workflows/codeql-analysis.yml/badge.svg" alt="Code quality"></a>
+    <a href="https://goreportcard.com/report/github.com/axllent/mailpit"><img src="https://goreportcard.com/badge/github.com/axllent/mailpit" alt="Go Report Card"></a>
+    <br>
+    <a href="https://github.com/axllent/mailpit/releases/latest"><img src="https://img.shields.io/github/v/release/axllent/mailpit.svg" alt="Latest release"></a>
+    <a href="https://hub.docker.com/r/axllent/mailpit"><img src="https://img.shields.io/docker/pulls/axllent/mailpit.svg" alt="Docker pulls"></a>
+</div>
+<br>
+<p align="center">
+  <a href="https://mailpit.axllent.org">Website</a>  •
+  <a href="https://mailpit.axllent.org/docs/">Documentation</a>  •
+  <a href="https://mailpit.axllent.org/docs/api-v1/">API</a>
+</p>
 
+<<<<<<< HEAD
+<hr>
+
+**Mailpit** is a small, fast, low memory, zero-dependency, multi-platform email testing tool & API for developers.
+=======
 - **Users** : Système complet d'authentification et de rôles.
 - **Stockage S3** : Gestion des images via Minio/AWS S3 avec conversion automatique.
 - **Notifications** : Système d'alertes en temps réel pour les commandes et messages.
@@ -47,278 +69,104 @@ Backend NestJS (TypeScript) avec :
 *   **Semaine 9** : Déploiement final, Documentation et Livraison.
 
 ## 🚀 Démarrage rapide
+>>>>>>> origin/feature/seller-products
 
-### Prérequis
+It acts as an SMTP server, provides a modern web interface to view & test captured emails, and includes an API for automated integration testing.
 
-- Node.js + npm
-- Une base de données selon la config :
-  - MongoDB si `DB_TYPE=mongodb`
-  - SQLite/Postgres si `DB_TYPE` n’est pas `mongodb`
+Mailpit was originally **inspired** by MailHog which is [no longer maintained](https://github.com/mailhog/MailHog/issues/442#issuecomment-1493415258) and hasn't seen active development or security updates for a few years now.
 
-### Installation
+![Mailpit](https://raw.githubusercontent.com/axllent/mailpit/develop/server/ui-src/screenshot.png)
 
-```bash
-npm install
+
+## Features
+
+- Runs entirely from a single [static binary](https://mailpit.axllent.org/docs/install/) or multi-architecture [Docker images](https://mailpit.axllent.org/docs/install/docker/)
+- Modern web UI with advanced [mail search](https://mailpit.axllent.org/docs/usage/search-filters/) to view emails (formatted HTML, highlighted HTML source, text, headers, raw source, and MIME attachments
+including image thumbnails), including optional [HTTPS](https://mailpit.axllent.org/docs/configuration/http/) & [authentication](https://mailpit.axllent.org/docs/configuration/http/)
+- [SMTP server](https://mailpit.axllent.org/docs/configuration/smtp/) with optional STARTTLS or SSL/TLS, authentication (including an "accept any" mode)
+- A [REST API](https://mailpit.axllent.org/docs/api-v1/) for integration testing
+- Real-time web UI updates using web sockets for new mail & optional [browser notifications](https://mailpit.axllent.org/docs/usage/notifications/) when new mail is received
+- Optional [POP3 server](https://mailpit.axllent.org/docs/configuration/pop3/) to download captured message directly into your email client
+- [HTML check](https://mailpit.axllent.org/docs/usage/html-check/) to test & score mail client compatibility with HTML emails
+- [Link check](https://mailpit.axllent.org/docs/usage/link-check/) to test message links (HTML & text) & linked images
+- [Spam check](https://mailpit.axllent.org/docs/usage/spamassassin/) to test message "spamminess" using a running SpamAssassin server
+- [Create screenshots](https://mailpit.axllent.org/docs/usage/html-screenshots/) of HTML messages via web UI
+- Mobile and tablet HTML preview toggle in desktop mode
+- [Message tagging](https://mailpit.axllent.org/docs/usage/tagging/) including manual tagging or automated tagging using filtering and "plus addressing"
+- [SMTP relaying](https://mailpit.axllent.org/docs/configuration/smtp-relay/) (message release) - relay messages via a different SMTP server including an optional allowlist of accepted recipients
+- [SMTP forwarding](https://mailpit.axllent.org/docs/configuration/smtp-forward/) - automatically forward messages via a different SMTP server to predefined email addresses
+- Fast message [storing & processing](https://mailpit.axllent.org/docs/configuration/email-storage/) - ingesting 100-200 emails per second over SMTP depending on CPU, network speed & email size,
+easily handling tens of thousands of emails, with automatic email pruning (by default keeping the most recent 500 emails)
+- [Chaos](https://mailpit.axllent.org/docs/integration/chaos/) feature to enable configurable SMTP errors to test application resilience
+- `List-Unsubscribe` syntax validation
+- Optional [webhook](https://mailpit.axllent.org/docs/integration/webhook/) for received messages
+
+
+## Installation
+
+The Mailpit web UI listens by default on `http://0.0.0.0:8025` and the SMTP port on `0.0.0.0:1025`.
+
+Mailpit runs as a single binary and can be installed in different ways:
+
+
+### Install via package managers
+
+- **Mac**: `brew install mailpit` (to run automatically in the background: `brew services start mailpit`)
+- **Arch Linux**: available in the AUR as `mailpit`
+- **FreeBSD**: `pkg install mailpit`
+
+
+### Install via script (Linux & Mac)
+
+Linux & Mac users can install it directly to `/usr/local/bin/mailpit` with:
+
+```shell
+sudo sh < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)
 ```
 
-Si tu as un conflit de dépendances (peer-deps TypeORM/Mongo), tu peux utiliser :
+You can also change the install path to something else by setting the `INSTALL_PATH` environment, for example:
 
-```bash
-npm install --legacy-peer-deps
+```shell
+sudo INSTALL_PATH=/usr/bin sh < <(curl -sL https://raw.githubusercontent.com/axllent/mailpit/develop/install.sh)
 ```
 
-### Lancer le serveur
 
-```bash
-npm run start:dev
-```
+### Download static binary (Windows, Linux and Mac)
 
-- **Swagger** : `http://localhost:3000/api`
+Static binaries can always be found on the [releases](https://github.com/axllent/mailpit/releases/latest). The `mailpit` binary can be extracted and copied to your `$PATH`, or simply run as `./mailpit`.
 
-## Variables d’environnement (principales)
 
-- **DB_TYPE** : `mongodb` (sinon SQL)
-- **MONGO_URI** : ex `mongodb://localhost:27017/afrigari`
-- **STORAGE_TYPE** : `json` (défaut), `mongo`, `postgres`
-- **JWT_SECRET** : secret de signature des JWT (**obligatoire en production**)
-- **JWT_EXPIRES_IN** : durée de vie du token (ex: `1d`, `12h`, `3600s`)
+### Docker
 
-## Authentification (JWT) — explication détaillée du code
+See [Docker instructions](https://mailpit.axllent.org/docs/install/docker/) for 386, amd64 & arm64 images.
 
-Cette implémentation ajoute une authentification basée sur des **JSON Web Tokens (JWT)**.
 
-### Objectif (ce que l’auth apporte concrètement)
+### Compile from source
 
-- Permettre la **connexion** avec `email + password` (vérification bcrypt côté serveur).
-- Retourner un **token JWT** (ici `accessToken`) au client.
-- Protéger des routes via un **guard JWT** (pas de token → accès refusé).
-- Restreindre certaines routes via un **contrôle de rôle** (RBAC) : ex `admin` uniquement.
+To build Mailpit from source, see [Building from source](https://mailpit.axllent.org/docs/install/source/).
 
-### Notions essentielles (cours) : JWT / Passport / Guards / RBAC
 
-#### 1) JWT : structure et propriétés importantes
+## Usage
 
-Un JWT est composé de 3 parties (séparées par des points) :
+Run `mailpit -h` to see options. More information can be seen in [the docs](https://mailpit.axllent.org/docs/configuration/runtime-options/).
 
-- **Header** : indique l’algo (ex: HS256).
-- **Payload** : contient des données (“claims”) comme `email`, `role`, `exp`…
-- **Signature** : permet au serveur de vérifier que le token n’a pas été modifié (grâce à `JWT_SECRET`).
+If installed using homebrew, you may run `brew services start mailpit` to always run mailpit automatically.
 
-Points importants :
 
-- Un JWT **n’est pas chiffré** : il est seulement **signé**.
-  - Donc on ne doit jamais mettre de mot de passe, secret, ou données sensibles dans le payload.
-- Un JWT contient souvent des timestamps :
-  - `iat` (issued at)
-  - `exp` (expiration)
+### Testing Mailpit
 
-#### 2) Authentification vs autorisation
+Please refer to [the documentation](https://mailpit.axllent.org/docs/install/testing/) on how to easily test email delivery to Mailpit.
 
-- **Authentification** : “Qui es-tu ?” → le token prouve ton identité.
-- **Autorisation** : “As-tu le droit ?” → le rôle (ou permissions) décide de l’accès.
 
-Dans notre code :
+### Configuring sendmail
 
-- Authentification = `JwtAuthGuard`
-- Autorisation = `RolesGuard` + `@Roles(...)`
+Mailpit's SMTP server (default on port 1025), so you will likely need to configure your sending application to deliver mail via that port. 
+A common MTA (Mail Transfer Agent) that delivers system emails to an SMTP server is `sendmail`, used by many applications, including PHP. 
+Mailpit can also act as substitute for sendmail. For instructions on how to set this up, please refer to the [sendmail documentation](https://mailpit.axllent.org/docs/install/sendmail/).
 
-#### 3) Pourquoi Passport ?
+---
 
-NestJS délègue l’auth à Passport (standard Node) :
-
-- Un **Guard** déclenche une **Strategy**.
-- La Strategy valide le token et retourne un objet user.
-- Nest place cet objet dans `request.user`.
-
-### Inventaire complet des fichiers (avec le rôle exact de chacun)
-
-#### Auth (dans `src/core/auth/`)
-
-- **`src/core/auth/auth.module.ts`**
-  - Assemble le module Auth.
-  - Importe :
-    - `PassportModule` (support des stratégies)
-    - `UsersModule` (pour appeler `UsersService`)
-    - `JwtModule` configuré avec :
-      - `JWT_SECRET` (fallback : `dev_secret_change_me`)
-      - `JWT_EXPIRES_IN` (fallback : `1d`)
-  - Enregistre `AuthController`, `AuthService`, `JwtStrategy`.
-
-- **`src/core/auth/auth.controller.ts`**
-  - Déclare les endpoints :
-    - `POST /auth/login`
-    - `GET /auth/me` (protégé par `@UseGuards(JwtAuthGuard)`)
-
-- **`src/core/auth/dto/login.dto.ts`**
-  - Définit et valide le body de login :
-    - `email`: `@IsEmail()`
-    - `password`: `@IsNotEmpty()` + `@MinLength(6)`
-
-- **`src/core/auth/auth.service.ts`**
-  - `login(email, password)` :
-    - récupère l’utilisateur (`UsersService.findByEmail`)
-    - compare le mot de passe (`comparePassword` → bcrypt)
-    - signe un JWT (`JwtService.signAsync`)
-    - renvoie `{ accessToken, user }`
-  - `me(user)` :
-    - renvoie des infos dérivées de `request.user`
-
-- **`src/core/auth/guards/jwt-auth.guard.ts`**
-  - `JwtAuthGuard extends AuthGuard('jwt')`
-  - C’est lui qui “active” Passport + stratégie `jwt` sur une route.
-
-- **`src/core/auth/strategies/jwt.strategy.ts`**
-  - Utilise `passport-jwt`.
-  - Extrait le token depuis `Authorization: Bearer <token>`.
-  - Vérifie :
-    - signature avec `JWT_SECRET`
-    - expiration (car `ignoreExpiration: false`)
-  - `validate(payload)` :
-    - vérifie que `payload.email` et `payload.role` existent
-    - retourne `{ email, role, userId }` qui devient `request.user`
-
-#### Rôles / RBAC (dans `src/common/`)
-
-- **`src/common/enum/role.enum.ts`**
-  - Enum des rôles : `client`, `vendeur`, `livreur`, `admin`.
-
-- **`src/common/decorators/roles.decorator.ts`**
-  - `@Roles(...)` stocke une métadonnée `roles` sur la route.
-
-- **`src/common/guards/roles.guard.ts`**
-  - Lit la métadonnée `roles` via `Reflector`.
-  - Compare `request.user.role` aux rôles autorisés.
-  - Si rôle manquant → 403 “auth manquante”
-  - Si rôle insuffisant → 403 “role insuffisant”
-
-#### Impact sur les contrôleurs métiers
-
-- **`src/core/files/files.controller.ts`**
-  - `@UseGuards(JwtAuthGuard)` au niveau du contrôleur
-  - Donc toutes les routes `/files` sont accessibles uniquement avec un JWT valide.
-
-- **`src/core/users/users.controller.ts`**
-  - Routes admin :
-    - `GET /users`
-    - `GET /users/:id`
-    - `PATCH /users/:id`
-    - `DELETE /users/:id`
-    - protégées par `JwtAuthGuard` + `RolesGuard` + `@Roles(UserRole.ADMIN)`
-  - Route publique :
-    - `POST /users` (création user)
-
-- **`src/core/users/dto/create-user.dto.ts`**
-  - `role` est **optionnel** et limité à :
-    - `client`, `vendeur`, `livreur`
-  - `admin` est volontairement interdit à l’inscription publique.
-
-### Comment tout s’enchaîne (diagramme mental simple)
-
-1) `POST /auth/login` → vérifie password → retourne `accessToken`
-2) Sur une route protégée :
-   - `JwtAuthGuard` → appelle `JwtStrategy`
-   - `JwtStrategy.validate()` → remplit `request.user`
-3) Sur une route admin :
-   - `RolesGuard` → lit `@Roles(...)` → compare avec `request.user.role`
-
-### Flux d’exécution détaillé (pas à pas, comme en cours)
-
-#### A) Connexion : `POST /auth/login`
-
-1. Le client envoie `{ email, password }`.
-2. `AuthController.login()` appelle `AuthService.login(body.email, body.password)`.
-3. `AuthService` :
-   - récupère le user via `UsersService.findByEmail(email)`
-   - compare le password via `comparePassword(password, user.password)`
-   - construit le payload JWT :
-     - `sub = email`
-     - `email`
-     - `role`
-     - `userId`
-   - signe un token via `JwtService.signAsync(payload, { expiresIn })`
-4. Le serveur renvoie `{ accessToken, user }`.
-
-#### B) Accès à une route protégée (ex: `GET /files`)
-
-1. Le client envoie `Authorization: Bearer <accessToken>`.
-2. `JwtAuthGuard` déclenche Passport avec la stratégie `jwt`.
-3. `JwtStrategy` :
-   - extrait le token depuis le header
-   - valide signature + exp
-   - appelle `validate(payload)`
-4. `validate(payload)` retourne `{ email, role, userId }`.
-5. Nest attache cet objet à `request.user`.
-6. Le contrôleur s’exécute.
-
-#### C) Accès à une route admin (ex: `GET /users`)
-
-1. `JwtAuthGuard` valide et remplit `request.user`.
-2. `RolesGuard` lit la métadonnée posée par `@Roles(UserRole.ADMIN)`.
-3. `RolesGuard` vérifie `request.user.role === 'admin'`.
-4. Sinon → 403.
-
-### Tester (avec `curl`)
-
-#### 1) Login (admin seed)
-
-```bash
-curl -s -X POST http://localhost:3000/auth/login \
-  -H 'Content-Type: application/json' \
-  -d '{"email":"admin@afrigari.com","password":"PLACEHOLDER"}'
-```
-
-#### 2) `/auth/me`
-
-```bash
-TOKEN="<COLLE_ICI_LE_accessToken>"
-curl -s http://localhost:3000/auth/me -H "Authorization: Bearer $TOKEN"
-```
-
-#### 3) `/files` (protégé)
-
-Sans token (doit échouer) :
-
-```bash
-curl -i http://localhost:3000/files
-```
-
-Avec token (doit fonctionner) :
-
-```bash
-TOKEN="<COLLE_ICI_LE_accessToken>"
-curl -s http://localhost:3000/files -H "Authorization: Bearer $TOKEN"
-```
-
-#### 4) `/users` (admin uniquement)
-
-```bash
-TOKEN="<COLLE_ICI_LE_accessToken>"
-curl -i http://localhost:3000/users -H "Authorization: Bearer $TOKEN"
-```
-
-### Codes d’erreur à connaître
-
-- **401** :
-  - mauvais email/password
-  - token absent/invalide/expiré sur route protégée
-- **403** :
-  - token valide mais rôle insuffisant sur route admin
-
-### Configuration production (très important)
-
-- Définir **`JWT_SECRET`** (fort et privé).
-- Choisir **`JWT_EXPIRES_IN`** selon le besoin (souvent plus court en prod).
-
-### Limites actuelles (V1) + pistes d’évolution (V2)
-
-Actuellement :
-
-- Pas de refresh token
-- Pas de logout serveur (blacklist)
-- Swagger n’a pas encore de bouton “Authorize” (schéma Bearer non ajouté dans `DocumentBuilder`)
-
-Évolutions possibles :
-
-- Ajouter `addBearerAuth()` dans `src/main.ts` (Swagger)
-- Implémenter refresh tokens (`/auth/refresh`) + rotation
-- Ajouter `/auth/logout` (invalidation refresh)
+<p align="center">
+  For team features, multiple inboxes, and a hosted setup, try
+  <a href="https://mailtrap.io/?ref=mailpit">Mailtrap</a>, our friendly companion.
+</p>

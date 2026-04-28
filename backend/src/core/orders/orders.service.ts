@@ -12,12 +12,14 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { Store } from '../store/store.entity';
 import { Product } from '../products/product.entity';
+import { User } from '../users/user.entity';
 import { OrderStatus } from '../../common/enum/order-status.enum';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { UserRole } from '../../common/enum/role.enum';
 import { StoreService } from '../store/store.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/notification.entity';
+import { SupportService } from '../support/support.service';
 
 @Injectable()
 export class OrdersService {
@@ -28,10 +30,13 @@ export class OrdersService {
     private readonly storeRepository: IBaseRepository<Store>,
     @Inject('PRODUCT_REPOSITORY')
     private readonly productRepository: IBaseRepository<Product>,
+    @Inject('USER_REPOSITORY')
+    private readonly userRepository: IBaseRepository<User>,
     @Inject(forwardRef(() => PaymentsService))
     private readonly paymentsService: PaymentsService,
     private readonly storeService: StoreService,
     private readonly notificationsService: NotificationsService,
+    private readonly supportService: SupportService,
   ) {}
 
   async create(
@@ -107,17 +112,25 @@ export class OrdersService {
       });
     }
 
-    // 3. Create the order in the database
+    // 3. Calculate platform commission (default 10%)
+    const DEFAULT_COMMISSION_RATE = 10.0;
+    const commissionAmount = (validatedTotalAmount * DEFAULT_COMMISSION_RATE) / 100;
+
+    // 4. Create the order in the database
     const orderData = {
       ...createOrderDto,
       totalAmount: validatedTotalAmount,
+      commissionRate: DEFAULT_COMMISSION_RATE,
+      commissionAmount: commissionAmount,
       items: validatedItems,
     };
 
     const order = await this.orderRepository.create(orderData);
 
-    // 4. Notify the seller
+    // Notify the seller and admins
+
     try {
+      // Notify Seller
       await this.notificationsService.create({
         userId: store.ownerId,
         type: NotificationType.ORDER,
@@ -125,6 +138,9 @@ export class OrdersService {
         message: `Vous avez reçu une nouvelle commande de ${validatedTotalAmount.toLocaleString()} FCFA.`,
         metadata: JSON.stringify({ orderId: order.id }),
       });
+
+      // Notify Admins
+      this.notifyAdminsOfNewOrder(order, validatedTotalAmount);
     } catch (error) {
       console.error('Notification error:', error);
     }
@@ -162,6 +178,29 @@ export class OrdersService {
     }
   }
 
+  private async notifyAdminsOfNewOrder(order: Order, amount: number) {
+    try {
+      const admins = await this.userRepository.find({
+        where: [
+          { role: UserRole.ADMIN },
+          { role: UserRole.SUPER_ADMIN }
+        ]
+      } as any);
+
+      for (const admin of admins) {
+        await this.notificationsService.create({
+          userId: admin.id,
+          type: NotificationType.ORDER,
+          title: 'Nouvelle vente Afrigari',
+          message: `Une commande de ${amount.toLocaleString()} FCFA vient d'être passée (#${order.id.split('-')[0]}).`,
+          metadata: JSON.stringify({ orderId: order.id })
+        });
+      }
+    } catch (error) {
+      console.error('Failed to notify admins of new order', error);
+    }
+  }
+
   /**
    * Restores product stock for a given order
    */
@@ -196,7 +235,10 @@ export class OrdersService {
 
   async findAll(user: AuthenticatedUser): Promise<Order[]> {
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
-      return this.orderRepository.find();
+      return this.orderRepository.find({
+        relations: ['customer', 'store'],
+        order: { createdAt: 'DESC' }
+      } as any);
     }
 
     if (user.role === UserRole.VENDEUR) {
@@ -289,5 +331,31 @@ export class OrdersService {
   async updateStatusInternal(id: string, status: OrderStatus): Promise<Order | null> {
     await this.orderRepository.update(id, { status });
     return this.orderRepository.findOne({ id } as object);
+  }
+
+  async getAdminDashboardStats() {
+    const orders = await this.orderRepository.find();
+    const users = await this.userRepository.find();
+    
+    const paidStatuses = [OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
+    
+    const totalSalesCount = orders.filter(o => paidStatuses.includes(o.status)).length;
+    const totalRevenue = orders
+      .filter(o => paidStatuses.includes(o.status))
+      .reduce((sum, o) => sum + Number(o.commissionAmount || 0), 0);
+
+    const sellersCount = users.filter(u => u.role === UserRole.VENDEUR).length;
+    const pendingKycCount = users.filter(u => u.kycStatus === 'PENDING').length;
+    const activeTicketsCount = await this.supportService.countActiveTickets();
+
+    return {
+      totalRevenue,
+      totalSalesCount,
+      customersCount: users.filter(u => u.role === UserRole.CLIENT).length,
+      sellersCount,
+      pendingKycCount,
+      activeTicketsCount,
+      totalUsers: users.length
+    };
   }
 }

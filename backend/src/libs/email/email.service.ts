@@ -15,13 +15,17 @@ export class EmailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST,
-      port: Number(process.env.SMTP_PORT || 587),
-      secure: process.env.SMTP_PORT === '465',
-      auth: {
+      host: process.env.SMTP_HOST || '127.0.0.1',
+      port: Number(process.env.SMTP_PORT || 1025),
+      secure: false, // Mailpit 1025 is not secure
+      ignoreTLS: true, // IMPORTANT for Mailpit
+      auth: (process.env.SMTP_USER && process.env.SMTP_USER !== 'null') ? {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
-      },
+      } : undefined,
+      tls: {
+        rejectUnauthorized: false
+      }
     });
   }
 
@@ -39,7 +43,14 @@ export class EmailService {
       
       this.logger.log('Email sent successfully');
     } catch (error: any) {
-      this.logger.error('Failed to send email');
+      this.logger.error(`Failed to send email to ${options.to}. Error: ${error.message}`);
+      this.logger.warn(`Fallback (DEV ONLY) - Contenu de l'email :
+      ---------------------------------
+      Sujet: ${options.subject}
+      Message: ${options.text || options.html}
+      ---------------------------------`);
+      // In dev, we don't always want to crash the worker if SMTP fails
+      if (process.env.NODE_ENV === 'development') return;
       throw error;
     }
   }
