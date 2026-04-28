@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Bell, ChevronDown, User, LogOut, Settings } from 'lucide-react';
+import { Bell, ChevronDown, User, LogOut, Settings, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthContext';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -107,6 +107,13 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
       isAdmin ? 'bg-white border-b border-slate-100' : 'bg-[#151921] border-b border-slate-800'
     }`}>
       <div className="flex items-center gap-4">
+        <button 
+          onClick={() => router.back()}
+          className={`p-2 rounded-lg transition-colors ${isAdmin ? 'hover:bg-slate-100 text-slate-400' : 'hover:bg-slate-800 text-slate-500'}`}
+          title="Retour"
+        >
+          <ArrowLeft size={20} />
+        </button>
         <h1 className={`text-lg font-bold ${isAdmin ? 'text-slate-900' : 'text-white'}`}>{title}</h1>
       </div>
 

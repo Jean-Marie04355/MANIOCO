@@ -1,5 +1,5 @@
 "use client";
-import { ShoppingCart, Search, Plus, Star, ArrowRight, Heart, Grid, Package, Wallet, UserCircle, Settings, HelpCircle, ChevronDown, Clock, ShieldCheck, MapPin, Sparkles, Filter, Store, PackageCheck, LogOut, Loader2, User, LayoutGrid, TrendingUp, ArrowUpRight, Activity as ActivityIcon, History } from 'lucide-react';
+import { ShoppingCart, Search, Plus, Star, ArrowRight, Heart, Grid, Package, Wallet, UserCircle, Settings, HelpCircle, ChevronDown, Clock, ShieldCheck, MapPin, Sparkles, Filter, Store, PackageCheck, LogOut, Loader2, User, LayoutGrid, TrendingUp, ArrowUpRight, Activity as ActivityIcon, History, ArrowLeft } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
@@ -18,8 +18,10 @@ export default function ClientDashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [stats, setStats] = useState({ orders: 0, balance: 45200, points: 1250 });
+  const [stats, setStats] = useState({ orders: 0, balance: 0, points: 0 });
   const [recentOrders, setRecentOrders] = useState<any[]>([]);
+  const [nearbyStores, setNearbyStores] = useState<any[]>([]);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -41,11 +43,38 @@ export default function ClientDashboard() {
           // Fetch real stats
           try {
              const ordersRes = await api.get('/orders');
-             setStats(prev => ({ ...prev, orders: ordersRes.data.length }));
-             setRecentOrders(ordersRes.data.slice(0, 5));
+             const orders = ordersRes.data || [];
+             
+             // Calculer le total dépensé réel
+             const totalSpent = orders.reduce((acc: number, order: any) => {
+                // On ne compte que les commandes payées ou livrées si nécessaire, 
+                // mais ici on prend tout ce qui est validé
+                return acc + Number(order.totalAmount || 0);
+             }, 0);
+
+             setStats({ 
+                orders: orders.length, 
+                balance: totalSpent, 
+                points: Math.floor(totalSpent / 100) // Exemple: 1 point pour 100F dépensés
+             });
+             setRecentOrders(orders.slice(0, 5));
           } catch (e) {
              console.error("Erreur stats commandes", e);
           }
+        }
+
+        // Fetch nearby stores if geolocation is available
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(async (pos) => {
+            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            setUserLocation(loc);
+            try {
+              const nearbyRes = await api.get(`/stores/nearby?lat=${loc.lat}&lng=${loc.lng}&radius=50`);
+              setNearbyStores(nearbyRes.data.slice(0, 3));
+            } catch (e) {
+              console.error("Erreur chargement boutiques proches", e);
+            }
+          });
         }
       } catch (error: any) {
         console.error("Erreur chargement données client", error);
@@ -70,6 +99,9 @@ export default function ClientDashboard() {
          <nav className={`sticky top-0 z-50 transition-all duration-500 px-8 py-4 ${scrolled ? 'bg-white/80 backdrop-blur-xl border-b border-forest-night/5 shadow-sm' : 'bg-transparent'}`}>
             <div className="max-w-7xl mx-auto flex justify-between items-center">
                <div className="flex items-center gap-4">
+                  <button onClick={() => window.history.back()} className="p-2 hover:bg-forest-night/5 rounded-xl transition-all mr-2">
+                     <ArrowLeft size={20} />
+                  </button>
                   <h1 className="text-xl font-black tracking-tighter uppercase italic text-forest-night">Dashboard <span className="text-afrigari-gold">Client</span></h1>
                </div>
 
@@ -139,7 +171,7 @@ export default function ClientDashboard() {
                </div>
 
                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <StatCard icon={Wallet} label="Mon Solde" value={`${stats.balance.toLocaleString()} F`} change="+2.5% ce mois" color="bg-forest-night text-white" />
+                  <StatCard icon={Wallet} label="Total Dépensé" value={`${stats.balance.toLocaleString()} F`} change="+2.5% ce mois" color="bg-forest-night text-white" />
                   <StatCard icon={Package} label="Commandes" value={stats.orders.toString().padStart(2, '0')} desc="Dernière commande : hier" color="bg-white border border-forest-night/5 shadow-sm" />
                   <StatCard icon={Star} label="Fidélité" value={`${stats.points.toLocaleString()} pts`} change="+150 ce mois" color="bg-white border border-forest-night/5 shadow-sm" />
                   <StatCard icon={ActivityIcon} label="Impact Social" value="Elevé" desc="Soutien local" color="bg-afrigari-gold text-white" />
@@ -184,24 +216,38 @@ export default function ClientDashboard() {
                   </div>
                </div>
 
-               {/* Traceability Spotlight Widget */}
-               <div className="bg-forest-night rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl group">
-                  <div className="relative z-10">
-                     <div className="w-12 h-12 bg-white/10 rounded-2xl flex items-center justify-center mb-6 transition-transform group-hover:rotate-12"><ShieldCheck size={24} className="text-afrigari-gold" /></div>
-                     <h3 className="text-2xl font-black tracking-tighter leading-tight mb-6 italic">Traçabilité<br/>Garantie.</h3>
-                     <div className="flex gap-6">
-                        <div className="w-20 h-32 rounded-[24px] overflow-hidden border-2 border-white/20 shadow-xl transform group-hover:-rotate-3 transition-transform">
-                           <img src="https://images.unsplash.com/photo-1596040033229-a9821ebd058d?w=200" className="w-full h-full object-cover" alt="Roots" />
-                        </div>
-                        <div className="w-20 h-32 rounded-[24px] overflow-hidden border-2 border-white/20 shadow-xl transform group-hover:rotate-3 transition-transform">
-                           <img src="https://images.unsplash.com/photo-1586201375761-83865001e31c?w=200" className="w-full h-full object-cover" alt="Finished" />
-                        </div>
-                     </div>
-                     <button className="mt-8 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-afrigari-gold transition-colors flex items-center gap-2">
-                        En savoir plus <ArrowUpRight size={14} />
-                     </button>
+               {/* Nearby Shops Widget - NEW LOCALIZATION FEATURE */}
+               <div className="bg-white rounded-[40px] p-10 border border-forest-night/5 shadow-sm overflow-hidden relative">
+                  <div className="flex justify-between items-center mb-8">
+                     <h3 className="text-xl font-black tracking-tighter text-forest-night italic uppercase">Proches de vous.</h3>
+                     <MapPin size={20} className="text-afrigari-gold" />
                   </div>
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-afrigari-gold/20 rounded-full blur-3xl -mr-32 -mt-32 transition-all group-hover:bg-afrigari-gold/30"></div>
+                  
+                  <div className="space-y-6">
+                     {nearbyStores.length === 0 ? (
+                        <div className="py-10 text-center space-y-4">
+                           <div className="w-12 h-12 bg-luxury-cream rounded-full flex items-center justify-center mx-auto text-forest-night/10"><MapPin size={24} /></div>
+                           <p className="text-[10px] font-black text-forest-night/30 uppercase tracking-widest">Recherche d&apos;artisans à proximité...</p>
+                        </div>
+                     ) : (
+                        nearbyStores.map((store) => (
+                           <Link href={`/dashboard/client/shops/${store.id}`} key={store.id} className="flex items-center gap-4 group p-2 hover:bg-slate-50 rounded-2xl transition-all">
+                              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-md">
+                                 <img src={store.profilePhoto || "https://via.placeholder.com/100"} className="w-full h-full object-cover" alt={store.name} />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                 <p className="text-xs font-black text-forest-night truncate uppercase">{store.name}</p>
+                                 <p className="text-[9px] font-bold text-afrigari-gold">{store.distance} km • {store.city}</p>
+                              </div>
+                              <ArrowRight size={14} className="text-forest-night/20 group-hover:translate-x-1 group-hover:text-forest-night transition-all" />
+                           </Link>
+                        ))
+                     )}
+                  </div>
+
+                  <Link href="/dashboard/client/shops" className="mt-10 w-full py-4 bg-forest-night/5 hover:bg-forest-night hover:text-white rounded-2xl text-[9px] font-black uppercase tracking-widest text-center transition-all flex items-center justify-center gap-2">
+                     Voir la carte <LayoutGrid size={14} />
+                  </Link>
                </div>
             </div>
 

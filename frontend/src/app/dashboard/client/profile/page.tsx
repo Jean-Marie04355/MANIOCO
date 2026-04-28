@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
-import { User, Mail, Shield, Save, ChevronLeft, Loader2, CheckCircle, PackageCheck, LogOut, Camera, ShieldCheck, Key } from 'lucide-react';
+import { User, Mail, Shield, Save, ChevronLeft, Loader2, CheckCircle, PackageCheck, LogOut, Camera, ShieldCheck, Key, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 
@@ -78,12 +78,12 @@ export default function ProfilePage() {
       {/* Header */}
       <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-700 px-8 ${scrolled ? 'py-4' : 'py-10'}`}>
          <div className={`max-w-7xl mx-auto flex justify-between items-center px-10 py-6 transition-all duration-500 ${scrolled ? 'bg-white/90 backdrop-blur-xl rounded-[32px] px-12 border border-forest-night/5 shadow-[0_20px_50px_rgba(10,33,24,0.1)]' : ''}`}>
-               <Link href="/dashboard/client" className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-forest-night flex items-center justify-center text-afrigari-gold shadow-lg">
-                     <ChevronLeft size={20} />
-                  </div>
-                  <span className="font-black text-2xl tracking-tighter uppercase italic">Mon Profil</span>
-               </Link>
+                <Link href="/dashboard/client" className="flex items-center gap-3 group">
+                   <div className="w-10 h-10 rounded-xl bg-forest-night flex items-center justify-center text-afrigari-gold shadow-lg group-hover:rotate-[-12deg] transition-transform">
+                      <ArrowLeft size={20} />
+                   </div>
+                   <span className="font-black text-2xl tracking-tighter uppercase italic">Mon Profil</span>
+                </Link>
 
                <div className="flex items-center gap-6">
                   <Link href="/dashboard/client/orders" className="text-[10px] font-black uppercase tracking-widest hover:text-afrigari-gold transition-colors">Mes Commandes</Link>
