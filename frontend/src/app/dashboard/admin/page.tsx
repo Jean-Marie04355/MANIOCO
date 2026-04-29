@@ -16,6 +16,7 @@ interface Stats {
   pendingKycCount: number;
   activeTicketsCount: number;
   totalUsers: number;
+  revenueHistory: { date: string, amount: number }[];
 }
 
 export default function AdminDashboard() {
@@ -79,7 +80,7 @@ export default function AdminDashboard() {
               value={stats?.sellersCount.toLocaleString() || "0"} 
               change={`${stats?.pendingKycCount} à vérifier`} 
               color="orange" 
-              urgent={stats!.pendingKycCount > 0}
+              urgent={stats ? stats.pendingKycCount > 0 : false}
             />
             <StatCard 
               icon={ShoppingCart} 
@@ -111,12 +112,38 @@ export default function AdminDashboard() {
                 </div>
               </div>
               
-              <div className="h-64 flex items-end justify-between gap-3 px-2">
-                {[40, 60, 30, 80, 50, 90, 70, 60, 85, 45, 95, 60, 40, 70, 50].map((h, i) => (
-                  <div key={i} className="flex-1 bg-slate-50 rounded-t-xl relative group transition-all hover:bg-orange-50">
-                    <div style={{ height: `${h}%` }} className="absolute bottom-0 left-0 right-0 bg-orange-500/20 rounded-t-xl group-hover:bg-orange-500 transition-all duration-300"></div>
+              <div className="h-64 flex items-end justify-between gap-2 px-2 relative border-b border-slate-100 pb-6">
+                {(!stats?.revenueHistory || stats.revenueHistory.length === 0) ? (
+                  <div className="absolute inset-0 flex items-center justify-center text-slate-300 font-bold text-[10px] uppercase tracking-widest">
+                    Synchronisation des flux...
                   </div>
-                ))}
+                ) : (
+                  stats.revenueHistory.map((day: any, i: number) => {
+                    const maxRevenue = Math.max(...stats.revenueHistory.map((d: any) => d.amount), 5000);
+                    const height = (day.amount / maxRevenue) * 100;
+                    const dateObj = new Date(day.date);
+                    const dayNum = dateObj.getDate();
+                    
+                    return (
+                      <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+                        <div className="w-full bg-slate-100/50 rounded-t-lg relative transition-all hover:bg-slate-200/50 flex-1 flex items-end">
+                          <div 
+                            style={{ height: `${Math.max(height, day.amount > 0 ? 8 : 0)}%` }} 
+                            className={`w-full rounded-t-lg transition-all duration-500 ${day.amount > 0 ? 'bg-gradient-to-t from-orange-600 to-orange-400 shadow-[0_-4px_12px_rgba(234,88,12,0.3)]' : 'h-0'}`}
+                          ></div>
+                          
+                          {/* Tooltip */}
+                          <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] px-2 py-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all pointer-events-none whitespace-nowrap z-20 font-black shadow-xl">
+                            {day.amount.toLocaleString()} FCFA
+                          </div>
+                        </div>
+                        <span className="text-[9px] font-bold text-slate-400 group-hover:text-slate-900 transition-colors">
+                          {dayNum}
+                        </span>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
 

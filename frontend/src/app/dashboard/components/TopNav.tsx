@@ -92,15 +92,20 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const displayName = user?.name || (user as any)?.name || 'Utilisateur';
-  // Utiliser la photo de profil si elle existe, sinon générer un avatar
-  const avatarUrl = user?.profilePhoto 
-    ? user.profilePhoto 
+  // Memoize user info to avoid flickering during logout
+  const [cachedUser, setCachedUser] = useState(user);
+  useEffect(() => {
+    if (user) setCachedUser(user);
+  }, [user]);
+
+  const displayUser = user || cachedUser;
+  const displayName = displayUser?.name || 'Utilisateur';
+  const avatarUrl = displayUser?.profilePhoto 
+    ? displayUser.profilePhoto 
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&bold=true`;
 
   const handleLogout = () => {
     logout();
-    router.push('/auth/login');
   };
 
   return (

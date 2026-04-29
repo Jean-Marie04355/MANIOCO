@@ -5,6 +5,7 @@ import {
   RefreshCcw, Database, Activity 
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import api from '@/lib/axios';
 
 export default function SimpleTasksPage() {
   const [queues, setQueues] = useState<any[]>([]);
@@ -19,12 +20,9 @@ export default function SimpleTasksPage() {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:3000/infra/queues/stats', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const res = await api.get('/infra/queues/stats');
+      if (res.status === 200) {
+        const data = res.data;
         setQueues(data);
         setLastSync(new Date());
       }

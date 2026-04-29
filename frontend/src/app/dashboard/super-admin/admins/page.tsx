@@ -7,6 +7,7 @@ import {
   Activity, Award, Anchor
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import api from '@/lib/axios';
 export default function StylishAdminsPage() {
   const [admins, setAdmins] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,12 +31,9 @@ export default function StylishAdminsPage() {
 
   const fetchAdmins = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:3000/users/admin/all', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const res = await api.get('/users/admin/all');
+      if (res.status === 200) {
+        const data = res.data;
         setAdmins(data.filter((u: any) => {
           const role = (u.role || '').toLowerCase();
           return role.includes('admin');
@@ -50,20 +48,7 @@ export default function StylishAdminsPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:3000/users/admin', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({ ...formData, role: 'admin' })
-      });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.message || 'Impossible de créer l\'administrateur');
-      }
+      const res = await api.post('/users/admin', { ...formData, role: 'admin' });
 
       setShowModal(false);
       setFormData({ name: '', email: '', password: '' });
@@ -81,17 +66,7 @@ export default function StylishAdminsPage() {
     setIsSubmitting(true);
     setError(null);
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(`http://localhost:3000/users/${editingAdmin.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(editFormData)
-      });
-
-      if (!res.ok) throw new Error('Erreur lors de la modification');
+      await api.patch(`/users/${editingAdmin.id}`, editFormData);
 
       setShowEditModal(false);
       fetchAdmins();
@@ -104,16 +79,15 @@ export default function StylishAdminsPage() {
 
   const toggleStatus = async (admin: any) => {
     const isSuspended = !!admin.deletedAt;
-    const url = `http://localhost:3000/users/${admin.id}${isSuspended ? '/restore' : ''}`;
+    const url = `/users/${admin.id}${isSuspended ? '/restore' : ''}`;
     const method = isSuspended ? 'PATCH' : 'DELETE';
 
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(url, {
-        method,
-        headers: { 'Authorization': `Bearer ${token}` }
+      const res = await api({
+        url,
+        method
       });
-      if (res.ok) fetchAdmins();
+      if (res.status === 200) fetchAdmins();
     } catch (err) { console.error(err); }
   };
 
@@ -123,12 +97,8 @@ export default function StylishAdminsPage() {
     }
 
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch(`http://localhost:3000/users/${admin.id}/permanent`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) fetchAdmins();
+      const res = await api.delete(`/users/${admin.id}/permanent`);
+      if (res.status === 200) fetchAdmins();
     } catch (err) { console.error(err); }
   };
 

@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (token && user) {
-        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3000/realtime';
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001/realtime';
         const newSocket = io(socketUrl, {
             auth: { token },
             transports: ['websocket']
@@ -90,11 +90,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('accessToken');
+      // Redirect first to avoid UI flash of 'null' user state
+      window.location.href = '/auth/login';
     }
     api.defaults.headers.common['Authorization'] = '';
     setToken(null);
     setUser(null);
-    window.location.href = '/auth/login';
   };
 
   const fetchUser = async () => {
