@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const response = await api.get('/auth/me');
             setUser(response.data);
           } catch (error) {
-            console.error("Session invalide");
+            console.warn("Session invalide");
             localStorage.removeItem('accessToken');
             setToken(null);
           }
