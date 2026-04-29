@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import api from '@/lib/axios';
 
 export default function ProfessionalSuperAdminDashboard() {
   const [stats, setStats] = useState({ users: 0, admins: 0, online: 0, clients: 0, sellers: 0 });
@@ -26,23 +27,15 @@ export default function ProfessionalSuperAdminDashboard() {
 
   const fetchAllData = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const headers = { 'Authorization': `Bearer ${token}` };
       const [uRes, logRes, statsRes, onlineRes] = await Promise.all([
-        fetch('http://localhost:3000/users', { headers }),
-        fetch('http://localhost:3000/audit-logs', { headers }),
-        fetch('http://localhost:3000/audit-logs/stats', { headers }),
-        fetch('http://localhost:3000/realtime/online-count', { headers })
+        api.get('/users'),
+        api.get('/audit-logs'),
+        api.get('/audit-logs/stats'),
+        api.get('/realtime/online-count')
       ]);
 
-      if (uRes.ok) {
-        let onlineCount = 0;
-        if (onlineRes && onlineRes.ok) {
-            const onlineData = await onlineRes.json();
-            onlineCount = onlineData.count || 0;
-        }
-
-        const users = await uRes.json();
+      let onlineCount = onlineRes.data?.count || 0;
+      const users = uRes.data;
         const c = users.filter((u: any) => u.role === 'client').length;
         const s = users.filter((u: any) => u.role === 'vendeur').length;
         const a = users.filter((u: any) => u.role === 'admin' && !u.deletedAt).length;
@@ -52,26 +45,21 @@ export default function ProfessionalSuperAdminDashboard() {
             { name: 'Clients', value: c, color: '#3b82f6' },
             { name: 'Vendeurs', value: s, color: '#f43f5e' }
         ]);
-      }
 
-      if (statsRes.ok) {
-        const rawStats = await statsRes.json();
-        const daysData = [];
-        const now = new Date();
-        for (let i = 6; i >= 0; i--) {
-            const d = new Date(now);
-            d.setDate(d.getDate() - i);
-            const dateStr = d.toISOString().split('T')[0];
-            const match = rawStats.find((s: any) => s.date.startsWith(dateStr));
-            daysData.push({ name: d.toLocaleDateString('fr-FR', { weekday: 'short' }), actions: match ? match.count : 0 });
-        }
-        setChartData(daysData);
+      const rawStats = statsRes.data;
+      const daysData = [];
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          const dateStr = d.toISOString().split('T')[0];
+          const match = rawStats.find((s: any) => s.date.startsWith(dateStr));
+          daysData.push({ name: d.toLocaleDateString('fr-FR', { weekday: 'short' }), actions: match ? match.count : 0 });
       }
+      setChartData(daysData);
 
-      if (logRes.ok) {
-        const logs = await logRes.json();
-        setRecentLogs(logs.slice(0, 6));
-      }
+      const logs = logRes.data;
+      setRecentLogs(logs.slice(0, 6));
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };

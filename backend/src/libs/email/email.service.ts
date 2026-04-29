@@ -14,11 +14,19 @@ export class EmailService {
   private readonly transporter: nodemailer.Transporter;
 
   constructor() {
+    const host = process.env.SMTP_HOST || '127.0.0.1';
+    const port = Number(process.env.SMTP_PORT || 1025);
+    
+    // Force IPv4 if localhost is provided
+    const finalHost = host === 'localhost' ? '127.0.0.1' : host;
+    
+    this.logger.log(`Initializing Mailer with host: ${finalHost}, port: ${port}`);
+
     this.transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || '127.0.0.1',
-      port: Number(process.env.SMTP_PORT || 1025),
-      secure: false, // Mailpit 1025 is not secure
-      ignoreTLS: true, // IMPORTANT for Mailpit
+      host: finalHost,
+      port: port,
+      secure: false, 
+      ignoreTLS: true, 
       auth: (process.env.SMTP_USER && process.env.SMTP_USER !== 'null') ? {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,

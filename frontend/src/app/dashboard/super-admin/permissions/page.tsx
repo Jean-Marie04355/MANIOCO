@@ -7,6 +7,7 @@ import {
   Fingerprint, Cpu, Network
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import api from '@/lib/axios';
 
 const PERM_GROUPS = [
   { 
@@ -60,12 +61,9 @@ export default function LuxuryPermissionsPage() {
 
   const fetchAdmins = async () => {
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:3000/users/admin/all', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const res = await api.get('/users/admin/all');
+      if (res.status === 200) {
+        const data = res.data;
         setAdmins(data.filter((u: any) => u.role === 'admin' && !u.deletedAt));
       }
     } catch (err) { console.error(err); }
@@ -80,15 +78,7 @@ export default function LuxuryPermissionsPage() {
     newPerms = newPerms.includes(permId) ? newPerms.filter(p => p !== permId) : [...newPerms, permId];
 
     try {
-      const token = localStorage.getItem('accessToken');
-      await fetch(`http://localhost:3000/users/${adminId}`, {
-        method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}` 
-        },
-        body: JSON.stringify({ permissions: newPerms })
-      });
+      await api.patch(`/users/${adminId}`, { permissions: newPerms });
       setAdmins(prev => prev.map(a => a.id === adminId ? { ...a, permissions: newPerms } : a));
     } catch (err) { console.error(err); }
     finally { setTimeout(() => setUpdatingId(null), 500); }

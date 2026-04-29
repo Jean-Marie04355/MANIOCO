@@ -8,6 +8,7 @@ import {
   ChevronRight, Terminal
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import api from '@/lib/axios';
 export default function LuxuryLogsPage() {
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -22,12 +23,9 @@ export default function LuxuryLogsPage() {
   const fetchLogs = async (isRef = false) => {
     if (isRef) setIsRefreshing(true);
     try {
-      const token = localStorage.getItem('accessToken');
-      const res = await fetch('http://localhost:3000/audit-logs', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
+      const res = await api.get('/audit-logs');
+      if (res.status === 200) {
+        const data = res.data;
         setLogs(data);
       }
     } catch (err) { console.error(err); }

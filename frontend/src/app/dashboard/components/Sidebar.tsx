@@ -20,10 +20,16 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
-  
   const [orderCount, setOrderCount] = useState<number | null>(0);
   const [chatCount, setChatCount] = useState<number | null>(0);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [cachedUser, setCachedUser] = useState(user);
+
+  useEffect(() => {
+    if (user) setCachedUser(user);
+  }, [user]);
+
+  const displayUser = user || cachedUser;
 
   useEffect(() => {
     if (user) {
@@ -78,7 +84,6 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
 
   const handleLogout = () => {
     logout();
-    router.push('/auth/login');
   };
 
   const getMenuItems = () => {
@@ -120,10 +125,9 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
           { icon: ShoppingCart, label: 'Commandes', href: '/dashboard/seller/orders', badge: orderCount && orderCount > 0 ? orderCount.toString() : null },
           { icon: MessageSquare, label: 'Messages', href: '/dashboard/seller/messages', badge: (chatCount && chatCount > 0 && pathname !== '/dashboard/seller/messages') ? chatCount.toString() : null },
           { icon: CreditCard, label: 'Revenus', href: '/dashboard/seller/revenues' },
-          { icon: Gift, label: 'Promotions', href: '/dashboard/seller/promotions' },
           { icon: HelpCircle, label: 'Aide & Support', href: '/dashboard/seller/support' },
           { icon: Store, label: 'Paramètres boutique', href: '/dashboard/seller/settings/store' },
-          { icon: UserCheck, label: 'Profil Personnel', href: '/dashboard/seller/profile' },
+          { icon: Settings, label: 'Paramètres compte', href: '/dashboard/seller/settings/account' },
         ];
       default:
         return [];
@@ -168,7 +172,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
             </div>
             <div className="flex-1">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-emerald-400 transition-colors">Admin_Local</p>
-              <p className="text-xs font-black text-white uppercase">{user?.name || 'Administrateur'}</p>
+              <p className="text-xs font-black text-white uppercase">{displayUser?.name || 'Administrateur'}</p>
             </div>
             <ChevronRight size={18} className="text-slate-500 group-hover:text-white transition-all" />
           </Link>

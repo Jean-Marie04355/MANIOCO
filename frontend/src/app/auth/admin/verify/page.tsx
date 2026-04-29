@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/AuthContext';
+import api from '@/lib/axios';
 
 export default function AdminVerifyPage() {
    const router = useRouter();
@@ -71,16 +72,8 @@ export default function AdminVerifyPage() {
       const otpCode = otp.join('');
 
       try {
-         const res = await fetch('http://localhost:3000/auth/admin/verify-otp', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, otpCode }),
-         });
-
-         const data = await res.json();
-         if (!res.ok) {
-            throw new Error(data.message || 'Le code saisi est invalide ou expiré.');
-         }
+         const res = await api.post('/auth/admin/verify-otp', { email, otpCode });
+         const data = res.data;
 
          login(data.accessToken, data.user);
 
@@ -90,7 +83,7 @@ export default function AdminVerifyPage() {
             router.push('/dashboard/admin');
          }
       } catch (err: any) {
-         setError(err.message);
+         setError(err.response?.data?.message || err.message || 'Le code saisi est invalide ou expiré.');
       } finally {
          setIsLoading(false);
       }

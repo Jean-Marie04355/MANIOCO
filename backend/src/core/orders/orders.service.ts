@@ -342,11 +342,39 @@ export class OrdersService {
     const totalSalesCount = orders.filter(o => paidStatuses.includes(o.status)).length;
     const totalRevenue = orders
       .filter(o => paidStatuses.includes(o.status))
-      .reduce((sum, o) => sum + Number(o.commissionAmount || 0), 0);
+      .reduce((sum, o) => {
+        const amount = Number(o.commissionAmount);
+        // Fallback: if commissionAmount is missing/0 but we have a totalAmount, assume 10%
+        const actualCommission = amount > 0 ? amount : (Number(o.totalAmount || 0) * 0.10);
+        return sum + actualCommission;
+      }, 0);
 
     const sellersCount = users.filter(u => u.role === UserRole.VENDEUR).length;
     const pendingKycCount = users.filter(u => u.kycStatus === 'PENDING').length;
     const activeTicketsCount = await this.supportService.countActiveTickets();
+
+    // Calcul de l'historique des revenus sur les 15 derniers jours
+    const revenueHistory = [];
+    const now = new Date();
+    for (let i = 14; i >= 0; i--) {
+      const targetDate = new Date(now);
+      targetDate.setDate(targetDate.getDate() - i);
+      const dateStr = targetDate.toISOString().split('T')[0];
+
+      const dayRevenue = orders
+        .filter(o => {
+          const isPaid = paidStatuses.includes(o.status);
+          const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
+          return isPaid && orderDate === dateStr;
+        })
+        .reduce((sum, o) => {
+          const amount = Number(o.commissionAmount);
+          const actualCommission = amount > 0 ? amount : (Number(o.totalAmount || 0) * 0.10);
+          return sum + actualCommission;
+        }, 0);
+
+      revenueHistory.push({ date: dateStr, amount: dayRevenue });
+    }
 
     return {
       totalRevenue,
@@ -355,7 +383,8 @@ export class OrdersService {
       sellersCount,
       pendingKycCount,
       activeTicketsCount,
-      totalUsers: users.length
+      totalUsers: users.length,
+      revenueHistory
     };
   }
 }

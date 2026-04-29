@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
+import api from '@/lib/axios';
 
 export default function AdminLoginPage() {
    const router = useRouter();
@@ -24,21 +25,12 @@ export default function AdminLoginPage() {
       setIsLoading(true);
 
       try {
-         const res = await fetch('http://localhost:3000/auth/admin/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
-         });
-
-         const data = await res.json();
-         if (!res.ok) {
-            throw new Error(data.message || 'La connexion a échoué.');
-         }
+         const res = await api.post('/auth/admin/login', { email, password });
 
          sessionStorage.setItem('adminLoginEmail', email);
          router.push('/auth/admin/verify');
       } catch (err: any) {
-         setError(err.message);
+         setError(err.response?.data?.message || err.message || 'La connexion a échoué.');
       } finally {
          setIsLoading(false);
       }

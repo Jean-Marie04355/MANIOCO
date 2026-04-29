@@ -6,6 +6,7 @@ import {
     User, ShoppingBag, Shield, CheckCircle2, XCircle, RefreshCcw
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
+import api from '@/lib/axios';
 export default function StylishUsersPage() {
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -18,12 +19,9 @@ export default function StylishUsersPage() {
 
     const fetchUsers = async () => {
         try {
-            const token = localStorage.getItem('accessToken');
-            const res = await fetch('http://localhost:3000/users', {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
+            const res = await api.get('/users');
+            if (res.status === 200) {
+                const data = res.data;
                 // On garde tout sauf le super_admin pour la liste générale
                 setUsers(data.filter((u: any) => u.role !== 'super_admin'));
             }
