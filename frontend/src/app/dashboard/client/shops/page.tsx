@@ -12,6 +12,23 @@ export default function ShopsExplorer() {
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
 
+  const getRealInternetLink = (dbPath: string, name: string = "") => {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+    if (!dbPath) {
+      if (name.toLowerCase().includes('gari')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
+      return "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&q=80&w=800";
+    }
+
+    if (dbPath.startsWith('data:image') || dbPath.startsWith('http')) {
+       return dbPath;
+    }
+
+    const cleanPath = dbPath.startsWith('/') ? dbPath : `/${dbPath}`;
+    const finalPath = cleanPath.startsWith('/uploads') ? cleanPath : `/uploads${cleanPath}`;
+    return `${apiUrl}${finalPath}`;
+  };
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener('scroll', handleScroll);
@@ -83,7 +100,7 @@ export default function ShopsExplorer() {
             <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-forest-green text-white flex items-center justify-center font-black text-xs shadow-xl uppercase overflow-hidden relative border-2 border-white">
                    {user?.profilePhoto ? (
-                      <img src={user.profilePhoto} className="w-full h-full object-cover" />
+                      <img src={getRealInternetLink(user.profilePhoto)} className="w-full h-full object-cover" />
                    ) : (
                       <span>{user?.name?.[0] || user?.email?.[0] || 'U'}</span>
                    )}
@@ -114,7 +131,7 @@ export default function ShopsExplorer() {
         ) : (
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
               {filteredStores.map((shop, i) => (
-                 <ShopCard key={shop.id} shop={shop} delay={`${i * 0.1}s`} />
+                 <ShopCard key={shop.id} shop={shop} delay={`${i * 0.1}s`} getImageUrl={(path: string, name: string) => getRealInternetLink(path, name)} />
               ))}
            </div>
         )}
@@ -136,12 +153,12 @@ export default function ShopsExplorer() {
   );
 }
 
-function ShopCard({ shop, delay }: any) {
+function ShopCard({ shop, delay, getImageUrl }: any) {
     return (
         <div className="group bg-white rounded-[48px] overflow-hidden border border-forest-green/5 shadow-[0_20px_50px_rgba(45,70,53,0.05)] hover:shadow-[0_40px_80px_-15px_rgba(45,70,53,0.15)] hover:-translate-y-2 transition-all duration-700 animate-reveal" style={{ animationDelay: delay }}>
            {/* Cover Photo */}
            <div className="h-44 relative overflow-hidden bg-slate-100">
-              <img src={shop.profilePhoto || `https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=600`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]" />
+              <img src={getImageUrl(shop.profilePhoto, shop.name)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]" />
               <div className="absolute inset-0 bg-forest-green/20 group-hover:bg-transparent transition-colors"></div>
               <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-[9px] font-black uppercase text-forest-green flex items-center gap-1 shadow-sm">
                  <Star size={10} fill="#C5A059" className="text-afrigari-gold" /> {shop.rating || '4.9'}
@@ -153,7 +170,7 @@ function ShopCard({ shop, delay }: any) {
               {/* Profile Logo */}
               <div className="w-20 h-20 bg-white p-2 rounded-3xl shadow-xl absolute -top-10 left-8 ring-4 ring-white overflow-hidden flex items-center justify-center text-forest-green font-black text-2xl uppercase">
                  {shop.profilePhoto ? (
-                    <img src={shop.profilePhoto} className="w-full h-full object-contain rounded-2xl" />
+                    <img src={getImageUrl(shop.profilePhoto, shop.name)} className="w-full h-full object-contain rounded-2xl" />
                  ) : (
                     <span>{shop.name[0]}</span>
                  )}

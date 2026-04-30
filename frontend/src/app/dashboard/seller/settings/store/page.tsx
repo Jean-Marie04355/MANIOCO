@@ -45,6 +45,11 @@ export default function StoreSettings() {
     ownerId: ''
   });
 
+  const [stats, setStats] = useState({
+    productCount: 0,
+    salesCount: 0
+  });
+
   // Fetch store data on mount
   useEffect(() => {
     const fetchStore = async () => {
@@ -75,6 +80,21 @@ export default function StoreSettings() {
           if (myStore.profilePhoto) {
             setLogoPreview(myStore.profilePhoto);
           }
+
+          // Récupérer les stats réelles
+          const [productsRes, ordersRes] = await Promise.all([
+            api.get(`/products?storeId=${myStore.id}`),
+            api.get(`/orders/store/${myStore.id}`)
+          ]);
+
+          const successfulOrders = ordersRes.data.filter((o: any) => 
+            ['PAID', 'SHIPPED', 'DELIVERED'].includes(o.status)
+          );
+
+          setStats({
+            productCount: productsRes.data.length,
+            salesCount: successfulOrders.length
+          });
         }
       } catch (error) {
         console.error("Erreur lors de la récupération de la boutique", error);
@@ -197,11 +217,11 @@ export default function StoreSettings() {
                       </div>
                       <div className="flex gap-4">
                          <div className="text-center px-6 py-4 bg-slate-50 rounded-[2rem] border border-slate-100">
-                            <span className="block text-2xl font-black text-slate-900">0</span>
+                            <span className="block text-2xl font-black text-slate-900">{stats.productCount}</span>
                             <span className="text-[10px] font-black text-slate-400 uppercase">Produits</span>
                          </div>
                          <div className="text-center px-6 py-4 bg-slate-50 rounded-[2rem] border border-slate-100">
-                            <span className="block text-2xl font-black text-slate-900">0</span>
+                            <span className="block text-2xl font-black text-slate-900">{stats.salesCount}</span>
                             <span className="text-[10px] font-black text-slate-400 uppercase">Ventes</span>
                          </div>
                       </div>
@@ -253,7 +273,7 @@ export default function StoreSettings() {
                    </div>
                    <ChevronRight className="text-slate-300 group-hover:text-orange-500 transition-colors" />
                 </Link>
-                <Link href={`/stores/${storeId}`} target="_blank" className="bg-white p-6 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-500 transition-all">
+                <Link href={`/dashboard/client/shops/${storeId}`} target="_blank" className="bg-white p-6 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-500 transition-all">
                    <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
                          <ExternalLink size={20} />
