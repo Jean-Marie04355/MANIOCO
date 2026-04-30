@@ -17,7 +17,9 @@ import { useAuth } from '@/features/auth/AuthContext';
 interface Transaction {
   id: string;
   orderId: string;
-  amount: number;
+  grossAmount: number;
+  commissionAmount: number;
+  netAmount: number;
   status: 'COMPLETED' | 'PENDING' | 'DECLINED';
   date: string;
 }
@@ -34,25 +36,31 @@ export default function SellerRevenues() {
       if (!currentUserId) return;
 
       try {
-        // 1. Récupérer la boutique pour vérifier FedaPay
         const storesRes = await api.get('/stores');
         const myStore = storesRes.data.find((s: any) => s.ownerId === currentUserId);
         
         if (myStore) {
           setHasFedaPay(!!myStore.payoutAccountId);
 
-          // 2. Récupérer les commandes pour calculer les revenus
           const ordersRes = await api.get(`/orders/store/${myStore.id}`);
           const orders = ordersRes.data;
 
-          // 3. Mapper les commandes en transactions (montant brut pour l'historique)
-          const mappedTransactions: Transaction[] = orders.map((order: any) => ({
-            id: `TX-${order.id.split('-')[0].toUpperCase()}`,
-            orderId: order.id.split('-')[0].toUpperCase(),
-            amount: Number(order.totalAmount), // On affiche le montant total payé par le client
-            status: mapOrderStatusToTxStatus(order.status),
-            date: new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
-          }));
+          const mappedTransactions: Transaction[] = orders.map((order: any) => {
+            const gross = Number(order.totalAmount);
+            // On utilise la commission enregistrée ou 10% par défaut
+            const commission = Number(order.commissionAmount) || (gross * 0.10);
+            const net = gross - commission;
+
+            return {
+              id: `TX-${order.id.split('-')[0].toUpperCase()}`,
+              orderId: order.id.split('-')[0].toUpperCase(),
+              grossAmount: gross,
+              commissionAmount: commission,
+              netAmount: net,
+              status: mapOrderStatusToTxStatus(order.status),
+              date: new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+            };
+          });
 
           setTransactions(mappedTransactions);
         }
@@ -81,19 +89,17 @@ export default function SellerRevenues() {
     }
   };
 
-  // Le total affiché dans la carte est le NET (90%)
-  const totalRevenue = transactions
-    .filter(t => t.status === 'COMPLETED')
-    .reduce((acc, t) => acc + (t.amount * 0.9), 0);
+  // Calculs globaux
+  const completedTxs = transactions.filter(t => t.status === 'COMPLETED');
+  const totalNet = completedTxs.reduce((acc, t) => acc + t.netAmount, 0);
+  const totalGross = completedTxs.reduce((acc, t) => acc + t.grossAmount, 0);
+  const totalCommission = completedTxs.reduce((acc, t) => acc + t.commissionAmount, 0);
 
-  // Les ventes en cours sont affichées en BRUT (montant client) pour la traçabilité
   const pendingRevenue = transactions
     .filter(t => t.status === 'PENDING')
-    .reduce((acc, t) => acc + t.amount, 0);
+    .reduce((acc, t) => acc + t.netAmount, 0);
 
-  const currentMonthSales = transactions.filter(t => {
-    return t.status === 'COMPLETED';
-  }).length;
+  const successfulSalesCount = completedTxs.length;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -127,18 +133,27 @@ export default function SellerRevenues() {
           {/* Header & Balance Cards */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            {/* Main Balance Card */}
+            {/* Main Net Balance Card */}
             <div className="lg:col-span-2 bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-slate-900/20">
               <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
               
               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end h-full">
                 <div>
-                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-2">Revenus nets (après commission 10%)</p>
+                  <p className="text-slate-400 font-bold uppercase tracking-widest text-xs mb-2 italic">Votre Revenu Net Total</p>
                   <div className="flex items-baseline gap-2">
-                    <h2 className="text-5xl font-black">{totalRevenue.toLocaleString('fr-FR')}</h2>
+                    <h2 className="text-5xl font-black">{totalNet.toLocaleString('fr-FR')}</h2>
                     <span className="text-xl text-slate-400 font-bold">FCFA</span>
                   </div>
-                  <p className="text-sm text-slate-400 mt-4 max-w-md">Vos revenus nets après déduction de la commission de service Afrigari.</p>
+                  <div className="mt-6 space-y-2">
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+                      <span className="w-3 h-3 rounded-full bg-green-500/20 border border-green-500"></span>
+                      Ventes brutes : {totalGross.toLocaleString('fr-FR')} FCFA
+                    </div>
+                    <div className="flex items-center gap-2 text-xs font-bold text-slate-400">
+                      <span className="w-3 h-3 rounded-full bg-red-500/20 border border-red-500"></span>
+                      Commissions prélevées (-10%) : {totalCommission.toLocaleString('fr-FR')} FCFA
+                    </div>
+                  </div>
                 </div>
                 
                 <div className="mt-6 md:mt-0 p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md">
@@ -153,14 +168,14 @@ export default function SellerRevenues() {
               </div>
             </div>
 
-            {/* Secondary Stats */}
+            {/* Side Stats */}
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-[2rem] border border-slate-200/60 shadow-sm flex items-center gap-5">
                 <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500">
                   <TrendingUp size={24} />
                 </div>
                 <div>
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ventes en cours</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">En attente (Net)</p>
                   <p className="text-xl font-black text-slate-900">{pendingRevenue.toLocaleString('fr-FR')} <span className="text-xs text-slate-400">FCFA</span></p>
                 </div>
               </div>
@@ -172,7 +187,7 @@ export default function SellerRevenues() {
                 <div>
                   <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Ventes réussies</p>
                   <p className="text-xl font-black text-slate-900">
-                    {currentMonthSales} <span className="text-xs text-slate-400 font-bold">ventes</span>
+                    {successfulSalesCount} <span className="text-xs text-slate-400 font-bold">ventes</span>
                   </p>
                 </div>
               </div>
@@ -183,9 +198,9 @@ export default function SellerRevenues() {
             <div className="p-6 bg-red-50 border border-red-100 rounded-[2rem] flex gap-4 animate-in fade-in slide-in-from-bottom-4">
               <AlertCircle className="text-red-500 shrink-0 mt-1" size={24} />
               <div>
-                <h4 className="text-sm font-black text-red-900">Configuration Incomplète</h4>
+                <h4 className="text-sm font-black text-red-900">Configuration FedaPay Requise</h4>
                 <p className="text-xs font-medium text-red-700/80 leading-relaxed mt-1 max-w-3xl">
-                  Pour que l'argent soit déposé automatiquement, assurez-vous d'avoir bien renseigné votre identifiant FedaPay dans les paramètres de la boutique.
+                  Pour recevoir vos paiements, vous devez configurer votre compte FedaPay dans les paramètres. Afrigari prélève une commission de 10% sur chaque transaction.
                 </p>
               </div>
             </div>
@@ -195,8 +210,8 @@ export default function SellerRevenues() {
           <div className="bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm overflow-hidden">
             <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
               <div>
-                <h3 className="text-lg font-black text-slate-900">Historique des ventes</h3>
-                <p className="text-xs text-slate-500 mt-1">Traçabilité de vos revenus</p>
+                <h3 className="text-lg font-black text-slate-900">Détails des gains par vente</h3>
+                <p className="text-xs text-slate-500 mt-1 italic">Transparence totale sur vos revenus et commissions</p>
               </div>
             </div>
             
@@ -209,33 +224,36 @@ export default function SellerRevenues() {
                 <table className="w-full text-left border-collapse">
                   <thead>
                     <tr className="border-b border-slate-100">
-                      <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Opération</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Montant</th>
-                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Statut</th>
-                      <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Commande</th>
+                      <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Date / ID</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Prix Client (Brut)</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Commission (-10%)</th>
+                      <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest">Votre Gain (Net)</th>
+                      <th className="px-8 py-5 text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">Statut</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
                     {transactions.map((tx) => (
                       <tr key={tx.id} className="hover:bg-slate-50/50 transition-colors group">
-                        <td className="px-8 py-5 text-sm font-bold text-slate-700">{tx.date}</td>
+                        <td className="px-8 py-5">
+                          <p className="text-sm font-bold text-slate-700">{tx.date}</p>
+                          <p className="text-[10px] font-black text-slate-400">#{tx.orderId}</p>
+                        </td>
+                        <td className="px-6 py-5 text-sm font-bold text-slate-600">
+                          {tx.grossAmount.toLocaleString('fr-FR')} FCFA
+                        </td>
+                        <td className="px-6 py-5 text-sm font-bold text-red-500">
+                          - {tx.commissionAmount.toLocaleString('fr-FR')} FCFA
+                        </td>
                         <td className="px-6 py-5">
                           <div className="flex items-center gap-2">
-                            <div className={`w-8 h-8 rounded-full flex items-center justify-center ${tx.status === 'COMPLETED' ? 'bg-green-50 text-green-500' : 'bg-orange-50 text-orange-500'}`}>
-                              <ArrowUpRight size={14}/>
-                            </div>
-                            <span className="text-sm font-bold text-slate-900">Paiement Client</span>
+                             <span className="text-sm font-black text-green-600">{tx.netAmount.toLocaleString('fr-FR')} FCFA</span>
+                             {tx.status === 'COMPLETED' && <ArrowUpRight size={14} className="text-green-500" />}
                           </div>
                         </td>
-                        <td className="px-6 py-5 text-sm font-black text-slate-900">
-                          {tx.amount.toLocaleString('fr-FR')} FCFA
-                        </td>
-                        <td className="px-6 py-5">
-                          {getStatusBadge(tx.status)}
-                        </td>
-                        <td className="px-8 py-5 text-right text-xs font-bold text-slate-400">
-                          <span className="px-2 py-1 bg-slate-100 rounded-md">#{tx.orderId}</span>
+                        <td className="px-8 py-5 text-right">
+                          <div className="flex justify-end">
+                            {getStatusBadge(tx.status)}
+                          </div>
                         </td>
                       </tr>
                     ))}

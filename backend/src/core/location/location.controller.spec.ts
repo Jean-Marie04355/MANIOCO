@@ -14,9 +14,7 @@ describe('LocationController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [LocationController],
-      providers: [
-        { provide: LocationService, useValue: serviceMock },
-      ],
+      providers: [{ provide: LocationService, useValue: serviceMock }],
     }).compile();
 
     controller = module.get<LocationController>(LocationController);

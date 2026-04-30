@@ -92,7 +92,9 @@ describe('ProductCategoriesService', () => {
 
   it('should throw NotFoundException on update if missing', async () => {
     mockRepo.findOne.mockResolvedValue(null);
-    await expect(service.update('1', {}, mockAdmin)).rejects.toThrow('Catégorie non trouvée');
+    await expect(service.update('1', {}, mockAdmin)).rejects.toThrow(
+      'Catégorie non trouvée',
+    );
   });
 
   it('should allow vendor to update their own category', async () => {
@@ -107,7 +109,9 @@ describe('ProductCategoriesService', () => {
     const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
     mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'other' });
     mockStoreService.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
-    await expect(service.update('1', { name: 'New' }, vendorUser as any)).rejects.toThrow('Vous ne pouvez modifier que vos propres catégories');
+    await expect(
+      service.update('1', { name: 'New' }, vendorUser as any),
+    ).rejects.toThrow('Vous ne pouvez modifier que vos propres catégories');
   });
 
   it('should remove a category as admin', async () => {
@@ -119,7 +123,9 @@ describe('ProductCategoriesService', () => {
 
   it('should throw NotFoundException on remove if missing', async () => {
     mockRepo.findOne.mockResolvedValue(null);
-    await expect(service.remove('1', mockAdmin)).rejects.toThrow('Catégorie non trouvée');
+    await expect(service.remove('1', mockAdmin)).rejects.toThrow(
+      'Catégorie non trouvée',
+    );
   });
 
   it('should allow vendor to remove their own category', async () => {
@@ -134,6 +140,8 @@ describe('ProductCategoriesService', () => {
     const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
     mockRepo.findOne.mockResolvedValue({ id: '1', storeId: 'other' });
     mockStoreService.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
-    await expect(service.remove('1', vendorUser as any)).rejects.toThrow('Vous ne pouvez supprimer que vos propres catégories');
+    await expect(service.remove('1', vendorUser as any)).rejects.toThrow(
+      'Vous ne pouvez supprimer que vos propres catégories',
+    );
   });
 });

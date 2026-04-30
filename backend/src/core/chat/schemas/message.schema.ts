@@ -1,9 +1,16 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
-@Schema({ timestamps: { createdAt: true, updatedAt: false }, collection: 'messages' })
+@Schema({
+  timestamps: { createdAt: true, updatedAt: false },
+  collection: 'messages',
+})
 export class Message extends Document {
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Conversation', required: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Conversation',
+    required: true,
+  })
   conversationId: string;
 
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })

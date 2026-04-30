@@ -12,7 +12,7 @@ export class CreateTicketDto {
   @IsOptional()
   category?: string;
 
-  @ApiProperty({ example: 'Je n\'ai pas reçu mon paiement de 54000 FCFA.' })
+  @ApiProperty({ example: "Je n'ai pas reçu mon paiement de 54000 FCFA." })
   @IsString()
   @IsNotEmpty()
   message: string; // The initial message content

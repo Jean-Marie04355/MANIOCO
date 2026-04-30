@@ -34,7 +34,10 @@ export class PaymentsController {
       },
     },
   })
-  async handleWebhook(@Body() payload: Record<string, unknown>, @Res() res: Response) {
+  async handleWebhook(
+    @Body() payload: Record<string, unknown>,
+    @Res() res: Response,
+  ) {
     this.logger.log('Payment notification received');
 
     try {

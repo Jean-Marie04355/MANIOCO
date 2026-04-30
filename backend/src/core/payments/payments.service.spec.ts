@@ -94,7 +94,9 @@ describe('PaymentsService', () => {
 
     it('should handle errors from payment provider (Error instance)', async () => {
       transactionRepoMock.create.mockResolvedValue({ id: 'local-1' });
-      paymentProviderMock.createTransaction.mockRejectedValue(new Error('Typed Error'));
+      paymentProviderMock.createTransaction.mockRejectedValue(
+        new Error('Typed Error'),
+      );
 
       await expect(
         service.createTransaction(order as any, sellerAcc),

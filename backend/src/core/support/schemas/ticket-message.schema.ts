@@ -1,7 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 
-@Schema({ timestamps: { createdAt: true, updatedAt: false }, collection: 'ticket_messages' })
+@Schema({
+  timestamps: { createdAt: true, updatedAt: false },
+  collection: 'ticket_messages',
+})
 export class TicketMessage extends Document {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Ticket', required: true })
   ticketId: string;

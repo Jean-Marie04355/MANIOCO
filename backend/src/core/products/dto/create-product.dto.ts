@@ -1,4 +1,10 @@
-import { IsString, IsNumber, IsOptional, IsNotEmpty, IsIn } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsNotEmpty,
+  IsIn,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateProductDto {
@@ -22,7 +28,10 @@ export class CreateProductDto {
   @IsOptional()
   stock?: number;
 
-  @ApiPropertyOptional({ example: 'Kg', description: 'Unité de mesure du stock' })
+  @ApiPropertyOptional({
+    example: 'Kg',
+    description: 'Unité de mesure du stock',
+  })
   @IsIn(['Sac', 'Demi-sac', 'Kg', 'Demi-kg'])
   @IsOptional()
   unit?: string;

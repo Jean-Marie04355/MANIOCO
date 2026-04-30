@@ -12,7 +12,11 @@ describe('S3StorageService', () => {
 
   beforeEach(async () => {
     configServiceMock = {
-      get: jest.fn().mockImplementation((key, defaultValue) => defaultValue || 'test-value'),
+      get: jest
+        .fn()
+        .mockImplementation(
+          (key, defaultValue) => defaultValue || 'test-value',
+        ),
       getOrThrow: jest.fn().mockImplementation((key) => 'test-value'),
     };
 
@@ -44,7 +48,11 @@ describe('S3StorageService', () => {
         return Promise.resolve({});
       });
 
-      const file = { buffer: Buffer.from('test'), originalname: 'test.txt', mimetype: 'text/plain' };
+      const file = {
+        buffer: Buffer.from('test'),
+        originalname: 'test.txt',
+        mimetype: 'text/plain',
+      };
       const url = await service.uploadFile(file);
       expect(url).toContain('test.txt');
       expect(s3ClientMock.send).toHaveBeenCalled();
@@ -58,7 +66,11 @@ describe('S3StorageService', () => {
         return Promise.resolve({});
       });
 
-      const file = { buffer: Buffer.from('test'), originalname: 'test.txt', mimetype: 'text/plain' };
+      const file = {
+        buffer: Buffer.from('test'),
+        originalname: 'test.txt',
+        mimetype: 'text/plain',
+      };
       const url = await service.uploadFile(file);
       expect(url).toContain('test.txt');
     });
@@ -71,8 +83,14 @@ describe('S3StorageService', () => {
         return Promise.resolve({});
       });
 
-      const file = { buffer: Buffer.from('test'), originalname: 'test.txt', mimetype: 'text/plain' };
-      await expect(service.uploadFile(file)).rejects.toThrow('Error uploading file');
+      const file = {
+        buffer: Buffer.from('test'),
+        originalname: 'test.txt',
+        mimetype: 'text/plain',
+      };
+      await expect(service.uploadFile(file)).rejects.toThrow(
+        'Error uploading file',
+      );
     });
 
     it('should throw error if PutObject fails', async () => {
@@ -86,8 +104,14 @@ describe('S3StorageService', () => {
         return Promise.resolve({});
       });
 
-      const file = { buffer: Buffer.from('test'), originalname: 'test.txt', mimetype: 'text/plain' };
-      await expect(service.uploadFile(file)).rejects.toThrow('Error uploading file');
+      const file = {
+        buffer: Buffer.from('test'),
+        originalname: 'test.txt',
+        mimetype: 'text/plain',
+      };
+      await expect(service.uploadFile(file)).rejects.toThrow(
+        'Error uploading file',
+      );
     });
   });
 
@@ -100,7 +124,9 @@ describe('S3StorageService', () => {
 
     it('should throw error if delete fails', async () => {
       s3ClientMock.send.mockRejectedValue(new Error('Delete Error'));
-      await expect(service.deleteFile('test.txt')).rejects.toThrow('Error deleting file');
+      await expect(service.deleteFile('test.txt')).rejects.toThrow(
+        'Error deleting file',
+      );
     });
   });
 
@@ -113,14 +139,20 @@ describe('S3StorageService', () => {
 
     it('should throw error if multiple delete fails', async () => {
       s3ClientMock.send.mockRejectedValue(new Error('Delete Error'));
-      await expect(service.deleteMultipleFiles(['f1.txt'])).rejects.toThrow('Error deleting files');
+      await expect(service.deleteMultipleFiles(['f1.txt'])).rejects.toThrow(
+        'Error deleting files',
+      );
     });
   });
 
   describe('updateFile', () => {
     it('should update a file', async () => {
       s3ClientMock.send.mockResolvedValue({});
-      const file = { buffer: Buffer.from('test'), originalname: 'test.txt', mimetype: 'text/plain' };
+      const file = {
+        buffer: Buffer.from('test'),
+        originalname: 'test.txt',
+        mimetype: 'text/plain',
+      };
       await service.updateFile(file, 'old.txt');
       expect(s3ClientMock.send).toHaveBeenCalled();
     });
@@ -129,7 +161,7 @@ describe('S3StorageService', () => {
   describe('listAllObjects', () => {
     it('should return list of keys', async () => {
       s3ClientMock.send.mockResolvedValue({
-        Contents: [{ Key: 'k1' }, { Key: 'k2' }]
+        Contents: [{ Key: 'k1' }, { Key: 'k2' }],
       });
       const list = await service.listAllObjects();
       expect(list).toEqual(['k1', 'k2']);
@@ -143,13 +175,15 @@ describe('S3StorageService', () => {
 
     it('should throw error if listing fails', async () => {
       s3ClientMock.send.mockRejectedValue(new Error('List Error'));
-      await expect(service.listAllObjects()).rejects.toThrow('Error listing objects');
+      await expect(service.listAllObjects()).rejects.toThrow(
+        'Error listing objects',
+      );
     });
   });
 
-    it('should generate a URL', async () => {
-      const url = await service.presignedGetObject('test.txt');
-      expect(url).toContain('test.txt');
-      expect(url).toContain('afrigari-bucket'); // default bucket name
-    });
+  it('should generate a URL', async () => {
+    const url = await service.presignedGetObject('test.txt');
+    expect(url).toContain('test.txt');
+    expect(url).toContain('afrigari-bucket'); // default bucket name
+  });
 });

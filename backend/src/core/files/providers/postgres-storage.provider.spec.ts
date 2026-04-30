@@ -26,7 +26,10 @@ describe('PostgresStorageProvider', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PostgresStorageProvider,
-        { provide: getRepositoryToken(FileEntity), useValue: fileRepositoryMock },
+        {
+          provide: getRepositoryToken(FileEntity),
+          useValue: fileRepositoryMock,
+        },
         { provide: S3StorageService, useValue: s3ServiceMock },
       ],
     }).compile();
@@ -45,13 +48,21 @@ describe('PostgresStorageProvider', () => {
   });
 
   it('should findAll', async () => {
-    fileRepositoryMock.find.mockResolvedValue([{ id: '1', filename: 'f.png', path: 'p', mimetype: 'm', size: 1 }]);
+    fileRepositoryMock.find.mockResolvedValue([
+      { id: '1', filename: 'f.png', path: 'p', mimetype: 'm', size: 1 },
+    ]);
     const result = await provider.findAll();
     expect(result[0].id).toBe('1');
   });
 
   it('should findOne', async () => {
-    fileRepositoryMock.findOne.mockResolvedValue({ id: '1', filename: 'f.png', path: 'p', mimetype: 'm', size: 1 });
+    fileRepositoryMock.findOne.mockResolvedValue({
+      id: '1',
+      filename: 'f.png',
+      path: 'p',
+      mimetype: 'm',
+      size: 1,
+    });
     const result = await provider.findOne('1');
     expect(result!.id).toBe('1');
   });
@@ -71,14 +82,25 @@ describe('PostgresStorageProvider', () => {
   });
 
   it('should update', async () => {
-    fileRepositoryMock.findOne.mockResolvedValue({ id: '1', filename: 'u.png', path: 'p', mimetype: 'm', size: 1 });
+    fileRepositoryMock.findOne.mockResolvedValue({
+      id: '1',
+      filename: 'u.png',
+      path: 'p',
+      mimetype: 'm',
+      size: 1,
+    });
     const result = await provider.update('1', { filename: 'u.png' });
     expect(result!.filename).toBe('u.png');
-    expect(fileRepositoryMock.update).toHaveBeenCalledWith('1', { filename: 'u.png' });
+    expect(fileRepositoryMock.update).toHaveBeenCalledWith('1', {
+      filename: 'u.png',
+    });
   });
 
   it('should delete and call s3', async () => {
-    fileRepositoryMock.findOne.mockResolvedValue({ id: '1', path: 'some/path' });
+    fileRepositoryMock.findOne.mockResolvedValue({
+      id: '1',
+      path: 'some/path',
+    });
     fileRepositoryMock.delete.mockResolvedValue({ affected: 1 });
     const result = await provider.delete('1');
     expect(result).toBe(true);

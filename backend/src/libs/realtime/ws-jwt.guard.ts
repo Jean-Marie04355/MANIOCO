@@ -19,7 +19,7 @@ export class WsJwtGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const client = context.switchToWs().getClient<Socket>();
     const token = this.extractToken(client);
-    
+
     if (!token) {
       throw new WsException('Missing auth token');
     }
@@ -45,4 +45,3 @@ export class WsJwtGuard implements CanActivate {
     return null;
   }
 }
-

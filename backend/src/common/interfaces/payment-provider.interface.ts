@@ -18,5 +18,7 @@ export interface IPaymentProvider {
     orderId: string;
   }): Promise<PaymentResponse>;
 
-  verifyNotification(payload: Record<string, any>): Promise<WebhookResult | null>;
+  verifyNotification(
+    payload: Record<string, any>,
+  ): Promise<WebhookResult | null>;
 }

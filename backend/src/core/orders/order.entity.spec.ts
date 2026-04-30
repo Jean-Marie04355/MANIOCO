@@ -9,7 +9,9 @@ describe('Order entity', () => {
     order.storeId = 'store-1';
     order.totalAmount = 5000;
     order.status = OrderStatus.PENDING;
-    order.items = [{ productId: 'p1', productName: 'Test', quantity: 2, price: 2500 }];
+    order.items = [
+      { productId: 'p1', productName: 'Test', quantity: 2, price: 2500 },
+    ];
     order.createdAt = new Date();
     order.updatedAt = new Date();
 

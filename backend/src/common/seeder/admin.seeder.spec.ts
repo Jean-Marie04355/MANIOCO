@@ -37,10 +37,12 @@ describe('AdminSeeder', () => {
     usersServiceMock.findByEmail.mockResolvedValue(null);
 
     await seeder.seed();
-    expect(usersServiceMock.create).toHaveBeenCalledWith(expect.objectContaining({
-      email: 'admin@test.com',
-      role: UserRole.SUPER_ADMIN,
-    }));
+    expect(usersServiceMock.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        email: 'admin@test.com',
+        role: UserRole.SUPER_ADMIN,
+      }),
+    );
   });
 
   it('should skip if credentials missing', async () => {

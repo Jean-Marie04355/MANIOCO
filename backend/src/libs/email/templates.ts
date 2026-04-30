@@ -30,9 +30,14 @@ export const getOtpTemplate = (otpCode: string) => `
 </html>
 `;
 
-export const getOrderConfirmationTemplate = (orderId: string, totalAmount?: number, items?: any[]) => {
-  const itemsHtml = items && items.length > 0 
-    ? `
+export const getOrderConfirmationTemplate = (
+  orderId: string,
+  totalAmount?: number,
+  items?: any[],
+) => {
+  const itemsHtml =
+    items && items.length > 0
+      ? `
       <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
         <h3>Détails de la commande :</h3>
         <table style="width: 100%; text-align: left;">
@@ -44,13 +49,17 @@ export const getOrderConfirmationTemplate = (orderId: string, totalAmount?: numb
             </tr>
           </thead>
           <tbody>
-            ${items.map(item => `
+            ${items
+              .map(
+                (item) => `
               <tr>
                 <td>${item.productName || 'Produit'}</td>
                 <td>${item.quantity}</td>
                 <td>${item.price} €</td>
               </tr>
-            `).join('')}
+            `,
+              )
+              .join('')}
           </tbody>
         </table>
         <div style="margin-top: 10px; text-align: right; font-weight: bold;">
@@ -58,7 +67,7 @@ export const getOrderConfirmationTemplate = (orderId: string, totalAmount?: numb
         </div>
       </div>
     `
-    : '';
+      : '';
 
   return `
 <!DOCTYPE html>

@@ -1,6 +1,10 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { IPaymentProvider, PaymentResponse, WebhookResult } from '../../common/interfaces/payment-provider.interface';
+import {
+  IPaymentProvider,
+  PaymentResponse,
+  WebhookResult,
+} from '../../common/interfaces/payment-provider.interface';
 
 @Injectable()
 export class FedaPayProvider implements IPaymentProvider {
@@ -9,12 +13,16 @@ export class FedaPayProvider implements IPaymentProvider {
   private readonly secretKey: string;
 
   constructor(private readonly configService: ConfigService) {
-    const env = this.configService.get<string>('FEDAPAY_ENVIRONMENT', 'sandbox');
+    const env = this.configService.get<string>(
+      'FEDAPAY_ENVIRONMENT',
+      'sandbox',
+    );
     this.fedapayUrl =
       env === 'live'
         ? 'https://api.fedapay.com/v1'
         : 'https://sandbox-api.fedapay.com/v1';
-    this.secretKey = this.configService.getOrThrow<string>('FEDAPAY_SECRET_KEY');
+    this.secretKey =
+      this.configService.getOrThrow<string>('FEDAPAY_SECRET_KEY');
   }
 
   async createTransaction(params: {
@@ -24,7 +32,9 @@ export class FedaPayProvider implements IPaymentProvider {
     sellerPayoutAccountId?: string;
     orderId: string;
   }): Promise<PaymentResponse> {
-    this.logger.log(`Initiating FedaPay transaction for order #${params.orderId}`);
+    this.logger.log(
+      `Initiating FedaPay transaction for order #${params.orderId}`,
+    );
 
     try {
       const response = await fetch(`${this.fedapayUrl}/transactions`, {
@@ -38,10 +48,20 @@ export class FedaPayProvider implements IPaymentProvider {
           description: params.description,
           currency: { iso: 'XOF' },
           callback_url: params.callbackUrl,
-          subaccount: params.sellerPayoutAccountId ? { 
-            id: params.sellerPayoutAccountId,
-            amount: Math.floor(params.amount * (1 - (this.configService.get<number>('PLATFORM_COMMISSION_PERCENT', 10) / 100))) 
-          } : undefined,
+          subaccount: params.sellerPayoutAccountId
+            ? {
+                id: params.sellerPayoutAccountId,
+                amount: Math.floor(
+                  params.amount *
+                    (1 -
+                      this.configService.get<number>(
+                        'PLATFORM_COMMISSION_PERCENT',
+                        10,
+                      ) /
+                        100),
+                ),
+              }
+            : undefined,
           include: 'payouts',
         }),
       });
@@ -53,7 +73,7 @@ export class FedaPayProvider implements IPaymentProvider {
       }
 
       const transactionData = data['v1/transaction'] || data['transaction'];
-      
+
       // Return direct URL or generate token
       if (transactionData.payment_url) {
         return {
@@ -81,12 +101,16 @@ export class FedaPayProvider implements IPaymentProvider {
         url: tokenInfo.url,
       };
     } catch (error) {
-      this.logger.error(`FedaPay API Error: ${error instanceof Error ? error.message : String(error)}`);
+      this.logger.error(
+        `FedaPay API Error: ${error instanceof Error ? error.message : String(error)}`,
+      );
       throw error;
     }
   }
 
-  async verifyNotification(payload: Record<string, any>): Promise<WebhookResult | null> {
+  async verifyNotification(
+    payload: Record<string, any>,
+  ): Promise<WebhookResult | null> {
     const { entity, event } = payload;
 
     if (

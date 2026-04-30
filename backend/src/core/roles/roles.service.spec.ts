@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { RolesService } from './roles.service';
-import { ConflictException, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 
 const mockRepo = {
   find: jest.fn(),
@@ -62,7 +66,9 @@ describe('RolesService', () => {
 
     it('should throw ConflictException if role exists', async () => {
       mockRepo.findOne.mockResolvedValue({ name: 'existingRole' });
-      await expect(service.create({ name: 'existingRole' })).rejects.toThrow(ConflictException);
+      await expect(service.create({ name: 'existingRole' })).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -71,7 +77,9 @@ describe('RolesService', () => {
       mockRepo.findOne.mockResolvedValue({ id: '1', isSystem: false });
       const updatedRole = { id: '1', name: 'updated' };
       mockRepo.update.mockResolvedValue(updatedRole);
-      expect(await service.update('1', { name: 'updated' })).toEqual(updatedRole);
+      expect(await service.update('1', { name: 'updated' })).toEqual(
+        updatedRole,
+      );
     });
 
     it('should throw NotFoundException if role not found', async () => {

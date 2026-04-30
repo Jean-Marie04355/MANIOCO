@@ -14,6 +14,7 @@ import {
   CornerUpLeft,
   ArrowLeft
 } from 'lucide-react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { io, Socket } from 'socket.io-client';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -58,25 +59,26 @@ export default function ChatWindow() {
 
   const currentUserId = user?.id || (user as any)?.userId;
 
+  const searchParams = useSearchParams();
+  const contactId = searchParams.get('contact');
+
   // 1. Initialisation : Charger les conversations
   useEffect(() => {
      const fetchConversations = async () => {
       try {
         const res = await api.get('/chat/conversations');
-        setConversations(res.data);
-        if (res.data.length > 0) {
-          setActiveConv(res.data[0]);
-        }
+        const convs = res.data;
+        setConversations(convs);
 
         // Charger aussi tous les clients uniques du vendeur (via les commandes)
         const storesRes = await api.get('/stores');
         const currentUserId = String(user?.id || (user as any)?.userId || '');
-        // Utilisation de == pour être flexible sur le type (string vs number)
         const myStore = storesRes.data.find((s: any) => String(s.ownerId) == currentUserId);
         
+        let customers: any[] = [];
         if (myStore) {
           const ordersRes = await api.get(`/orders/store/${myStore.id}`);
-          const customers = ordersRes.data
+          customers = ordersRes.data
             .filter((o: any) => o.customer)
             .map((o: any) => ({
               ...o.customer,
@@ -86,20 +88,31 @@ export default function ChatWindow() {
               self.findIndex(t => t.id === c.id) === index
             );
           setAllClients(customers);
-        } else {
-          // Fallback: chercher dans toutes les commandes si la boutique n'est pas trouvée directement
-          const allOrdersRes = await api.get('/orders');
-          const myOrders = allOrdersRes.data.filter((o: any) => String(o.store?.ownerId) == currentUserId);
-          const customers = myOrders
-            .filter((o: any) => o.customer)
-            .map((o: any) => ({
-              ...o.customer,
-              displayName: o.customer.name || `${o.customer.firstName || ''} ${o.customer.lastName || ''}`.trim() || 'Client'
-            }))
-            .filter((c: any, index: number, self: any[]) => 
-              self.findIndex(t => t.id === c.id) === index
-            );
-          setAllClients(customers);
+        }
+
+        // LOGIQUE DE SÉLECTION AUTOMATIQUE (via URL ?contact=ID)
+        if (contactId) {
+          const existingConv = convs.find((c: any) => c.customerId === contactId);
+          if (existingConv) {
+            setActiveConv(existingConv);
+          } else {
+            // Chercher le client dans allClients pour créer une conversation temporaire
+            const targetClient = customers.find(c => c.id === contactId);
+            if (targetClient) {
+              setActiveConv({
+                id: `new-${targetClient.id}`,
+                customerId: targetClient.id,
+                customer: { 
+                  name: targetClient.displayName || targetClient.name || 'Client',
+                  profilePhoto: targetClient.profilePhoto || targetClient.avatar 
+                },
+                lastMessageText: '',
+                lastMessageAt: ''
+              });
+            }
+          }
+        } else if (convs.length > 0) {
+          setActiveConv(convs[0]);
         }
       } catch (error) {
         console.error("Erreur chargement données chat", error);
@@ -108,14 +121,14 @@ export default function ChatWindow() {
       }
     };
     fetchConversations();
-  }, [user]);
+  }, [user, contactId]);
 
   // 2. WebSocket : Connexion et écoute des nouveaux messages
   useEffect(() => {
     if (!currentUserId) return;
 
     // Connexion au namespace /realtime
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001';
+    const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://127.0.0.1:3000';
     socketRef.current = io(`${socketUrl}/realtime`, {
       auth: { token: localStorage.getItem('token') }
     });

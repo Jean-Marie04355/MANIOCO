@@ -26,7 +26,10 @@ export class DatabaseModule {
         {
           provide: 'DATABASE_REPOSITORY',
           inject: [ConfigService, isMongo ? NoSqlRepository : SqlRepository],
-          useFactory: (configService: ConfigService, repository: IBaseRepository<unknown>) => {
+          useFactory: (
+            configService: ConfigService,
+            repository: IBaseRepository<unknown>,
+          ) => {
             return repository;
           },
         },

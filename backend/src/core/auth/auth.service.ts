@@ -1,9 +1,5 @@
 import * as crypto from 'node:crypto';
-import {
-  Injectable,
-  UnauthorizedException,
-  Inject,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
@@ -51,20 +47,23 @@ export class AuthService {
 
     // Vérification de suspension temporelle
     if (user.suspensionUntil && new Date() < user.suspensionUntil) {
-        // Log a security alert for attempted login on suspended account
-        this.notificationsService.create({
+      // Log a security alert for attempted login on suspended account
+      this.notificationsService
+        .create({
           userId: user.id, // User gets notified too
           type: NotificationType.SECURITY,
           title: 'Accès suspendu',
-          message: `Tentative de connexion sur votre compte suspendu jusqu'au ${user.suspensionUntil.toLocaleDateString()}.`
-        }).catch(() => {});
+          message: `Tentative de connexion sur votre compte suspendu jusqu'au ${user.suspensionUntil.toLocaleDateString()}.`,
+        })
+        .catch(() => {});
 
-        throw new UnauthorizedException({
-            statusCode: 403,
-            message: 'ACCOUNT_SUSPENDED',
-            suspensionUntil: user.suspensionUntil,
-            reason: user.suspensionReason || 'Violation des conditions d\'utilisation'
-        });
+      throw new UnauthorizedException({
+        statusCode: 403,
+        message: 'ACCOUNT_SUSPENDED',
+        suspensionUntil: user.suspensionUntil,
+        reason:
+          user.suspensionReason || "Violation des conditions d'utilisation",
+      });
     }
 
     // On laisse passer la connexion même si non vérifié pour permettre l'accès à la page KYC
@@ -72,10 +71,9 @@ export class AuthService {
 
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
       throw new UnauthorizedException(
-        "Administrators must log in via the secure administration portal (MFA).",
+        'Administrators must log in via the secure administration portal (MFA).',
       );
     }
-
 
     const payload = {
       sub: user.email,
@@ -102,7 +100,10 @@ export class AuthService {
     };
   }
 
-  async adminLogin(email: string, password: string): Promise<{ message: string; email: string }> {
+  async adminLogin(
+    email: string,
+    password: string,
+  ): Promise<{ message: string; email: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials.');
@@ -127,7 +128,10 @@ export class AuthService {
 
     // Put OTP job into the queue
     const queueName = this.configService.get('QUEUE_NAME') || 'default';
-    await this.queueService.addJob(queueName, 'send-otp-email', { email: user.email, otpCode });
+    await this.queueService.addJob(queueName, 'send-otp-email', {
+      email: user.email,
+      otpCode,
+    });
 
     return {
       message: 'An OTP code has been generated and sent by email.',
@@ -137,7 +141,7 @@ export class AuthService {
 
   async verifyAdminOtp(email: string, otpCode: string): Promise<LoginResponse> {
     const user = await this.usersService.findByEmail(email);
-    
+
     if (user?.otpCode == null || user?.otpExpiresAt == null) {
       throw new UnauthorizedException('No active OTP session.');
     }
@@ -167,12 +171,14 @@ export class AuthService {
     const accessToken = await this.jwtService.signAsync(payload, { expiresIn });
 
     // Global security alert for admin login
-    this.notificationsService.create({
-      userId: user.id,
-      type: NotificationType.SECURITY,
-      title: 'Accès Administration',
-      message: `Votre compte s'est connecté au portail sécurisé Afrigari.`
-    }).catch(() => {});
+    this.notificationsService
+      .create({
+        userId: user.id,
+        type: NotificationType.SECURITY,
+        title: 'Accès Administration',
+        message: `Votre compte s'est connecté au portail sécurisé Afrigari.`,
+      })
+      .catch(() => {});
 
     return {
       accessToken,

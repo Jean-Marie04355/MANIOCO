@@ -14,7 +14,10 @@ export class SupportService {
     private readonly ticketMessageRepository: IBaseRepository<TicketMessage>,
   ) {}
 
-  async createTicket(sellerId: string, createTicketDto: CreateTicketDto): Promise<Ticket> {
+  async createTicket(
+    sellerId: string,
+    createTicketDto: CreateTicketDto,
+  ): Promise<Ticket> {
     const { subject, category, message } = createTicketDto;
 
     // 1. Create the ticket
@@ -43,7 +46,6 @@ export class SupportService {
     return this.ticketRepository.find({ relations: ['seller'] } as any);
   }
 
-
   async getTicketDetails(id: string): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({ id });
     if (!ticket) {
@@ -52,14 +54,21 @@ export class SupportService {
 
     // Attach messages (simplistic relation loading since IBaseRepository might not support relations directly)
     const messages = await this.ticketMessageRepository.find({ ticketId: id });
-    
+
     // Sort messages by creation date if needed (assuming DB returns them ordered or we sort here)
-    ticket.messages = messages.sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    ticket.messages = messages.sort(
+      (a: any, b: any) =>
+        new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    );
 
     return ticket;
   }
 
-  async addMessage(ticketId: string, senderId: string, createMessageDto: CreateTicketMessageDto): Promise<TicketMessage> {
+  async addMessage(
+    ticketId: string,
+    senderId: string,
+    createMessageDto: CreateTicketMessageDto,
+  ): Promise<TicketMessage> {
     const ticket = await this.ticketRepository.findOne({ id: ticketId });
     if (!ticket) {
       throw new NotFoundException(`Ticket with ID ${ticketId} not found`);
@@ -93,4 +102,3 @@ export class SupportService {
     return tickets.filter((t: any) => activeStatuses.includes(t.status)).length;
   }
 }
-

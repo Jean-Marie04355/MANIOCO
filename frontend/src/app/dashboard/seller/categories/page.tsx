@@ -10,7 +10,8 @@ import {
   Trash2,
   Tag,
   ShoppingBag,
-  Edit2
+  Edit2,
+  Check
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthContext';
 import api from '@/lib/axios';
@@ -27,6 +28,8 @@ export default function SellerCategories() {
   const [hasStore, setHasStore] = useState(false);
   const [storeId, setStoreId] = useState<string | null>(null);
   const [categoryToEdit, setCategoryToEdit] = useState<any | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     const initialize = async () => {
@@ -63,13 +66,17 @@ export default function SellerCategories() {
       if (categoryToEdit) {
         const response = await api.patch(`/product-categories/${categoryToEdit.id}`, { name: newCategoryName });
         setCategories(categories.map(c => c.id === categoryToEdit.id ? response.data : c));
+        setToastMessage("Catégorie mise à jour !");
       } else {
         const response = await api.post('/product-categories', { name: newCategoryName });
         setCategories([response.data, ...categories]);
+        setToastMessage("Catégorie créée avec succès !");
       }
       setNewCategoryName("");
       setCategoryToEdit(null);
       setIsAddModalOpen(false);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
     } catch (error) {
       alert("Erreur lors de l'enregistrement");
     } finally {
@@ -88,6 +95,9 @@ export default function SellerCategories() {
       try {
         await api.delete(`/product-categories/${id}`);
         setCategories(categories.filter(c => c.id !== id));
+        setToastMessage("Catégorie supprimée avec succès !");
+        setShowToast(true);
+        setTimeout(() => setShowToast(false), 3000);
       } catch (error: any) {
         alert(error.response?.data?.message || "Erreur lors de la suppression");
       }
@@ -108,6 +118,18 @@ export default function SellerCategories() {
   return (
     <div className="flex bg-slate-50 min-h-screen">
       <Sidebar mode="seller" />
+      
+      {/* Toast Notification */}
+      {showToast && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="bg-white/80 backdrop-blur-xl border border-emerald-500/20 shadow-2xl shadow-emerald-500/10 px-6 py-4 rounded-[2rem] flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg shadow-emerald-500/30">
+              <Check size={18} strokeWidth={3} />
+            </div>
+            <p className="text-sm font-black text-slate-900">{toastMessage}</p>
+          </div>
+        </div>
+      )}
       
       <main className="flex-1 ml-64">
         <TopNav title="Mes Catégories" isAdmin={true} />

@@ -19,7 +19,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
   imports: [
     ConfigModule,
     dbType === 'mongodb'
-      ? MongooseModule.forFeature([{ name: MongoRole.name, schema: RoleSchema }])
+      ? MongooseModule.forFeature([
+          { name: MongoRole.name, schema: RoleSchema },
+        ])
       : TypeOrmModule.forFeature([Role]),
   ],
   controllers: [RolesController],
@@ -30,7 +32,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       provide: 'ROLE_REPOSITORY',
       inject: [
         ConfigService,
-        dbType === 'mongodb' ? getModelToken(MongoRole.name) : getRepositoryToken(Role),
+        dbType === 'mongodb'
+          ? getModelToken(MongoRole.name)
+          : getRepositoryToken(Role),
       ],
       useFactory: (config: ConfigService, engine: any) => {
         return config.get('DB_TYPE') === 'mongodb'

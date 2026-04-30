@@ -19,7 +19,11 @@ export class RedisCacheService extends CacheService {
     return JSON.parse(raw) as T;
   }
 
-  async set<T>(key: string, value: T, options?: CacheSetOptions): Promise<void> {
+  async set<T>(
+    key: string,
+    value: T,
+    options?: CacheSetOptions,
+  ): Promise<void> {
     const payload = JSON.stringify(value);
     const ttlSeconds = options?.ttlSeconds;
 
@@ -35,4 +39,3 @@ export class RedisCacheService extends CacheService {
     return this.redis.del(key);
   }
 }
-

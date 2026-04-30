@@ -16,30 +16,34 @@ export class EmailService {
   constructor() {
     const host = process.env.SMTP_HOST || '127.0.0.1';
     const port = Number(process.env.SMTP_PORT || 1025);
-    
     // Force IPv4 if localhost is provided
     const finalHost = host === 'localhost' ? '127.0.0.1' : host;
-    
-    this.logger.log(`Initializing Mailer with host: ${finalHost}, port: ${port}`);
+
+    this.logger.log(
+      `Initializing Mailer with host: ${finalHost}, port: ${port}`,
+    );
 
     this.transporter = nodemailer.createTransport({
       host: finalHost,
       port: port,
-      secure: false, 
-      ignoreTLS: true, 
-      auth: (process.env.SMTP_USER && process.env.SMTP_USER !== 'null') ? {
-        user: process.env.SMTP_USER,
-        pass: process.env.SMTP_PASS,
-      } : undefined,
+      secure: false,
+      ignoreTLS: true,
+      auth:
+        process.env.SMTP_USER && process.env.SMTP_USER !== 'null'
+          ? {
+              user: process.env.SMTP_USER,
+              pass: process.env.SMTP_PASS,
+            }
+          : undefined,
       tls: {
-        rejectUnauthorized: false
-      }
+        rejectUnauthorized: false,
+      },
     });
   }
 
   async sendEmail(options: EmailOptions): Promise<void> {
     const from = process.env.SMTP_FROM || '"Afrigari" <noreply@afrigari.com>';
-    
+
     try {
       await this.transporter.sendMail({
         from,
@@ -48,10 +52,12 @@ export class EmailService {
         html: options.html,
         text: options.text,
       });
-      
+
       this.logger.log('Email sent successfully');
     } catch (error: any) {
-      this.logger.error(`Failed to send email to ${options.to}. Error: ${error.message}`);
+      this.logger.error(
+        `Failed to send email to ${options.to}. Error: ${error.message}`,
+      );
       this.logger.warn(`Fallback (DEV ONLY) - Contenu de l'email :
       ---------------------------------
       Sujet: ${options.subject}

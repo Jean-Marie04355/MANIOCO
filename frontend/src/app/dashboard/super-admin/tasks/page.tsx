@@ -33,7 +33,7 @@ export default function SimpleTasksPage() {
   return (
     <div className="flex bg-slate-50 min-h-screen text-slate-800">
       <Sidebar mode="super-admin" />
-      <main className="flex-1 ml-64 p-12">
+      <main className="flex-1 ml-72 p-12">
         <header className="mb-10 flex justify-between items-end">
           <div>
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Monitoring des <span className="text-indigo-600">Tâches</span></h1>

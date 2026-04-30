@@ -41,7 +41,7 @@ export class OrdersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions(Permission.ORDERS_MANAGE)
-  @ApiOperation({ summary: "Statistiques réelles pour le dashboard admin" })
+  @ApiOperation({ summary: 'Statistiques réelles pour le dashboard admin' })
   getAdminStats() {
     return this.ordersService.getAdminDashboardStats();
   }
@@ -83,8 +83,9 @@ export class OrdersController {
   updateStatus(
     @Param('id') id: string,
     @Body('status') status: OrderStatus,
+    @Body('reason') reason: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.ordersService.updateStatus(id, status, user);
+    return this.ordersService.updateStatus(id, status, user, reason);
   }
 }

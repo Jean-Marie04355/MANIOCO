@@ -8,10 +8,7 @@ import { SupportService } from './support.service';
 import { SupportController } from './support.controller';
 import { Ticket } from './ticket.entity';
 import { TicketMessage } from './ticket-message.entity';
-import {
-  Ticket as MongoTicket,
-  TicketSchema,
-} from './schemas/ticket.schema';
+import { Ticket as MongoTicket, TicketSchema } from './schemas/ticket.schema';
 import {
   TicketMessage as MongoTicketMessage,
   TicketMessageSchema,

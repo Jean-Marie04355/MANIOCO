@@ -12,7 +12,13 @@ import {
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles } from '../../common/decorators/roles.decorator';
@@ -21,6 +27,9 @@ import { CurrentUser } from '../../common/decorators/user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { AuditService } from '../audit/audit.service';
 import { AuditAction } from '../audit/audit-log.entity';
+import { PermissionsGuard } from '../../common/guards/permissions.guard';
+import { Permissions } from '../../common/decorators/permissions.decorator';
+import { Permission } from '../../common/enum/permission.enum';
 
 @ApiTags('users')
 @ApiBearerAuth()
@@ -33,8 +42,8 @@ export class UsersController {
 
   @ApiOperation({ summary: 'List of all users' })
   @ApiResponse({ status: 200, description: 'List retrieved' })
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.USERS_VIEW)
   @Get()
   findAll() {
     return this.usersService.findAllWithDeleted();
@@ -44,7 +53,10 @@ export class UsersController {
   @ApiResponse({ status: 201, description: 'User created successfully' })
   @Post()
   create(@Body() createUserDto: CreateUserDto) {
-    if (createUserDto.role === UserRole.ADMIN || createUserDto.role === UserRole.SUPER_ADMIN) {
+    if (
+      createUserDto.role === UserRole.ADMIN ||
+      createUserDto.role === UserRole.SUPER_ADMIN
+    ) {
       createUserDto.role = UserRole.CLIENT;
     }
     return this.usersService.create(createUserDto);
@@ -55,10 +67,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
   @Post('admin')
-  async createAdmin(@Body() createUserDto: CreateUserDto, @CurrentUser() admin: AuthenticatedUser) {
+  async createAdmin(
+    @Body() createUserDto: CreateUserDto,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
     createUserDto.role = UserRole.ADMIN;
     const result = await this.usersService.create(createUserDto);
-    
+
     await this.auditService.log({
       adminName: admin.name || 'Admin',
       adminEmail: admin.email,
@@ -70,10 +85,12 @@ export class UsersController {
     return result;
   }
 
-  @ApiOperation({ summary: 'List all users including suspended (Super Admin only)' })
+  @ApiOperation({
+    summary: 'List all users including suspended (Super Admin only)',
+  })
   @ApiResponse({ status: 200, description: 'Full list retrieved' })
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(UserRole.SUPER_ADMIN)
+  @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Get('admin/all')
   findAllWithDeleted() {
     return this.usersService.findAllWithDeleted();
@@ -85,10 +102,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Patch(':id/restore')
-  async restore(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+  async restore(
+    @Param('id') id: string,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
     const target = await this.usersService.findOne(id);
     await this.usersService.restore(id);
-    
+
     await this.auditService.log({
       adminName: admin.name || 'Admin',
       adminEmail: admin.email,
@@ -106,10 +126,14 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN)
   @Patch(':id/reset-password')
-  async resetPassword(@Param('id') id: string, @Body() body: { password: string }, @CurrentUser() admin: AuthenticatedUser) {
+  async resetPassword(
+    @Param('id') id: string,
+    @Body() body: { password: string },
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
     const target = await this.usersService.findOne(id);
     await this.usersService.update(id, { password: body.password });
-    
+
     await this.auditService.log({
       adminName: admin.name || 'Admin',
       adminEmail: admin.email,
@@ -127,7 +151,11 @@ export class UsersController {
   @UseGuards(JwtAuthGuard)
   @Get(':id')
   findOne(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-    if (user.role !== UserRole.SUPER_ADMIN && user.role !== UserRole.ADMIN && user.userId !== id) {
+    if (
+      user.role !== UserRole.SUPER_ADMIN &&
+      user.role !== UserRole.ADMIN &&
+      user.userId !== id
+    ) {
       throw new ForbiddenException('You can only access your own profile.');
     }
     return this.usersService.findOne(id);
@@ -138,11 +166,20 @@ export class UsersController {
   @ApiParam({ name: 'id', type: String })
   @UseGuards(JwtAuthGuard)
   @Delete(':id')
-  async remove(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
-    if (admin.role !== UserRole.SUPER_ADMIN && admin.role !== UserRole.ADMIN && admin.userId !== id) {
-      throw new ForbiddenException('Only administrators or the account owner can perform this action.');
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
+    if (
+      admin.role !== UserRole.SUPER_ADMIN &&
+      admin.role !== UserRole.ADMIN &&
+      admin.userId !== id
+    ) {
+      throw new ForbiddenException(
+        'Only administrators or the account owner can perform this action.',
+      );
     }
-    
+
     const target = await this.usersService.findOne(id);
     await this.usersService.remove(id);
 
@@ -165,10 +202,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Delete(':id/permanent')
-  async hardDelete(@Param('id') id: string, @CurrentUser() admin: AuthenticatedUser) {
+  async hardDelete(
+    @Param('id') id: string,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
     const target = await this.usersService.findOne(id);
     await this.usersService.hardDelete(id);
-    
+
     await this.auditService.log({
       adminName: admin.name || 'Admin',
       adminEmail: admin.email,
@@ -180,38 +220,46 @@ export class UsersController {
     return { message: 'User permanently deleted' };
   }
 
-  @ApiOperation({ summary: 'Update a user' })
+  @ApiOperation({ summary: 'Update a user profile' })
   @ApiResponse({ status: 200, description: 'User updated' })
   @ApiParam({ name: 'id', type: String })
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, PermissionsGuard)
+  @Permissions(Permission.USERS_MANAGE)
   @Patch(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateUserDto, @CurrentUser() user: AuthenticatedUser) {
-    const isAdmin = user.role === UserRole.SUPER_ADMIN || user.role === UserRole.ADMIN;
-    
-    if (!isAdmin && user.userId !== id) {
+  async update(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
+    const isAdmin =
+      admin.role === UserRole.SUPER_ADMIN || admin.role === UserRole.ADMIN;
+
+    if (!isAdmin && admin.userId !== id) {
       throw new ForbiddenException('You can only update your own profile.');
     }
 
-    const result = await this.usersService.update(id, data);
+    const target = await this.usersService.findOne(id);
+    await this.usersService.update(id, updateUserDto);
 
-    if (isAdmin && user.userId !== id) {
-      const target = await this.usersService.findOne(id);
-      await this.auditService.log({
-        adminName: user.name || 'Admin',
-        adminEmail: user.email,
-        action: AuditAction.UPDATE_USER,
-        details: `A modifié le profil de ${target.email}`,
-        targetId: id,
-      });
-    }
+    await this.auditService.log({
+      adminName: admin.name || 'Admin',
+      adminEmail: admin.email,
+      action: AuditAction.UPDATE_USER,
+      details: `A mis à jour le profil de ${target.email}`,
+      targetId: id,
+    });
 
-    return result;
+    return this.usersService.findOne(id);
   }
 
   @ApiOperation({ summary: 'Submit KYC documents (Sellers)' })
   @UseGuards(JwtAuthGuard)
   @Patch(':id/kyc/submit')
-  async submitKyc(@Param('id') id: string, @Body() data: any, @CurrentUser() user: AuthenticatedUser) {
+  async submitKyc(
+    @Param('id') id: string,
+    @Body() data: any,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
     if (user.userId !== id) {
       throw new ForbiddenException('You can only submit your own KYC.');
     }
@@ -222,9 +270,13 @@ export class UsersController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.SUPER_ADMIN, UserRole.ADMIN)
   @Patch(':id/kyc/review')
-  async reviewKyc(@Param('id') id: string, @Body() data: any, @CurrentUser() admin: AuthenticatedUser) {
+  async reviewKyc(
+    @Param('id') id: string,
+    @Body() data: any,
+    @CurrentUser() admin: AuthenticatedUser,
+  ) {
     const result = await this.usersService.reviewKyc(id, data);
-    
+
     await this.auditService.log({
       adminName: admin.name || 'Admin',
       adminEmail: admin.email,
@@ -235,6 +287,4 @@ export class UsersController {
 
     return result;
   }
-
 }
-

@@ -35,7 +35,6 @@ export class AdminSeeder {
           role: UserRole.SUPER_ADMIN,
         });
 
-
         this.logger.log('Initial admin created successfully!');
       } else {
         this.logger.log(`Admin ${adminEmail} already exists, seeding skipped.`);

@@ -9,7 +9,11 @@ describe('OrdersController', () => {
   let controller: OrdersController;
   let serviceMock: any;
 
-  const adminUser = { email: 'admin@test.com', role: UserRole.ADMIN, userId: 'admin-1' };
+  const adminUser = {
+    email: 'admin@test.com',
+    role: UserRole.ADMIN,
+    userId: 'admin-1',
+  };
 
   beforeEach(async () => {
     serviceMock = {
@@ -89,10 +93,21 @@ describe('OrdersController', () => {
 
   describe('updateStatus', () => {
     it('should call service.updateStatus with user', async () => {
-      serviceMock.updateStatus.mockResolvedValue({ id: '1', status: OrderStatus.DELIVERED });
-      const result = await controller.updateStatus('1', OrderStatus.DELIVERED, adminUser);
+      serviceMock.updateStatus.mockResolvedValue({
+        id: '1',
+        status: OrderStatus.DELIVERED,
+      });
+      const result = await controller.updateStatus(
+        '1',
+        OrderStatus.DELIVERED,
+        adminUser,
+      );
       expect(result.status).toBe(OrderStatus.DELIVERED);
-      expect(serviceMock.updateStatus).toHaveBeenCalledWith('1', OrderStatus.DELIVERED, adminUser);
+      expect(serviceMock.updateStatus).toHaveBeenCalledWith(
+        '1',
+        OrderStatus.DELIVERED,
+        adminUser,
+      );
     });
   });
 });

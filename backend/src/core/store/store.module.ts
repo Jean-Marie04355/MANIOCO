@@ -8,10 +8,7 @@ import { StoreService } from './store.service';
 import { StoreController } from './store.controller';
 
 import { Store } from './store.entity';
-import {
-  Store as MongoStore,
-  StoreSchema,
-} from './schemas/store.schema';
+import { Store as MongoStore, StoreSchema } from './schemas/store.schema';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';

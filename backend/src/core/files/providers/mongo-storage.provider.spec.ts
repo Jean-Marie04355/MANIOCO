@@ -11,13 +11,21 @@ describe('MongoStorageProvider', () => {
 
   beforeEach(async () => {
     fileModelMock = jest.fn().mockImplementation((data) => ({
-        ...data,
-        save: jest.fn().mockResolvedValue({ _id: '1', ...data }),
+      ...data,
+      save: jest.fn().mockResolvedValue({ _id: '1', ...data }),
     }));
-    (fileModelMock as any).find = jest.fn().mockReturnValue({ exec: jest.fn() });
-    (fileModelMock as any).findById = jest.fn().mockReturnValue({ exec: jest.fn() });
-    (fileModelMock as any).findByIdAndUpdate = jest.fn().mockReturnValue({ exec: jest.fn() });
-    (fileModelMock as any).findByIdAndDelete = jest.fn().mockReturnValue({ exec: jest.fn() });
+    (fileModelMock as any).find = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn() });
+    (fileModelMock as any).findById = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn() });
+    (fileModelMock as any).findByIdAndUpdate = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn() });
+    (fileModelMock as any).findByIdAndDelete = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn() });
 
     s3ServiceMock = {
       uploadFile: jest.fn(),
@@ -46,14 +54,22 @@ describe('MongoStorageProvider', () => {
   });
 
   it('should findAll', async () => {
-    const list = [{ _id: '1', filename: 't.png', path: 'p', mimetype: 'm', size: 10 }];
+    const list = [
+      { _id: '1', filename: 't.png', path: 'p', mimetype: 'm', size: 10 },
+    ];
     (fileModelMock.find().exec as jest.Mock).mockResolvedValue(list);
     const result = await provider.findAll();
     expect(result[0].id).toBe('1');
   });
 
   it('should findOne', async () => {
-    const doc = { _id: '1', filename: 't.png', path: 'p', mimetype: 'm', size: 10 };
+    const doc = {
+      _id: '1',
+      filename: 't.png',
+      path: 'p',
+      mimetype: 'm',
+      size: 10,
+    };
     (fileModelMock.findById().exec as jest.Mock).mockResolvedValue(doc);
     const result = await provider.findOne('1');
     expect(result!.id).toBe('1');
@@ -66,8 +82,16 @@ describe('MongoStorageProvider', () => {
   });
 
   it('should update', async () => {
-    const doc = { _id: '1', filename: 'u.png', path: 'p', mimetype: 'm', size: 10 };
-    (fileModelMock.findByIdAndUpdate().exec as jest.Mock).mockResolvedValue(doc);
+    const doc = {
+      _id: '1',
+      filename: 'u.png',
+      path: 'p',
+      mimetype: 'm',
+      size: 10,
+    };
+    (fileModelMock.findByIdAndUpdate().exec as jest.Mock).mockResolvedValue(
+      doc,
+    );
     const result = await provider.update('1', { filename: 'u.png' });
     expect(result!.filename).toBe('u.png');
   });
@@ -75,7 +99,9 @@ describe('MongoStorageProvider', () => {
   it('should delete', async () => {
     const doc = { _id: '1', path: 'p' };
     (fileModelMock.findById().exec as jest.Mock).mockResolvedValue(doc);
-    (fileModelMock.findByIdAndDelete().exec as jest.Mock).mockResolvedValue(doc);
+    (fileModelMock.findByIdAndDelete().exec as jest.Mock).mockResolvedValue(
+      doc,
+    );
     const result = await provider.delete('1');
     expect(result).toBe(true);
     expect(s3ServiceMock.deleteFile).toHaveBeenCalledWith('p');
@@ -83,7 +109,9 @@ describe('MongoStorageProvider', () => {
 
   it('should return false if delete not found', async () => {
     (fileModelMock.findById().exec as jest.Mock).mockResolvedValue(null);
-    (fileModelMock.findByIdAndDelete().exec as jest.Mock).mockResolvedValue(null);
+    (fileModelMock.findByIdAndDelete().exec as jest.Mock).mockResolvedValue(
+      null,
+    );
     const result = await provider.delete('123');
     expect(result).toBe(false);
   });

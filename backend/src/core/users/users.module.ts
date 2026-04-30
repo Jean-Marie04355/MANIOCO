@@ -8,10 +8,7 @@ import { UsersService } from './users.service';
 import { UsersController } from './users.controller';
 
 import { User } from './user.entity';
-import {
-  User as MongoUser,
-  UserSchema,
-} from './schemas/user.schema';
+import { User as MongoUser, UserSchema } from './schemas/user.schema';
 
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';

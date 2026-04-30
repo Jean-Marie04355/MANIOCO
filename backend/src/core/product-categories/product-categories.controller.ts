@@ -40,7 +40,9 @@ export class ProductCategoriesController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Retrieve all product categories, optionally filtered by storeId' })
+  @ApiOperation({
+    summary: 'Retrieve all product categories, optionally filtered by storeId',
+  })
   findAll(@Query('storeId') storeId?: string) {
     return this.productCategoriesService.findAll(storeId);
   }

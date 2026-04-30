@@ -25,7 +25,10 @@ export class SupportController {
   @Post('tickets')
   @ApiOperation({ summary: 'Create a new support ticket (Seller)' })
   async create(@Request() req: any, @Body() createTicketDto: CreateTicketDto) {
-    return this.supportService.createTicket(req.user.userId || req.user.id, createTicketDto);
+    return this.supportService.createTicket(
+      req.user.userId || req.user.id,
+      createTicketDto,
+    );
   }
 
   @Get('tickets/my-tickets')
@@ -54,7 +57,11 @@ export class SupportController {
     @Param('id') id: string,
     @Body() createMessageDto: CreateTicketMessageDto,
   ) {
-    return this.supportService.addMessage(id, req.user.userId || req.user.id, createMessageDto);
+    return this.supportService.addMessage(
+      id,
+      req.user.userId || req.user.id,
+      createMessageDto,
+    );
   }
 
   @Patch('tickets/:id/status')

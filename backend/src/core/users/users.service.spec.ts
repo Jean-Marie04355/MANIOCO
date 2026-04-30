@@ -72,43 +72,63 @@ describe('UsersService', () => {
 
     it('should throw ConflictException if user already exists', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1' });
-      await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
+      await expect(service.create(createUserDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should create a SUPER_ADMIN if it is the first user', async () => {
       repositoryMock.findOne.mockResolvedValue(null);
       repositoryMock.count.mockResolvedValue(0);
-      repositoryMock.create.mockResolvedValue({ ...createUserDto, id: '1', role: UserRole.SUPER_ADMIN });
+      repositoryMock.create.mockResolvedValue({
+        ...createUserDto,
+        id: '1',
+        role: UserRole.SUPER_ADMIN,
+      });
 
       const result = await service.create(createUserDto);
       expect(result.id).toBe('1');
-      expect(repositoryMock.create).toHaveBeenCalledWith(expect.objectContaining({
-        role: UserRole.SUPER_ADMIN,
-      }));
+      expect(repositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          role: UserRole.SUPER_ADMIN,
+        }),
+      );
     });
 
     it('should create a regular user if not the first', async () => {
       repositoryMock.findOne.mockResolvedValue(null);
       repositoryMock.count.mockResolvedValue(10);
-      repositoryMock.create.mockResolvedValue({ ...createUserDto, id: '1', role: UserRole.CLIENT });
+      repositoryMock.create.mockResolvedValue({
+        ...createUserDto,
+        id: '1',
+        role: UserRole.CLIENT,
+      });
 
       const result = await service.create(createUserDto);
       expect(result.id).toBe('1');
-      expect(repositoryMock.create).toHaveBeenCalledWith(expect.objectContaining({
-        role: UserRole.CLIENT,
-      }));
+      expect(repositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          role: UserRole.CLIENT,
+        }),
+      );
     });
 
     it('should prevent creating a SUPER_ADMIN if one already exists', async () => {
       const superAdminDto = { ...createUserDto, role: UserRole.SUPER_ADMIN };
       repositoryMock.findOne.mockResolvedValue(null);
       repositoryMock.count.mockResolvedValue(1);
-      repositoryMock.create.mockResolvedValue({ ...superAdminDto, id: '1', role: UserRole.CLIENT });
+      repositoryMock.create.mockResolvedValue({
+        ...superAdminDto,
+        id: '1',
+        role: UserRole.CLIENT,
+      });
 
       const result = await service.create(superAdminDto);
-      expect(repositoryMock.create).toHaveBeenCalledWith(expect.objectContaining({
-        role: UserRole.CLIENT,
-      }));
+      expect(repositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          role: UserRole.CLIENT,
+        }),
+      );
     });
   });
 
@@ -142,17 +162,24 @@ describe('UsersService', () => {
     it('should update user data', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1' });
       await service.update('1', { name: 'Updated' });
-      expect(repositoryMock.update).toHaveBeenCalledWith('1', { name: 'Updated' });
+      expect(repositoryMock.update).toHaveBeenCalledWith('1', {
+        name: 'Updated',
+      });
     });
 
     it('should hash password if provided in update', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1' });
       const updateDto = { password: 'newpassword' };
       await service.update('1', updateDto);
-      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({
-        password: expect.any(String),
-      }));
-      expect(repositoryMock.update.mock.calls[0][1].password).not.toBe('newpassword');
+      expect(repositoryMock.update).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({
+          password: expect.any(String),
+        }),
+      );
+      expect(repositoryMock.update.mock.calls[0][1].password).not.toBe(
+        'newpassword',
+      );
     });
   });
 });

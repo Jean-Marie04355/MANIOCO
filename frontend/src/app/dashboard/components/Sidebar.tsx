@@ -20,63 +20,80 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
-  
   const [orderCount, setOrderCount] = useState<number | null>(0);
   const [chatCount, setChatCount] = useState<number | null>(0);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [storeId, setStoreId] = useState<string | null>(null);
+  const [cachedUser, setCachedUser] = useState(user);
 
+  useEffect(() => {
+    if (user) setCachedUser(user);
+  }, [user]);
+
+  const displayUser = user || cachedUser;
+
+  // 1. Identifier la boutique une seule fois au chargement
+  useEffect(() => {
+    if (user && mode === 'seller' && !storeId) {
+      api.get('/stores').then(res => {
+        const currentUserId = user.id || (user as any).userId;
+        const myStore = res.data.find((s: any) => s.ownerId === currentUserId);
+        if (myStore) setStoreId(myStore.id);
+      }).catch(err => console.error("Erreur identification boutique", err));
+    }
+  }, [user, mode, storeId]);
+
+  // 2. Charger les compteurs (une fois au début, puis par intervalle)
   const fetchCounts = async () => {
     if (!user) return;
-    const currentUserId = user.id || (user as any).userId;
-
     try {
       if (mode === 'admin' || mode === 'super-admin') {
         const notifRes = await api.get('/notifications/unread/count');
         setNotificationCount(notifRes.data.count || 0);
       }
       
-      if (mode === 'seller') {
-        // Récupérer le storeId d'abord
-        const storesRes = await api.get('/stores');
-        const myStore = storesRes.data.find((s: any) => s.ownerId === currentUserId);
-        
-        if (myStore) {
-          // Compter les commandes avec logique lastSeen
-          const ordersRes = await api.get(`/orders/store/${myStore.id}`);
-          const totalOrders = ordersRes.data.length;
-          const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${myStore.id}`) || '0');
-          
-          if (pathname === '/dashboard/seller/orders') {
-            localStorage.setItem(`lastSeenOrders_${myStore.id}`, totalOrders.toString());
-            setOrderCount(null);
-          } else {
-            setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
-          }
+      if (mode === 'seller' && storeId) {
+        // Commandes
+        const ordersRes = await api.get(`/orders/store/${storeId}`);
+        const totalOrders = ordersRes.data.length;
+        const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${storeId}`) || '0');
+        setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
 
-          // Compter les conversations non lues
-          const chatRes = await api.get('/chat/unread-count');
-          setChatCount(chatRes.data > 0 ? chatRes.data : null);
-        }
+        // Chat / Messages
+        const chatRes = await api.get('/chat/unread-count');
+        setChatCount(chatRes.data > 0 ? chatRes.data : null);
       } else if (mode === 'client') {
         // Notifications
         const notifRes = await api.get('/notifications');
         const unreadCount = notifRes.data.filter((n: any) => !n.isRead).length;
-        setOrderCount(unreadCount > 0 ? unreadCount : null); // Reusing orderCount for notifications badge
+        setOrderCount(unreadCount > 0 ? unreadCount : null);
 
         // Messages
         const chatRes = await api.get('/chat/unread-count');
         setChatCount(chatRes.data > 0 ? chatRes.data : null);
       }
     } catch (error) {
-      console.error("Erreur récupération des compteurs sidebar", error);
+      console.error("Erreur badges sidebar", error);
     }
   };
 
   useEffect(() => {
     fetchCounts();
-    const interval = setInterval(fetchCounts, 60000);
+    const interval = setInterval(fetchCounts, 60000); // Mise à jour toutes les 60s
     return () => clearInterval(interval);
-  }, [mode, user, pathname]);
+  }, [mode, user, storeId]);
+
+  // 3. Gestion spécifique du badge quand on arrive sur la page concernée
+  useEffect(() => {
+    if (mode === 'seller' && storeId) {
+      if (pathname === '/dashboard/seller/orders') {
+        setOrderCount(null);
+      }
+      if (pathname === '/dashboard/seller/messages') {
+        setChatCount(null);
+      }
+    }
+  }, [pathname, mode, storeId]);
 
   const isActive = (href: string) => {
     if (href === '#') return false;
@@ -88,7 +105,6 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
 
   const handleLogout = () => {
     logout();
-    router.push('/auth/login');
   };
 
   const getMenuItems = () => {
@@ -111,6 +127,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
           { icon: ShieldCheck, label: 'Admins & Rôles', href: '/dashboard/super-admin/admins' },
           { icon: Shield, label: 'Permissions', href: '/dashboard/super-admin/permissions' },
           { icon: Database, label: 'Logs système', href: '/dashboard/super-admin/logs' },
+          { icon: Activity, label: 'Tâches système', href: '/dashboard/super-admin/tasks' },
         ];
       case 'client':
         return [
@@ -132,10 +149,9 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
           { icon: ShoppingCart, label: 'Commandes', href: '/dashboard/seller/orders', badge: orderCount && orderCount > 0 ? orderCount.toString() : null },
           { icon: MessageSquare, label: 'Messages', href: '/dashboard/seller/messages', badge: (chatCount && chatCount > 0 && pathname !== '/dashboard/seller/messages') ? chatCount.toString() : null },
           { icon: CreditCard, label: 'Revenus', href: '/dashboard/seller/revenues' },
-          { icon: Gift, label: 'Promotions', href: '/dashboard/seller/promotions' },
           { icon: HelpCircle, label: 'Aide & Support', href: '/dashboard/seller/support' },
           { icon: Store, label: 'Paramètres boutique', href: '/dashboard/seller/settings/store' },
-          { icon: UserCheck, label: 'Profil Personnel', href: '/dashboard/seller/profile' },
+          { icon: Settings, label: 'Paramètres compte', href: '/dashboard/seller/settings/account' },
         ];
       default:
         return [];
@@ -180,7 +196,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
             </div>
             <div className="flex-1">
               <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-emerald-400 transition-colors">Admin_Local</p>
-              <p className="text-xs font-black text-white uppercase">{user?.name || 'Administrateur'}</p>
+              <p className="text-xs font-black text-white uppercase">{displayUser?.name || 'Administrateur'}</p>
             </div>
             <ChevronRight size={18} className="text-slate-500 group-hover:text-white transition-all" />
           </Link>

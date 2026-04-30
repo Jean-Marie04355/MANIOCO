@@ -1,4 +1,9 @@
-import { Injectable, Inject, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductCategoryDto } from './dto/create-product-category.dto';
 import { UpdateProductCategoryDto } from './dto/update-product-category.dto';
 import { IBaseRepository } from 'src/common/interfaces/base-repository.interface';
@@ -44,14 +49,20 @@ export class ProductCategoriesService {
     return this.repo.findOne({ id } as object);
   }
 
-  async update(id: string, updateDto: UpdateProductCategoryDto, user: AuthenticatedUser) {
+  async update(
+    id: string,
+    updateDto: UpdateProductCategoryDto,
+    user: AuthenticatedUser,
+  ) {
     const category = await this.findOne(id);
     if (!category) throw new NotFoundException('Catégorie non trouvée');
 
     if (user.role === UserRole.VENDEUR) {
       const store = await this.storeService.findByOwnerId(user.userId);
       if (category.storeId !== store.id) {
-        throw new ForbiddenException('Vous ne pouvez modifier que vos propres catégories');
+        throw new ForbiddenException(
+          'Vous ne pouvez modifier que vos propres catégories',
+        );
       }
     }
     return this.repo.update(id, updateDto);
@@ -64,7 +75,9 @@ export class ProductCategoriesService {
     if (user.role === UserRole.VENDEUR) {
       const store = await this.storeService.findByOwnerId(user.userId);
       if (category.storeId !== store.id) {
-        throw new ForbiddenException('Vous ne pouvez supprimer que vos propres catégories');
+        throw new ForbiddenException(
+          'Vous ne pouvez supprimer que vos propres catégories',
+        );
       }
     }
     return this.repo.softDelete(id);

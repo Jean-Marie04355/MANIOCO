@@ -24,6 +24,13 @@ export enum Permission {
   // Stores
   STORES_MANAGE = 'stores:manage',
 
-  // Settings
+  // System & Logs
+  LOGS_VIEW = 'logs:view',
   SETTINGS_MANAGE = 'settings:manage',
+
+  // High Level Sections used in UI
+  ADMINS_MANAGE = 'admins:manage',
+  STOCK_VIEW = 'stock:view',
+  FINANCE_VIEW = 'finance:view',
+  SUPPORT_MANAGE = 'support:manage',
 }

@@ -66,15 +66,21 @@ describe('WsJwtGuard', () => {
     });
 
     it('should return false if no token is found', async () => {
-      await expect(guard.canActivate(context as ExecutionContext)).rejects.toThrow(WsException);
+      await expect(
+        guard.canActivate(context as ExecutionContext),
+      ).rejects.toThrow(WsException);
     });
 
     it('should return false if token verification fails', async () => {
       const client = context.switchToWs().getClient();
       client.handshake.auth.token = 'invalid-token';
-      (jwtService.verifyAsync as jest.Mock).mockRejectedValue(new Error('Invalid token'));
+      (jwtService.verifyAsync as jest.Mock).mockRejectedValue(
+        new Error('Invalid token'),
+      );
 
-      await expect(guard.canActivate(context as ExecutionContext)).rejects.toThrow(WsException);
+      await expect(
+        guard.canActivate(context as ExecutionContext),
+      ).rejects.toThrow(WsException);
     });
   });
 });

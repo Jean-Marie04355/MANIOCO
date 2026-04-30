@@ -14,9 +14,7 @@ describe('PaymentsController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PaymentsController],
-      providers: [
-        { provide: PaymentsService, useValue: serviceMock },
-      ],
+      providers: [{ provide: PaymentsService, useValue: serviceMock }],
     }).compile();
 
     controller = module.get<PaymentsController>(PaymentsController);
@@ -30,7 +28,9 @@ describe('PaymentsController', () => {
 
     await controller.handleWebhook({ event: 'payment.success' }, res);
 
-    expect(serviceMock.handleWebhook).toHaveBeenCalledWith({ event: 'payment.success' });
+    expect(serviceMock.handleWebhook).toHaveBeenCalledWith({
+      event: 'payment.success',
+    });
     expect(res.status).toHaveBeenCalledWith(HttpStatus.OK);
     expect(res.send).toHaveBeenCalledWith('OK');
   });

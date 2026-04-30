@@ -36,7 +36,12 @@ describe('JwtStrategy', () => {
   });
 
   it('should validate a valid payload', async () => {
-    const payload = { sub: 'user@test.com', email: 'user@test.com', role: UserRole.CLIENT, userId: 'u1' };
+    const payload = {
+      sub: 'user@test.com',
+      email: 'user@test.com',
+      role: UserRole.CLIENT,
+      userId: 'u1',
+    };
     const result = await strategy.validate(payload);
     expect(result.email).toBe('user@test.com');
     expect(result.role).toBe(UserRole.CLIENT);
@@ -45,11 +50,15 @@ describe('JwtStrategy', () => {
 
   it('should throw UnauthorizedException if email is missing', async () => {
     const payload = { sub: '', email: '', role: UserRole.CLIENT };
-    await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
+    await expect(strategy.validate(payload)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 
   it('should throw UnauthorizedException if role is missing', async () => {
     const payload = { sub: 'u', email: 'u@test.com', role: undefined as any };
-    await expect(strategy.validate(payload)).rejects.toThrow(UnauthorizedException);
+    await expect(strategy.validate(payload)).rejects.toThrow(
+      UnauthorizedException,
+    );
   });
 });

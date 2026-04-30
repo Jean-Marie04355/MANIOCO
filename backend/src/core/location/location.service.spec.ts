@@ -24,7 +24,7 @@ describe('LocationService', () => {
   describe('getDistance', () => {
     it('should calculate distance between two points', () => {
       // Paris to Lyon (~393km)
-      const dist = service.getDistance(48.8566, 2.3522, 45.7640, 4.8357);
+      const dist = service.getDistance(48.8566, 2.3522, 45.764, 4.8357);
       expect(dist).toBeGreaterThan(390);
       expect(dist).toBeLessThan(400);
     });

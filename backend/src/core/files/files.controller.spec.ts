@@ -26,14 +26,20 @@ describe('FilesController', () => {
 
   describe('uploadFile', () => {
     it('should upload and create metadata', async () => {
-      const file = { originalname: 'test.jpg', mimetype: 'image/jpeg', size: 100 } as any;
+      const file = {
+        originalname: 'test.jpg',
+        mimetype: 'image/jpeg',
+        size: 100,
+      } as any;
       serviceMock.upload.mockResolvedValue('http://s3/test.jpg');
       serviceMock.create.mockResolvedValue({ id: '1' });
 
       const result = await controller.uploadFile(file);
       expect(result).toEqual({ id: '1' });
       expect(serviceMock.upload).toHaveBeenCalledWith(file);
-      expect(serviceMock.create).toHaveBeenCalledWith(expect.objectContaining({ filename: 'test.jpg' }));
+      expect(serviceMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({ filename: 'test.jpg' }),
+      );
     });
   });
 

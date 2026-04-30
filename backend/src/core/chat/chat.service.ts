@@ -1,4 +1,9 @@
-import { Injectable, Inject, NotFoundException, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  forwardRef,
+} from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Conversation, Message } from './entities/chat.entity';
 import { StoreService } from '../store/store.service';
@@ -22,37 +27,53 @@ export class ChatService {
     private readonly usersService: UsersService,
   ) {}
 
-  async findOrCreateConversation(customerId: string, storeId: string): Promise<Conversation> {
+  async findOrCreateConversation(
+    customerId: string,
+    storeId: string,
+  ): Promise<Conversation> {
     let conversation = await this.conversationRepo.findOne({
-      customerId, storeId
+      customerId,
+      storeId,
     } as object);
 
     if (!conversation) {
       conversation = await this.conversationRepo.create({
         customerId,
         storeId,
+        lastMessageAt: new Date(), // On initialise la date pour qu'il remonte en haut de liste
       } as object as Partial<Conversation>);
     }
 
     return conversation;
   }
 
-  async sendMessage(senderId: string, conversationId?: string, text?: string, image?: string, customerId?: string): Promise<Message> {
+  async sendMessage(
+    senderId: string,
+    conversationId?: string,
+    text?: string,
+    image?: string,
+    customerId?: string,
+  ): Promise<Message> {
     try {
       let finalConversationId = conversationId;
 
       // Si on n'a pas de conversationId, on essaie de la trouver ou la créer via le customerId
       if (!finalConversationId && customerId) {
         const store = await this.storeService.findByOwnerId(senderId);
-        const conversation = await this.findOrCreateConversation(customerId, store.id);
+        const conversation = await this.findOrCreateConversation(
+          customerId,
+          store.id,
+        );
         finalConversationId = conversation.id;
       }
 
       if (!finalConversationId) {
-        throw new NotFoundException('Conversation introuvable ou impossible à créer');
+        throw new NotFoundException(
+          'Conversation introuvable ou impossible à créer',
+        );
       }
 
-      let conversation = await this.conversationRepo.findOne({ id: finalConversationId } as object);
+      const conversation = await this.conversationRepo.findOne({ id: finalConversationId } as object);
       if (!conversation) {
         throw new NotFoundException('Conversation introuvable');
       }
@@ -102,7 +123,7 @@ export class ChatService {
       } as any);
 
       // On s'assure d'avoir l'objet conversation pour les relations store
-      conversation = await this.conversationRepo.findOne({
+      const fullConv = await this.conversationRepo.findOne({
         where: { id: finalConversationId },
         relations: ['store', 'customer']
       } as any);
@@ -112,7 +133,7 @@ export class ChatService {
         senderId: message?.senderId && typeof message.senderId === 'object' 
           ? (message.senderId as any).id 
           : (message?.senderId || senderId),
-        conversation: conversation || {}
+        conversation: fullConv || conversation || {}
       };
 
       // Broadcast message via WebSocket
@@ -136,7 +157,6 @@ export class ChatService {
     }
   }
 
-
   async getConversations(user: AuthenticatedUser): Promise<Conversation[]> {
     if (user.role === UserRole.VENDEUR) {
       try {
@@ -156,16 +176,19 @@ export class ChatService {
     return this.conversationRepo.find({
       where: { customerId: user.userId },
       relations: ['store', 'store.owner'],
-      order: { lastMessageAt: 'DESC' }
+      order: { lastMessageAt: 'DESC' },
     } as object);
   }
 
-  async getMessages(conversationId: string, user: AuthenticatedUser): Promise<Message[]> {
+  async getMessages(
+    conversationId: string,
+    user: AuthenticatedUser,
+  ): Promise<Message[]> {
     console.log('getMessages called with conversationId:', conversationId);
     const messages = await this.messageRepo.find({
       where: { conversationId },
       order: { createdAt: 'ASC' },
-      relations: ['sender']
+      relations: ['sender'],
     } as object);
     console.log('getMessages found:', messages.length, 'messages');
     return messages.map(m => ({
@@ -176,8 +199,8 @@ export class ChatService {
 
   async getUnreadCount(user: AuthenticatedUser): Promise<number> {
     const conversations = await this.getConversations(user);
-    const conversationIds = conversations.map(c => c.id);
-    
+    const conversationIds = conversations.map((c) => c.id);
+
     if (conversationIds.length === 0) return 0;
 
     let count = 0;
@@ -191,8 +214,13 @@ export class ChatService {
     return count;
   }
 
-  async markConversationAsRead(conversationId: string, user: AuthenticatedUser): Promise<void> {
-    const messages = await this.messageRepo.find({ where: { conversationId, isRead: false } } as object);
+  async markConversationAsRead(
+    conversationId: string,
+    user: AuthenticatedUser,
+  ): Promise<void> {
+    const messages = await this.messageRepo.find({
+      where: { conversationId, isRead: false },
+    } as object);
     for (const msg of messages) {
       const sid = typeof msg.senderId === 'object' ? (msg.senderId as any).id : msg.senderId;
       if (String(sid) !== String(user.userId)) {
@@ -201,30 +229,45 @@ export class ChatService {
     }
   }
 
-  async markConversationAsUnread(conversationId: string, user: AuthenticatedUser): Promise<void> {
-    const messages = await this.messageRepo.find({ where: { conversationId, isRead: true } } as object);
+  async markConversationAsUnread(
+    conversationId: string,
+    user: AuthenticatedUser,
+  ): Promise<void> {
+    const messages = await this.messageRepo.find({
+      where: { conversationId, isRead: true },
+    } as object);
     // On prend le dernier message reçu et on le marque comme non lu
-    const receivedMessages = messages.filter(m => m.senderId !== user.userId);
+    const receivedMessages = messages.filter((m) => m.senderId !== user.userId);
     if (receivedMessages.length > 0) {
       const lastMsg = receivedMessages[receivedMessages.length - 1];
       await this.messageRepo.update(lastMsg.id, { isRead: false });
     }
   }
 
-  async deleteConversation(conversationId: string, user: AuthenticatedUser): Promise<void> {
+  async deleteConversation(
+    conversationId: string,
+    user: AuthenticatedUser,
+  ): Promise<void> {
     // Supprime d'abord les messages liés (ou par cascade si configuré)
-    const messages = await this.messageRepo.find({ where: { conversationId } } as object);
+    const messages = await this.messageRepo.find({
+      where: { conversationId },
+    } as object);
     for (const msg of messages) {
       await this.messageRepo.delete(msg.id);
     }
     await this.conversationRepo.delete(conversationId);
   }
 
-  async deleteMessage(messageId: string, user: AuthenticatedUser): Promise<void> {
+  async deleteMessage(
+    messageId: string,
+    user: AuthenticatedUser,
+  ): Promise<void> {
     const message = await this.messageRepo.findOne({ id: messageId } as object);
     if (!message) throw new NotFoundException('Message introuvable');
     if (message.senderId !== user.userId) {
-      throw new NotFoundException('Vous ne pouvez supprimer que vos propres messages');
+      throw new NotFoundException(
+        'Vous ne pouvez supprimer que vos propres messages',
+      );
     }
     await this.messageRepo.delete(messageId);
   }

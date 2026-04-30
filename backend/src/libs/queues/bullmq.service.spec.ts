@@ -42,7 +42,9 @@ describe('BullMQService', () => {
   it('should create and cache queues', () => {
     const q1 = service.getQueue('test-queue');
     expect(Queue).toHaveBeenCalledTimes(1);
-    expect(Queue).toHaveBeenCalledWith('test-queue', { connection: connectionMock });
+    expect(Queue).toHaveBeenCalledWith('test-queue', {
+      connection: connectionMock,
+    });
 
     const q2 = service.getQueue('test-queue');
     expect(Queue).toHaveBeenCalledTimes(1); // Should be reused from cache
@@ -51,7 +53,7 @@ describe('BullMQService', () => {
 
   it('should add a job to the queue', async () => {
     await service.addJob('test-queue', 'test-job', { foo: 'bar' });
-    
+
     const queueInstance = service.getQueue('test-queue');
     expect(queueInstance.add).toHaveBeenCalledWith('test-job', { foo: 'bar' });
   });

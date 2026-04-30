@@ -7,11 +7,14 @@ import {
   Logger,
   forwardRef,
 } from '@nestjs/common';
+import { ChatService } from '../chat/chat.service';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { Store } from '../store/store.entity';
+import { SupportModule } from '../support/support.module';
+import { ChatModule } from '../chat/chat.module';
 import { Product } from '../products/product.entity';
 import { User } from '../users/user.entity';
 import { OrderStatus } from '../../common/enum/order-status.enum';
@@ -40,6 +43,8 @@ export class OrdersService {
     private readonly storeService: StoreService,
     private readonly notificationsService: NotificationsService,
     private readonly supportService: SupportService,
+    @Inject(forwardRef(() => ChatService))
+    private readonly chatService: ChatService,
   ) {}
 
   async create(
@@ -49,7 +54,7 @@ export class OrdersService {
     const store = await this.storeRepository.findOne({
       id: createOrderDto.storeId,
     } as object);
-    
+
     if (!store) {
       throw new NotFoundException(`Store not found`);
     }
@@ -65,6 +70,12 @@ export class OrdersService {
     // 2. Validate products and recalculate the actual total amount
     let validatedTotalAmount = 0;
     const validatedItems: any[] = [];
+    const UNIT_FACTORS: Record<string, number> = {
+      Sac: 50,
+      'Demi-sac': 25,
+      Kg: 1,
+      'Demi-kg': 0.5,
+    };
 
     for (const item of createOrderDto.items) {
       const product = await this.productRepository.findOne({
@@ -93,9 +104,12 @@ export class OrdersService {
         );
       }
 
+      // Calculate price based on the unit
+      const factor = UNIT_FACTORS[item.unit] || 1;
       const unitPrice = Number(product.price);
-      const itemTotalCost = unitPrice * requestedQuantity;
-      
+      // If price is per kg, then total for unit is price * factor
+      const priceForRequestedUnit = unitPrice * factor;
+      const itemTotalCost = priceForRequestedUnit * requestedQuantity;
       validatedTotalAmount += itemTotalCost;
 
       validatedItems.push({
@@ -109,7 +123,8 @@ export class OrdersService {
 
     // 3. Calculate platform commission (default 10%)
     const DEFAULT_COMMISSION_RATE = 10.0;
-    const commissionAmount = (validatedTotalAmount * DEFAULT_COMMISSION_RATE) / 100;
+    const commissionAmount =
+      (validatedTotalAmount * DEFAULT_COMMISSION_RATE) / 100;
 
     // 4. Create the order in the database
     const orderData = {
@@ -137,8 +152,11 @@ export class OrdersService {
 
       // Notify Admins
       this.notifyAdminsOfNewOrder(order, validatedTotalAmount);
+
+      // Initialize Chat conversation automatically
+      await this.chatService.findOrCreateConversation(order.customerId, store.id);
     } catch (error) {
-      console.error('Notification error:', error);
+      console.error('Notification/Chat error:', error);
     }
 
     // 5. Update stocks
@@ -186,10 +204,7 @@ export class OrdersService {
   private async notifyAdminsOfNewOrder(order: Order, amount: number) {
     try {
       const admins = await this.userRepository.find({
-        where: [
-          { role: UserRole.ADMIN },
-          { role: UserRole.SUPER_ADMIN }
-        ]
+        where: [{ role: UserRole.ADMIN }, { role: UserRole.SUPER_ADMIN }],
       } as any);
 
       for (const admin of admins) {
@@ -198,7 +213,7 @@ export class OrdersService {
           type: NotificationType.ORDER,
           title: 'Nouvelle vente Afrigari',
           message: `Une commande de ${amount.toLocaleString()} FCFA vient d'être passée (#${order.id.split('-')[0]}).`,
-          metadata: JSON.stringify({ orderId: order.id })
+          metadata: JSON.stringify({ orderId: order.id }),
         });
       }
     } catch (error) {
@@ -206,20 +221,28 @@ export class OrdersService {
     }
   }
 
-  /**
-   * Restores product stock for a given order
-   */
   async restoreStock(orderId: string): Promise<void> {
-    const order = await this.orderRepository.findOne({ id: orderId } as object);
+    const order = await this.orderRepository.findOne({ where: { id: orderId } } as any);
     if (!order?.items) return;
+
+    const UNIT_FACTORS: Record<string, number> = {
+      'Sac': 50,
+      'Demi-sac': 25,
+      'Kg': 1,
+      'Demi-kg': 0.5
+    };
 
     for (const item of order.items) {
       const product = await this.productRepository.findOne({
         where: { id: item.productId },
-      } as object);
+      } as any);
+      
       if (product) {
+        const factor = UNIT_FACTORS[item.unit] || 1;
+        const totalWeightToRestore = item.quantity * factor;
+        
         await this.productRepository.update(product.id, {
-          stock: Number(product.stock) + Number(item.quantity),
+          stock: Number(product.stock) + totalWeightToRestore,
         });
       }
     }
@@ -228,21 +251,23 @@ export class OrdersService {
   /**
    * Cancels an order and restores its stock
    */
-  async cancelOrder(id: string): Promise<Order | null> {
-    const order = await this.orderRepository.findOne({ id } as object);
+  async cancelOrder(id: string, reason?: string): Promise<Order | null> {
+    const order = await this.orderRepository.findOne({ where: { id } } as any);
     if (!order || order.status === OrderStatus.CANCELLED) return order;
 
-    await this.orderRepository.update(id, { status: OrderStatus.CANCELLED });
+    await this.orderRepository.update(id, { 
+      status: OrderStatus.CANCELLED,
+      cancellationReason: reason || 'Non spécifiée'
+    });
     await this.restoreStock(id);
-    
-    return this.orderRepository.findOne({ id } as object);
+    return this.orderRepository.findOne({ where: { id } } as any);
   }
 
   async findAll(user: AuthenticatedUser): Promise<Order[]> {
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
       return this.orderRepository.find({
         relations: ['customer', 'store'],
-        order: { createdAt: 'DESC' }
+        order: { createdAt: 'DESC' },
       } as any);
     }
 
@@ -272,7 +297,7 @@ export class OrdersService {
       where: { id }, 
       relations: ['customer', 'store'] 
     } as any);
-    
+
     if (!order) {
       throw new NotFoundException(`Commande avec l'ID ${id} non trouvée`);
     }
@@ -298,7 +323,10 @@ export class OrdersService {
     return order;
   }
 
-  async findByCustomer(customerId: string, user: AuthenticatedUser): Promise<Order[]> {
+  async findByCustomer(
+    customerId: string,
+    user: AuthenticatedUser,
+  ): Promise<Order[]> {
     if (
       user.role === UserRole.ADMIN ||
       user.role === UserRole.SUPER_ADMIN ||
@@ -313,7 +341,10 @@ export class OrdersService {
     throw new ForbiddenException('You do not have access to these orders');
   }
 
-  async findByStore(storeId: string, user: AuthenticatedUser): Promise<Order[]> {
+  async findByStore(
+    storeId: string,
+    user: AuthenticatedUser,
+  ): Promise<Order[]> {
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
       return this.orderRepository.find({ where: { storeId } } as object);
     }
@@ -323,7 +354,7 @@ export class OrdersService {
       if (store.id !== storeId) {
         throw new ForbiddenException('You do not have access to these orders');
       }
-      return this.orderRepository.find({ 
+      return this.orderRepository.find({
         where: { storeId },
         relations: ['customer'],
         order: { createdAt: 'DESC' }
@@ -333,7 +364,7 @@ export class OrdersService {
     throw new ForbiddenException('You do not have access to these orders');
   }
 
-  async updateStatus(id: string, status: OrderStatus, user: AuthenticatedUser): Promise<Order | null> {
+  async updateStatus(id: string, status: OrderStatus, user: AuthenticatedUser, reason?: string): Promise<Order | null> {
     this.logger.log(`Updating status for order ${id} to ${status} by user ${user.userId}`);
     
     // Check if order exists and user has permission
@@ -342,6 +373,10 @@ export class OrdersService {
     // Only vendors (owners) and admins can update status
     if (user.role === UserRole.CLIENT) {
         throw new ForbiddenException('Clients cannot update order status');
+    }
+
+    if (status === OrderStatus.CANCELLED) {
+      return this.cancelOrder(id, reason);
     }
 
     try {
@@ -356,37 +391,50 @@ export class OrdersService {
     }
   }
 
-  async findOneById(id: string): Promise<Order | null> {
-    return this.orderRepository.findOne({ id } as object);
+  async findById(id: string): Promise<Order | null> {
+    return this.orderRepository.findOne({ where: { id } } as any);
   }
 
   /**
    * Internal method to update order status without permission checks.
    * Used by payment webhooks and other system-level operations.
    */
-  async updateStatusInternal(id: string, status: OrderStatus): Promise<Order | null> {
+  async updateStatusInternal(
+    id: string,
+    status: OrderStatus,
+  ): Promise<Order | null> {
     await this.orderRepository.update(id, { status });
-    return this.orderRepository.findOne({ id } as object);
+    return this.orderRepository.findOne({ where: { id } } as any);
   }
 
   async getAdminDashboardStats() {
     const orders = await this.orderRepository.find();
     const users = await this.userRepository.find();
-    
-    const paidStatuses = [OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
-    
-    const totalSalesCount = orders.filter(o => paidStatuses.includes(o.status)).length;
+    const paidStatuses = [
+      OrderStatus.PAID,
+      OrderStatus.SHIPPED,
+      OrderStatus.DELIVERED,
+    ];
+
+    const totalSalesCount = orders.filter((o) =>
+      paidStatuses.includes(o.status),
+    ).length;
     const totalRevenue = orders
-      .filter(o => paidStatuses.includes(o.status))
+      .filter((o) => paidStatuses.includes(o.status))
       .reduce((sum, o) => {
         const amount = Number(o.commissionAmount);
         // Fallback: if commissionAmount is missing/0 but we have a totalAmount, assume 10%
-        const actualCommission = amount > 0 ? amount : (Number(o.totalAmount || 0) * 0.10);
+        const actualCommission =
+          amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
         return sum + actualCommission;
       }, 0);
 
-    const sellersCount = users.filter(u => u.role === UserRole.VENDEUR).length;
-    const pendingKycCount = users.filter(u => u.kycStatus === 'PENDING').length;
+    const sellersCount = users.filter(
+      (u) => u.role === UserRole.VENDEUR,
+    ).length;
+    const pendingKycCount = users.filter(
+      (u) => u.kycStatus === 'PENDING',
+    ).length;
     const activeTicketsCount = await this.supportService.countActiveTickets();
 
     // Calcul de l'historique des revenus sur les 15 derniers jours
@@ -398,14 +446,15 @@ export class OrdersService {
       const dateStr = targetDate.toISOString().split('T')[0];
 
       const dayRevenue = orders
-        .filter(o => {
+        .filter((o) => {
           const isPaid = paidStatuses.includes(o.status);
           const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
           return isPaid && orderDate === dateStr;
         })
         .reduce((sum, o) => {
           const amount = Number(o.commissionAmount);
-          const actualCommission = amount > 0 ? amount : (Number(o.totalAmount || 0) * 0.10);
+          const actualCommission =
+            amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
           return sum + actualCommission;
         }, 0);
 
@@ -415,12 +464,12 @@ export class OrdersService {
     return {
       totalRevenue,
       totalSalesCount,
-      customersCount: users.filter(u => u.role === UserRole.CLIENT).length,
+      customersCount: users.filter((u) => u.role === UserRole.CLIENT).length,
       sellersCount,
       pendingKycCount,
       activeTicketsCount,
       totalUsers: users.length,
-      revenueHistory
+      revenueHistory,
     };
   }
 }

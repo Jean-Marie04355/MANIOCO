@@ -47,12 +47,17 @@ export class S3StorageService implements IStorageService {
 
   private async ensureBucketExists() {
     try {
-      const { CreateBucketCommand, HeadBucketCommand } = await import('@aws-sdk/client-s3');
+      const { CreateBucketCommand, HeadBucketCommand } =
+        await import('@aws-sdk/client-s3');
       try {
-        await this.s3Client.send(new HeadBucketCommand({ Bucket: this.bucketName }));
+        await this.s3Client.send(
+          new HeadBucketCommand({ Bucket: this.bucketName }),
+        );
       } catch (error) {
         this.logger.log(`Bucket ${this.bucketName} not found, creating it...`);
-        await this.s3Client.send(new CreateBucketCommand({ Bucket: this.bucketName }));
+        await this.s3Client.send(
+          new CreateBucketCommand({ Bucket: this.bucketName }),
+        );
         this.logger.log(`Bucket ${this.bucketName} created successfully.`);
       }
 
@@ -70,16 +75,24 @@ export class S3StorageService implements IStorageService {
           ],
         };
         const { PutBucketPolicyCommand } = await import('@aws-sdk/client-s3');
-        await this.s3Client.send(new PutBucketPolicyCommand({
-          Bucket: this.bucketName,
-          Policy: JSON.stringify(policy),
-        }));
-        this.logger.log(`Public access policy ensured for bucket ${this.bucketName}.`);
+        await this.s3Client.send(
+          new PutBucketPolicyCommand({
+            Bucket: this.bucketName,
+            Policy: JSON.stringify(policy),
+          }),
+        );
+        this.logger.log(
+          `Public access policy ensured for bucket ${this.bucketName}.`,
+        );
       } catch (error) {
-        this.logger.error(`Could not set bucket policy: ${(error as Error).message}`);
+        this.logger.error(
+          `Could not set bucket policy: ${(error as Error).message}`,
+        );
       }
     } catch (error) {
-      this.logger.error(`Could not ensure bucket existence: ${(error as Error).message}`);
+      this.logger.error(
+        `Could not ensure bucket existence: ${(error as Error).message}`,
+      );
     }
   }
 

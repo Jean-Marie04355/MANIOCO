@@ -46,18 +46,25 @@ describe('StoreService', () => {
   describe('create', () => {
     it('should throw NotFoundException if owner not found', async () => {
       userRepoMock.findOne.mockResolvedValue(null);
-      await expect(service.create({ ownerId: '1', name: 'Store' } as any)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.create({ ownerId: '1', name: 'Store' } as any),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw ConflictException if owner is not seller/admin', async () => {
       userRepoMock.findOne.mockResolvedValue({ id: '1', role: 'client' });
-      await expect(service.create({ ownerId: '1', name: 'Store' } as any)).rejects.toThrow(ConflictException);
+      await expect(
+        service.create({ ownerId: '1', name: 'Store' } as any),
+      ).rejects.toThrow(ConflictException);
     });
 
     it('should create store if owner is seller', async () => {
       userRepoMock.findOne.mockResolvedValue({ id: '1', role: 'vendeur' });
       storeRepoMock.create.mockResolvedValue({ id: 's1' });
-      const result = await service.create({ ownerId: '1', name: 'Store' } as any);
+      const result = await service.create({
+        ownerId: '1',
+        name: 'Store',
+      } as any);
       expect(result.id).toBe('s1');
     });
   });
@@ -86,7 +93,9 @@ describe('StoreService', () => {
         { id: 's2', latitude: 20, longitude: 20, name: 'S2' },
       ];
       storeRepoMock.find.mockResolvedValue(stores);
-      locationServiceMock.getDistance.mockImplementation((la1, lo1, la2, lo2) => la2 === 10 ? 5 : 50);
+      locationServiceMock.getDistance.mockImplementation(
+        (la1, lo1, la2, lo2) => (la2 === 10 ? 5 : 50),
+      );
 
       const result = await service.findNearby(0, 0, 10);
       expect(result.length).toBe(1);
@@ -103,7 +112,11 @@ describe('StoreService', () => {
 
   describe('getDeliveryFee', () => {
     it('should calculate fee based on distance', async () => {
-      storeRepoMock.findOne.mockResolvedValue({ id: 's1', latitude: 10, longitude: 10 });
+      storeRepoMock.findOne.mockResolvedValue({
+        id: 's1',
+        latitude: 10,
+        longitude: 10,
+      });
       locationServiceMock.getDistance.mockReturnValue(5);
       locationServiceMock.calculateDeliveryFee.mockReturnValue(500);
 
@@ -149,7 +162,9 @@ describe('StoreService', () => {
 
     it('should throw NotFoundException if not found', async () => {
       storeRepoMock.findOne.mockResolvedValue(null);
-      await expect(service.findByOwnerId('u1')).rejects.toThrow(NotFoundException);
+      await expect(service.findByOwnerId('u1')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 });

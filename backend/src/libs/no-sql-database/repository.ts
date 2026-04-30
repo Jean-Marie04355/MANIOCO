@@ -6,7 +6,8 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   constructor(protected readonly repo: Model<T & Document>) {}
 
   async find(filter?: any): Promise<T[]> {
-    const safeFilter = filter && typeof filter === 'object' ? { ...filter } : {};
+    const safeFilter =
+      filter && typeof filter === 'object' ? { ...filter } : {};
     const query = { ...safeFilter, deletedAt: null };
     if ('id' in query && query.id) {
       query._id = query.id;
@@ -16,7 +17,8 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   async findOne(filter: any): Promise<T | null> {
-    const safeFilter = filter && typeof filter === 'object' ? { ...filter } : {};
+    const safeFilter =
+      filter && typeof filter === 'object' ? { ...filter } : {};
     const query = { ...safeFilter, deletedAt: null };
     if ('id' in query && query.id) {
       query._id = query.id;
@@ -27,12 +29,12 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
 
   async create(data: Partial<T>): Promise<T> {
     const preparedData = { ...data } as any;
-    
+
     // Auto-map SQL-style relation IDs to Mongoose relation fields
     if (preparedData.categoryId && !preparedData.category) {
       preparedData.category = preparedData.categoryId;
     }
-    
+
     const doc = new this.repo(preparedData);
     return doc.save();
   }
@@ -59,7 +61,8 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   async count(filter?: any): Promise<number> {
-    const safeFilter = filter && typeof filter === 'object' ? { ...filter } : {};
+    const safeFilter =
+      filter && typeof filter === 'object' ? { ...filter } : {};
     const query = { ...safeFilter, deletedAt: null };
     if ('id' in query && query.id) {
       query._id = query.id;
@@ -75,8 +78,6 @@ export class NoSqlRepository<T> implements IBaseRepository<T> {
   }
 
   async restore(id: string | number): Promise<void> {
-    await this.repo
-      .findByIdAndUpdate(id, { deletedAt: null } as object)
-      .exec();
+    await this.repo.findByIdAndUpdate(id, { deletedAt: null } as object).exec();
   }
 }

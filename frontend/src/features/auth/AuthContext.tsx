@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const response = await api.get('/auth/me');
             setUser(response.data);
           } catch (error) {
-            console.error("Session invalide");
+            console.warn("Session invalide");
             localStorage.removeItem('accessToken');
             setToken(null);
           }
@@ -61,7 +61,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (token && user) {
-        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://localhost:3001/realtime';
+        const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || 'http://127.0.0.1:3000/realtime';
         const newSocket = io(socketUrl, {
             auth: { token },
             transports: ['websocket']

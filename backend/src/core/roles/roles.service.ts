@@ -1,4 +1,10 @@
-import { Injectable, Inject, NotFoundException, ConflictException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  NotFoundException,
+  ConflictException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { IBaseRepository } from '../../database/index';
 import { Role } from './role.entity';
 
@@ -9,7 +15,7 @@ export class RolesService {
   constructor(
     @Inject('ROLE_REPOSITORY')
     private readonly roleRepository: IBaseRepository<Role>,
-  ) { }
+  ) {}
 
   async findAll() {
     return this.roleRepository.find();
@@ -22,7 +28,9 @@ export class RolesService {
   async create(data: Partial<Role>) {
     const existing = await this.findByName(data.name);
     if (existing) {
-      throw new ConflictException(`Role with name ${data.name} already exists.`);
+      throw new ConflictException(
+        `Role with name ${data.name} already exists.`,
+      );
     }
     return this.roleRepository.create(data);
   }
@@ -73,7 +81,11 @@ export class RolesService {
           Permission.STORES_MANAGE,
         ],
       },
-      { name: 'livreur', isSystem: true, permissions: [Permission.ORDERS_VIEW] },
+      {
+        name: 'livreur',
+        isSystem: true,
+        permissions: [Permission.ORDERS_VIEW],
+      },
       { name: 'client', isSystem: true, permissions: [] },
     ];
 

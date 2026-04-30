@@ -93,7 +93,9 @@ describe('ProductsService', () => {
 
     it('should throw NotFoundException if product missing', async () => {
       repoMock.findOne.mockResolvedValue(null);
-      await expect(service.update('1', {}, mockAdmin)).rejects.toThrow('Produit non trouvé');
+      await expect(service.update('1', {}, mockAdmin)).rejects.toThrow(
+        'Produit non trouvé',
+      );
     });
 
     it('should allow vendor to update their own product', async () => {
@@ -108,7 +110,9 @@ describe('ProductsService', () => {
       const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
       repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'other-store' });
       storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
-      await expect(service.update('1', { name: 'New' }, vendorUser as any)).rejects.toThrow('Vous ne pouvez modifier que vos propres produits');
+      await expect(
+        service.update('1', { name: 'New' }, vendorUser as any),
+      ).rejects.toThrow('Vous ne pouvez modifier que vos propres produits');
     });
   });
 
@@ -122,7 +126,9 @@ describe('ProductsService', () => {
 
     it('should throw NotFoundException if product missing', async () => {
       repoMock.findOne.mockResolvedValue(null);
-      await expect(service.remove('1', mockAdmin)).rejects.toThrow('Produit non trouvé');
+      await expect(service.remove('1', mockAdmin)).rejects.toThrow(
+        'Produit non trouvé',
+      );
     });
 
     it('should allow vendor to remove their own product', async () => {
@@ -137,7 +143,9 @@ describe('ProductsService', () => {
       const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
       repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'other-store' });
       storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
-      await expect(service.remove('1', vendorUser as any)).rejects.toThrow('Vous ne pouvez supprimer que vos propres produits');
+      await expect(service.remove('1', vendorUser as any)).rejects.toThrow(
+        'Vous ne pouvez supprimer que vos propres produits',
+      );
     });
   });
 });

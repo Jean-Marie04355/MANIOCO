@@ -43,26 +43,39 @@ export class UsersService {
 
   async findAll(): Promise<any[]> {
     const users = await this.userRepository.find();
-    
+
     // Calcul des statistiques en parallèle pour chaque utilisateur
-    return Promise.all(users.map(async (user) => {
-      let stats = { productCount: 0, totalRevenue: 0, seniority: 0 };
-      
-      // Calcul ancienneté (en jours)
-      const diffTime = Math.abs(new Date().getTime() - new Date(user.createdAt).getTime());
-      stats.seniority = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return Promise.all(
+      users.map(async (user) => {
+        let stats = { productCount: 0, totalRevenue: 0, seniority: 0 };
 
-      if (user.role === UserRole.VENDEUR) {
-        const store = await this.storeRepo.findOne({ where: { ownerId: user.id } });
-        if (store) {
-          stats.productCount = await this.productRepo.count({ where: { storeId: store.id } });
-          const orders = await this.orderRepo.find({ where: { storeId: store.id } });
-          stats.totalRevenue = orders.reduce((sum, order) => sum + Number(order.totalAmount || 0), 0);
+        // Calcul ancienneté (en jours)
+        const diffTime = Math.abs(
+          new Date().getTime() - new Date(user.createdAt).getTime(),
+        );
+        stats.seniority = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        if (user.role === UserRole.VENDEUR) {
+          const store = await this.storeRepo.findOne({
+            where: { ownerId: user.id },
+          });
+          if (store) {
+            stats.productCount = await this.productRepo.count({
+              where: { storeId: store.id },
+            });
+            const orders = await this.orderRepo.find({
+              where: { storeId: store.id },
+            });
+            stats.totalRevenue = orders.reduce(
+              (sum, order) => sum + Number(order.totalAmount || 0),
+              0,
+            );
+          }
         }
-      }
 
-      return { ...user, stats };
-    }));
+        return { ...user, stats };
+      }),
+    );
   }
 
   async findAllWithDeleted(): Promise<User[]> {
@@ -72,9 +85,12 @@ export class UsersService {
   async restore(id: string) {
     // 1. On restaure techniquement le compte (soft-delete recovery)
     await this.userRepository.restore(id);
-    
+
     // 2. On récupère le compte (en incluant les supprimés au cas où) pour forcer le nettoyage
-    const user = await this.userRepository.findOne({ id, withDeleted: true } as any);
+    const user = await this.userRepository.findOne({
+      id,
+      withDeleted: true,
+    } as any);
     if (user) {
       user.suspensionUntil = null;
       user.suspensionReason = null;
@@ -128,10 +144,7 @@ export class UsersService {
   private async notifyAdminsOfNewUser(user: User) {
     try {
       const admins = await this.userRepository.find({
-        where: [
-          { role: UserRole.ADMIN },
-          { role: UserRole.SUPER_ADMIN }
-        ]
+        where: [{ role: UserRole.ADMIN }, { role: UserRole.SUPER_ADMIN }],
       } as any);
 
       const roleLabel = user.role === UserRole.VENDEUR ? 'Vendeur' : 'Client';
@@ -143,7 +156,7 @@ export class UsersService {
           type: colorTag as any,
           title: `Nouveau ${roleLabel} inscrit`,
           message: `${user.name} (${user.email}) vient de rejoindre la plateforme Afrigari en tant que ${roleLabel}.`,
-          metadata: JSON.stringify({ userId: user.id })
+          metadata: JSON.stringify({ userId: user.id }),
         });
       }
     } catch (error) {
@@ -152,7 +165,10 @@ export class UsersService {
   }
 
   async findOne(id: string) {
-    const user = await this.userRepository.findOne({ id, withDeleted: true } as any);
+    const user = await this.userRepository.findOne({
+      id,
+      withDeleted: true,
+    } as any);
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
@@ -161,7 +177,7 @@ export class UsersService {
 
   async hardDelete(id: string) {
     await this.findOne(id);
-    
+
     // Si c'est un vendeur, on tente de supprimer sa boutique d'abord pour éviter les erreurs SQL (FK constraint)
     const store = await this.storeRepo.findOne({ where: { ownerId: id } });
     if (store) {
@@ -183,22 +199,28 @@ export class UsersService {
     }
 
     // Handle Base64 profile photo upload to S3
-    if (updateUserDto.profilePhoto && updateUserDto.profilePhoto.startsWith('data:image')) {
+    if (
+      updateUserDto.profilePhoto &&
+      updateUserDto.profilePhoto.startsWith('data:image')
+    ) {
       try {
         const base64Data = updateUserDto.profilePhoto.split(',')[1];
         const mimeType = updateUserDto.profilePhoto.split(';')[0].split(':')[1];
         const extension = mimeType.split('/')[1];
         const buffer = Buffer.from(base64Data, 'base64');
-        
+
         const fileUrl = await this.storageService.uploadFile({
           buffer,
           originalname: `profile-${id}-${Date.now()}.${extension}`,
           mimetype: mimeType,
         });
-        
+
         updateUserDto.profilePhoto = fileUrl;
       } catch (error) {
-        console.error('Erreur lors de l\'upload de la photo de profil vers S3', error);
+        console.error(
+          "Erreur lors de l'upload de la photo de profil vers S3",
+          error,
+        );
       }
     }
 
@@ -207,7 +229,7 @@ export class UsersService {
 
   async submitKyc(id: string, kycData: any) {
     const user = await this.findOne(id);
-    
+
     // Process photos if provided in Base64
     const photoFields = ['idCardFront', 'idCardBack', 'sellerSelfie'];
     const updatedFields: any = { ...kycData, kycStatus: 'PENDING' };
@@ -218,19 +240,19 @@ export class UsersService {
         const mimeType = kycData[field].split(';')[0].split(':')[1];
         const extension = mimeType.split('/')[1];
         const buffer = Buffer.from(base64Data, 'base64');
-        
+
         const fileUrl = await this.storageService.uploadFile({
           buffer,
           originalname: `kyc-${field}-${id}-${Date.now()}.${extension}`,
           mimetype: mimeType,
         });
-        
+
         updatedFields[field] = fileUrl;
       }
     }
 
     await this.userRepository.update(id, updatedFields);
-    
+
     // Notify admins of the new KYC submission
     await this.notifyAdminsOfKycSubmission(user);
 
@@ -240,10 +262,7 @@ export class UsersService {
   private async notifyAdminsOfKycSubmission(user: User) {
     try {
       const admins = await this.userRepository.find({
-        where: [
-          { role: UserRole.ADMIN },
-          { role: UserRole.SUPER_ADMIN }
-        ]
+        where: [{ role: UserRole.ADMIN }, { role: UserRole.SUPER_ADMIN }],
       } as any);
 
       for (const admin of admins) {
@@ -252,7 +271,7 @@ export class UsersService {
           type: 'INFO' as any,
           title: 'Nouveau Dossier KYC',
           message: `Le vendeur ${user.name} a soumis ses documents d'identité pour examen.`,
-          metadata: JSON.stringify({ userId: user.id, action: 'KYC_REVIEW' })
+          metadata: JSON.stringify({ userId: user.id, action: 'KYC_REVIEW' }),
         });
       }
     } catch (error) {
@@ -260,22 +279,30 @@ export class UsersService {
     }
   }
 
-  async reviewKyc(id: string, reviewData: { status: 'APPROVED' | 'REJECTED', reasons?: any }) {
+  async reviewKyc(
+    id: string,
+    reviewData: { status: 'APPROVED' | 'REJECTED'; reasons?: any },
+  ) {
     const user = await this.findOne(id);
-    
+
     const updateData: any = {
       kycStatus: reviewData.status,
-      kycRejectionReasons: reviewData.status === 'REJECTED' ? JSON.stringify(reviewData.reasons) : null,
-      isVerified: reviewData.status === 'APPROVED' // Si approuvé, le compte est vérifié
+      kycRejectionReasons:
+        reviewData.status === 'REJECTED'
+          ? JSON.stringify(reviewData.reasons)
+          : null,
+      isVerified: reviewData.status === 'APPROVED', // Si approuvé, le compte est vérifié
     };
 
     await this.userRepository.update(id, updateData);
 
     // Notify the user
-    const title = reviewData.status === 'APPROVED' ? 'Identité vérifiée' : 'Dossier rejeté';
-    const message = reviewData.status === 'APPROVED' 
-      ? 'Félicitations ! Votre identité a été vérifiée avec succès. Vous avez maintenant accès à votre compte vendeur.' 
-      : 'Votre dossier d\'identité a été rejeté. Veuillez corriger les erreurs signalées pour continuer.';
+    const title =
+      reviewData.status === 'APPROVED' ? 'Identité vérifiée' : 'Dossier rejeté';
+    const message =
+      reviewData.status === 'APPROVED'
+        ? 'Félicitations ! Votre identité a été vérifiée avec succès. Vous avez maintenant accès à votre compte vendeur.'
+        : "Votre dossier d'identité a été rejeté. Veuillez corriger les erreurs signalées pour continuer.";
 
     await this.notificationsService.create({
       userId: id,
