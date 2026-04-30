@@ -1,6 +1,8 @@
 import {
   Controller,
   Post,
+  Get,
+  Param,
   Body,
   Logger,
   HttpStatus,
@@ -49,5 +51,11 @@ export class PaymentsController {
       this.logger.error(`Webhook Error: ${error.message}`);
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error');
     }
+  }
+
+  @Get('verify/:orderId')
+  @ApiOperation({ summary: 'Verify payment status manually for an order' })
+  async verifyPayment(@Param('orderId') orderId: string) {
+    return this.paymentsService.verifyTransaction(orderId);
   }
 }

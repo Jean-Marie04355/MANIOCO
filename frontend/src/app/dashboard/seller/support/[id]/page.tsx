@@ -155,24 +155,34 @@ export default function TicketDetail() {
                         </div>
 
                         {/* Card Internal Input */}
-                        <div className="p-8 border-t border-slate-50 flex items-center gap-4">
-                            <div className="flex-1 relative">
-                                <input
-                                    type="text"
-                                    value={newMessage}
-                                    onChange={e => setNewMessage(e.target.value)}
-                                    disabled={ticket.status === 'CLOSED'}
-                                    placeholder="Ecrivez votre réponse..."
-                                    className="w-full bg-slate-50/50 border border-slate-100 rounded-[1.5rem] px-8 py-5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-orange-500/5 focus:bg-white transition-all placeholder:text-slate-300"
-                                />
-                            </div>
-                            <button
-                                onClick={handleSendMessage}
-                                disabled={!newMessage.trim() || isSending || ticket.status === 'CLOSED'}
-                                className="w-14 h-14 bg-orange-200 text-white rounded-[1.2rem] flex items-center justify-center hover:bg-orange-500 transition-all shadow-lg shadow-orange-500/10 active:scale-95"
-                            >
-                                {isSending ? <Loader2 size={24} className="animate-spin" /> : <Send size={24} className="-rotate-45" />}
-                            </button>
+                        <div className="p-8 border-t border-slate-50">
+                            <form onSubmit={handleSendMessage} className="flex items-center gap-4">
+                                <div className="flex-1 relative">
+                                    <input
+                                        type="text"
+                                        value={newMessage}
+                                        onChange={e => setNewMessage(e.target.value)}
+                                        disabled={ticket.status === 'CLOSED' || isSending}
+                                        placeholder={ticket.status === 'CLOSED' ? "Ce ticket est clôturé" : "Écrivez votre réponse..."}
+                                        className="w-full bg-slate-50/50 border border-slate-100 rounded-[1.5rem] px-8 py-5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all placeholder:text-slate-300 disabled:opacity-50"
+                                    />
+                                </div>
+                                <button
+                                    type="submit"
+                                    disabled={!newMessage.trim() || isSending || ticket.status === 'CLOSED'}
+                                    className={`w-14 h-14 rounded-[1.2rem] flex items-center justify-center transition-all shadow-lg active:scale-95 ${
+                                        !newMessage.trim() || isSending || ticket.status === 'CLOSED'
+                                        ? 'bg-slate-100 text-slate-300 shadow-none cursor-not-allowed'
+                                        : 'bg-orange-500 text-white shadow-orange-500/20 hover:bg-orange-600 hover:-rotate-12'
+                                    }`}
+                                >
+                                    {isSending ? (
+                                        <Loader2 size={24} className="animate-spin" />
+                                    ) : (
+                                        <Send size={24} className={ticket.status === 'CLOSED' ? "" : "-rotate-45 translate-x-0.5 -translate-y-0.5"} />
+                                    )}
+                                </button>
+                            </form>
                         </div>
 
                     </div>

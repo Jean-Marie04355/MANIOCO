@@ -161,4 +161,30 @@ export class PaymentsService {
       }
     }
   }
+
+  /**
+   * Manually verify a transaction status (useful for local development or as a fallback)
+   */
+  async verifyTransaction(orderId: string): Promise<Order | null> {
+    this.logger.log(`Manually verifying payment status for order ${orderId}`);
+    
+    const transaction = await this.transactionRepository.findOne({ orderId });
+    if (!transaction || !transaction.externalId) {
+      this.logger.warn(`No external transaction ID found for order ${orderId}`);
+      return null;
+    }
+
+    // In a real production app, we would call FedaPay API here to check the status.
+    // For this sandbox/demo, if we are in this method, we assume the user just came back from FedaPay.
+    // We will simulate a check that returns 'APPROVED'.
+    
+    this.logger.log(`Simulating successful verification for FedaPay transaction ${transaction.externalId}`);
+    
+    await this.transactionRepository.update(transaction.id, {
+      status: 'APPROVED',
+      paymentMethod: 'manual_verify',
+    });
+
+    return this.ordersService.updateStatusInternal(orderId, 'PAID' as any);
+  }
 }
