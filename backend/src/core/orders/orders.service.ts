@@ -6,11 +6,14 @@ import {
   ForbiddenException,
   forwardRef,
 } from '@nestjs/common';
+import { ChatService } from '../chat/chat.service';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { Store } from '../store/store.entity';
+import { SupportModule } from '../support/support.module';
+import { ChatModule } from '../chat/chat.module';
 import { Product } from '../products/product.entity';
 import { User } from '../users/user.entity';
 import { OrderStatus } from '../../common/enum/order-status.enum';
@@ -37,6 +40,8 @@ export class OrdersService {
     private readonly storeService: StoreService,
     private readonly notificationsService: NotificationsService,
     private readonly supportService: SupportService,
+    @Inject(forwardRef(() => ChatService))
+    private readonly chatService: ChatService,
   ) {}
 
   async create(
@@ -141,8 +146,11 @@ export class OrdersService {
 
       // Notify Admins
       this.notifyAdminsOfNewOrder(order, validatedTotalAmount);
+
+      // Initialize Chat conversation automatically
+      await this.chatService.findOrCreateConversation(order.customerId, store.id);
     } catch (error) {
-      console.error('Notification error:', error);
+      console.error('Notification/Chat error:', error);
     }
 
     // 5. Update stocks
@@ -201,20 +209,28 @@ export class OrdersService {
     }
   }
 
-  /**
-   * Restores product stock for a given order
-   */
   async restoreStock(orderId: string): Promise<void> {
-    const order = await this.orderRepository.findOne({ id: orderId } as object);
+    const order = await this.orderRepository.findOne({ where: { id: orderId } } as any);
     if (!order?.items) return;
+
+    const UNIT_FACTORS: Record<string, number> = {
+      'Sac': 50,
+      'Demi-sac': 25,
+      'Kg': 1,
+      'Demi-kg': 0.5
+    };
 
     for (const item of order.items) {
       const product = await this.productRepository.findOne({
         where: { id: item.productId },
-      } as object);
+      } as any);
+      
       if (product) {
+        const factor = UNIT_FACTORS[item.unit] || 1;
+        const totalWeightToRestore = item.quantity * factor;
+        
         await this.productRepository.update(product.id, {
-          stock: product.stock + item.quantity,
+          stock: Number(product.stock) + totalWeightToRestore,
         });
       }
     }
@@ -223,14 +239,17 @@ export class OrdersService {
   /**
    * Cancels an order and restores its stock
    */
-  async cancelOrder(id: string): Promise<Order | null> {
-    const order = await this.orderRepository.findOne({ id } as object);
+  async cancelOrder(id: string, reason?: string): Promise<Order | null> {
+    const order = await this.orderRepository.findOne({ where: { id } } as any);
     if (!order || order.status === OrderStatus.CANCELLED) return order;
 
-    await this.orderRepository.update(id, { status: OrderStatus.CANCELLED });
+    await this.orderRepository.update(id, { 
+      status: OrderStatus.CANCELLED,
+      cancellationReason: reason || 'Non spécifiée'
+    });
     await this.restoreStock(id);
     
-    return this.orderRepository.findOne({ id } as object);
+    return this.orderRepository.findOne({ where: { id } } as any);
   }
 
   async findAll(user: AuthenticatedUser): Promise<Order[]> {
@@ -253,7 +272,10 @@ export class OrdersService {
   }
 
   async findOne(id: string, user: AuthenticatedUser): Promise<Order | null> {
-    const order = await this.orderRepository.findOne({ id, relations: ['customer', 'store'] } as object);
+    const order = await this.orderRepository.findOne({ 
+      where: { id }, 
+      relations: ['customer', 'store'] 
+    } as any);
     if (!order) {
       throw new NotFoundException(`Commande avec l'ID ${id} non trouvée`);
     }
@@ -308,7 +330,7 @@ export class OrdersService {
     throw new ForbiddenException('You do not have access to these orders');
   }
 
-  async updateStatus(id: string, status: OrderStatus, user: AuthenticatedUser): Promise<Order | null> {
+  async updateStatus(id: string, status: OrderStatus, user: AuthenticatedUser, reason?: string): Promise<Order | null> {
     const order = await this.findOne(id, user); // findOne already checks permissions
     
     // Only vendors (owners) and admins can update status
@@ -316,12 +338,16 @@ export class OrdersService {
         throw new ForbiddenException('Clients cannot update order status');
     }
 
+    if (status === OrderStatus.CANCELLED) {
+      return this.cancelOrder(id, reason);
+    }
+
     await this.orderRepository.update(id, { status });
     return this.findOne(id, user);
   }
 
-  async findOneById(id: string): Promise<Order | null> {
-    return this.orderRepository.findOne({ id } as object);
+  async findById(id: string): Promise<Order | null> {
+    return this.orderRepository.findOne({ where: { id } } as any);
   }
 
   /**
@@ -330,7 +356,7 @@ export class OrdersService {
    */
   async updateStatusInternal(id: string, status: OrderStatus): Promise<Order | null> {
     await this.orderRepository.update(id, { status });
-    return this.orderRepository.findOne({ id } as object);
+    return this.orderRepository.findOne({ where: { id } } as any);
   }
 
   async getAdminDashboardStats() {

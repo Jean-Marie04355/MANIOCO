@@ -1,5 +1,5 @@
 import 'dotenv/config';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -15,6 +15,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
 import { ProductsModule } from '../products/products.module';
 import { RolesModule } from '../roles/roles.module';
 import { SupportModule } from '../support/support.module';
+import { ChatModule } from '../chat/chat.module';
 import { User } from '../users/user.entity';
 
 
@@ -37,6 +38,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
     ProductsModule,
     RolesModule,
     SupportModule,
+    forwardRef(() => ChatModule),
   ],
 
   controllers: [OrdersController],

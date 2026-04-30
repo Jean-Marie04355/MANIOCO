@@ -31,6 +31,7 @@ export class ChatService {
       conversation = await this.conversationRepo.create({
         customerId,
         storeId,
+        lastMessageAt: new Date(), // On initialise la date pour qu'il remonte en haut de liste
       } as object as Partial<Conversation>);
     }
 

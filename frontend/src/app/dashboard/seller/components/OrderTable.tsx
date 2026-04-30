@@ -8,11 +8,13 @@ import {
   Truck, 
   XCircle,
   X,
+  MessageSquare,
   Package,
   User,
   Calendar,
   CreditCard
 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export interface OrderItem {
   productId: string;
@@ -26,6 +28,7 @@ export interface OrderItem {
 export interface Order {
   id: string;
   realId: string;
+  customerId: string;
   realDate: string;
   client: string;
   date: string;
@@ -41,8 +44,14 @@ interface OrderTableProps {
 }
 
 export default function OrderTable({ orders, onStatusChange }: OrderTableProps) {
+  const router = useRouter();
   const [activeMenu, setActiveMenu] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<any | null>(null);
+
+  const handleContactClient = (order: Order) => {
+    // Rediriger vers la messagerie en passant l'ID du client
+    router.push(`/dashboard/seller/messages?contact=${order.customerId}`);
+  };
 
   const getStatusStyle = (status: Order['status']) => {
     switch (status) {
@@ -115,8 +124,16 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
                   <td className="px-8 py-5 text-right relative">
                     <div className="flex items-center justify-end gap-2">
                       <button 
+                        onClick={() => handleContactClient(order)}
+                        className="p-2 text-slate-400 hover:text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+                        title="Contacter le client"
+                      >
+                        <MessageSquare size={18} />
+                      </button>
+                      <button 
                         onClick={() => setSelectedOrder(order)}
                         className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all"
+                        title="Détails"
                       >
                         <Eye size={18} />
                       </button>
