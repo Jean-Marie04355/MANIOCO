@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
   forwardRef,
 } from '@nestjs/common';
 import { ChatService } from '../chat/chat.service';
@@ -26,6 +27,8 @@ import { SupportService } from '../support/support.service';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     @Inject('ORDER_REPOSITORY')
     private readonly orderRepository: IBaseRepository<Order>,
@@ -56,16 +59,17 @@ export class OrdersService {
       throw new NotFoundException(`Store not found`);
     }
 
+    /* Bypass pour la démo : On autorise la création même sans compte de paiement 
     if (!store.payoutAccountId) {
       throw new BadRequestException(
         `This store is not yet configured to receive payments. The seller must provide a FedaPay subaccount ID.`,
       );
     }
+    */
 
     // 2. Validate products and recalculate the actual total amount
     let validatedTotalAmount = 0;
     const validatedItems: any[] = [];
-
     const UNIT_FACTORS: Record<string, number> = {
       Sac: 50,
       'Demi-sac': 25,
@@ -91,28 +95,28 @@ export class OrdersService {
         );
       }
 
-      // Check stock based on unit conversion
-      const factor = UNIT_FACTORS[item.unit] || 1;
-      const totalWeightNeeded = item.quantity * factor;
+      // Stock is handled as the sellable quantity for the selected unit
+      const requestedQuantity = Number(item.quantity);
 
-      if (product.stock < totalWeightNeeded) {
+      if (Number(product.stock) < requestedQuantity) {
         throw new BadRequestException(
-          `Stock insuffisant pour le produit ${product.name} (Disponible: ${product.stock} kg, Demandé: ${totalWeightNeeded} kg)`,
+          `Stock insuffisant pour le produit ${product.name} (Disponible: ${product.stock}, Demandé: ${requestedQuantity})`,
         );
       }
 
-      // Calculate price based on the weight requested
-      const basePricePerKg = Number(product.price);
-      const priceForRequestedUnit = basePricePerKg * factor;
-      const itemTotalCost = priceForRequestedUnit * item.quantity;
-
+      // Calculate price based on the unit
+      const factor = UNIT_FACTORS[item.unit] || 1;
+      const unitPrice = Number(product.price);
+      // If price is per kg, then total for unit is price * factor
+      const priceForRequestedUnit = unitPrice * factor;
+      const itemTotalCost = priceForRequestedUnit * requestedQuantity;
       validatedTotalAmount += itemTotalCost;
 
       validatedItems.push({
         ...item,
         productName: product.name,
         productImage: product.image,
-        price: priceForRequestedUnit, // Save the calculated price for the specific unit (e.g., 30000 for 1 Sac)
+        price: unitPrice,
         unit: item.unit,
       });
     }
@@ -125,6 +129,7 @@ export class OrdersService {
     // 4. Create the order in the database
     const orderData = {
       ...createOrderDto,
+      status: OrderStatus.PENDING,
       totalAmount: validatedTotalAmount,
       commissionRate: DEFAULT_COMMISSION_RATE,
       commissionAmount: commissionAmount,
@@ -156,19 +161,14 @@ export class OrdersService {
 
     // 5. Update stocks
     for (const item of validatedItems) {
-      const factor = UNIT_FACTORS[item.unit] || 1;
-      const totalWeightToDeduct = item.quantity * factor;
-
-      const product = await this.productRepository.findOne({
-        id: item.productId,
-      } as object);
+      const product = await this.productRepository.findOne({ id: item.productId } as object);
       await this.productRepository.update(product.id, {
-        stock: product.stock - totalWeightToDeduct,
+        stock: Number(product.stock) - Number(item.quantity),
       });
     }
 
     try {
-      // 6. Initiate payment
+      // 6. Initiate payment through FedaPay
       const paymentTx = await this.paymentsService.createTransaction(
         order,
         store.payoutAccountId,
@@ -179,11 +179,22 @@ export class OrdersService {
         paymentUrl: paymentTx.url,
       };
     } catch (error) {
-      // If payment initiation fails, we cancel the order and restore stock
-      await this.cancelOrder(order.id);
+      // If payment initiation fails, we cancel the order and restore stock.
+      // The rollback must not mask the original error.
+      try {
+        await this.cancelOrder(order.id);
+      } catch (rollbackError) {
+        this.logger.error(
+          `Failed to rollback order ${order.id} after payment initiation error`,
+          rollbackError instanceof Error ? rollbackError.stack : String(rollbackError),
+        );
+      }
 
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Order creation/payment failed for store ${store.id}`,
+        error instanceof Error ? error.stack : errorMessage,
+      );
       throw new BadRequestException(
         `Unable to initiate payment: ${errorMessage}. The order has been cancelled and stock restored.`,
       );
@@ -265,13 +276,15 @@ export class OrdersService {
       return this.orderRepository.find({
         where: { storeId: store.id },
         relations: ['customer'],
-      } as object);
+        order: { createdAt: 'DESC' }
+      } as any);
     }
 
-    return this.orderRepository.find({
-      where: { customerId: user.userId },
+    return this.orderRepository.find({ 
+      where: { customerId: user.userId }, 
       relations: ['store'],
-    } as object);
+      order: { createdAt: 'DESC' }
+    } as any);
   }
 
   async findOne(id: string, user: AuthenticatedUser): Promise<Order | null> {
@@ -374,7 +387,6 @@ export class OrdersService {
   async getAdminDashboardStats() {
     const orders = await this.orderRepository.find();
     const users = await this.userRepository.find();
-
     const paidStatuses = [
       OrderStatus.PAID,
       OrderStatus.SHIPPED,

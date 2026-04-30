@@ -44,39 +44,46 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
   }, [user, mode, storeId]);
 
   // 2. Charger les compteurs (une fois au début, puis par intervalle)
-  // On retire 'pathname' des dépendances pour ne pas bloquer la navigation
-  useEffect(() => {
+  const fetchCounts = async () => {
     if (!user) return;
-
-    const fetchCounts = async () => {
-      try {
-        if (mode === 'admin' || mode === 'super-admin') {
-          const notifRes = await api.get('/notifications/unread/count');
-          setNotificationCount(notifRes.data.count || 0);
-        }
-        
-        if (mode === 'seller' && storeId) {
-          // Commandes
-          const ordersRes = await api.get(`/orders/store/${storeId}`);
-          const totalOrders = ordersRes.data.length;
-          const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${storeId}`) || '0');
-          setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
-
-          // Chat / Messages
-          const chatRes = await api.get('/chat/unread-count');
-          setChatCount(chatRes.data > 0 ? chatRes.data : null);
-        }
-      } catch (error) {
-        console.error("Erreur badges sidebar", error);
+    try {
+      if (mode === 'admin' || mode === 'super-admin') {
+        const notifRes = await api.get('/notifications/unread/count');
+        setNotificationCount(notifRes.data.count || 0);
       }
-    };
-    
+      
+      if (mode === 'seller' && storeId) {
+        // Commandes
+        const ordersRes = await api.get(`/orders/store/${storeId}`);
+        const totalOrders = ordersRes.data.length;
+        const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${storeId}`) || '0');
+        setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
+
+        // Chat / Messages
+        const chatRes = await api.get('/chat/unread-count');
+        setChatCount(chatRes.data > 0 ? chatRes.data : null);
+      } else if (mode === 'client') {
+        // Notifications
+        const notifRes = await api.get('/notifications');
+        const unreadCount = notifRes.data.filter((n: any) => !n.isRead).length;
+        setOrderCount(unreadCount > 0 ? unreadCount : null);
+
+        // Messages
+        const chatRes = await api.get('/chat/unread-count');
+        setChatCount(chatRes.data > 0 ? chatRes.data : null);
+      }
+    } catch (error) {
+      console.error("Erreur badges sidebar", error);
+    }
+  };
+
+  useEffect(() => {
     fetchCounts();
     const interval = setInterval(fetchCounts, 60000); // Mise à jour toutes les 60s
     return () => clearInterval(interval);
   }, [mode, user, storeId]);
 
-  // 3. Gestion spécifique du badge quand on arrive sur la page concernée (léger)
+  // 3. Gestion spécifique du badge quand on arrive sur la page concernée
   useEffect(() => {
     if (mode === 'seller' && storeId) {
       if (pathname === '/dashboard/seller/orders') {
@@ -124,13 +131,15 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
         ];
       case 'client':
         return [
-          { icon: LayoutDashboard, label: 'Mon Espace', href: '/dashboard/client' },
-          { icon: ShoppingCart, label: 'Mes Achats', href: '/dashboard/client/orders' },
-          { icon: Heart, label: 'Favoris', href: '/dashboard/client/wishlist' },
-          { icon: MessageSquare, label: 'Messages', href: '/dashboard/client/chat' },
-          { icon: MapPin, label: 'Adresses', href: '/dashboard/client/addresses' },
-          { icon: CreditCard, label: 'Paiements', href: '/dashboard/client/payments' },
-          { icon: HelpCircle, label: 'Besoin d\'aide ?', href: '/dashboard/client/support' },
+          { icon: LayoutDashboard, label: 'Tableau de bord', href: '/dashboard/client' },
+          { icon: ShoppingBag, label: 'Mes commandes', href: '/dashboard/client/orders' },
+          { icon: Heart, label: 'Mes favoris', href: '/dashboard/client/favorites' },
+          { icon: MapPin, label: 'À proximité', href: '/dashboard/client/shops?filter=nearby' },
+          { icon: MessageSquare, label: 'Messages', badge: chatCount && chatCount > 0 ? chatCount.toString() : null, href: '/dashboard/client/messages' },
+          { icon: CreditCard, label: 'Mes paiements', href: '/dashboard/client/payments' },
+          { icon: Bell, label: 'Notifications', badge: orderCount && orderCount > 0 ? orderCount.toString() : null, href: '/dashboard/client/notifications' },
+          { icon: Settings, label: 'Paramètres', href: '/dashboard/client/profile' },
+          { icon: HelpCircle, label: 'Aide & support', href: '/dashboard/client/help' },
         ];
       case 'seller':
         return [

@@ -16,7 +16,6 @@ export class EmailService {
   constructor() {
     const host = process.env.SMTP_HOST || '127.0.0.1';
     const port = Number(process.env.SMTP_PORT || 1025);
-
     // Force IPv4 if localhost is provided
     const finalHost = host === 'localhost' ? '127.0.0.1' : host;
 

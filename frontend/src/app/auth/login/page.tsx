@@ -43,8 +43,19 @@ export default function AuthPage() {
       const { accessToken } = response.data;
       if (accessToken) {
         login(accessToken);
-        // On redirige temporairement en dur vers seller car l'utilisateur travaille dessus
-        router.push('/dashboard/seller');
+        
+        // Récupérer les infos de l'utilisateur pour connaître son rôle
+        const userRes = await api.get('/auth/me', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        
+        const userRole = userRes.data.role;
+        
+        if (userRole === 'vendeur' || userRole === 'seller') {
+          router.push('/dashboard/seller');
+        } else {
+          router.push('/dashboard/client');
+        }
       }
     } catch (err: any) {
       if (err.response?.data?.message === 'ACCOUNT_SUSPENDED') {

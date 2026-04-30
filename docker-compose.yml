@@ -43,17 +43,26 @@ services:
       - "127.0.0.1:1025:1025"  # SMTP port
       - "127.0.0.1:8025:8025"  # Web UI port
     restart: always
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "1025"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   minio:
-    image: minio/minio
+    image: minio/minio:latest
     container_name: afrigari-minio
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
     ports:
       - "127.0.0.1:3900:9000"
       - "127.0.0.1:3901:9001"
     environment:
-      MINIO_ROOT_USER: GK5998626ffd74db3814c16280
-      MINIO_ROOT_PASSWORD: 2c0708b326a49c1b37994db2b65d34a9e99eb60fe9eb42f73ab75db3e00805aa
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: password
+    command: server /data --console-address ":9001"
     volumes:
       - ./data/minio:/data
-    command: server /data --console-address ":9001"
     restart: always

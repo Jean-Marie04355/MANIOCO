@@ -1,6 +1,6 @@
 "use client";
 import { useState, useRef, useEffect } from 'react';
-import { Bell, ChevronDown, User, LogOut, Settings } from 'lucide-react';
+import { Bell, ChevronDown, User, LogOut, Settings, ArrowLeft } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthContext';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -38,7 +38,6 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
   useEffect(() => {
     if (user) {
       fetchNotifications();
-      // Optionnel: rafraîchir toutes les minutes
       const interval = setInterval(fetchNotifications, 60000);
       return () => clearInterval(interval);
     }
@@ -78,7 +77,6 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
     return `Il y a ${diffInDays}j`;
   };
 
-  // Fermer le dropdown si on clique en dehors
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -99,7 +97,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
   }, [user]);
 
   const displayUser = user || cachedUser;
-  const displayName = displayUser?.name || 'Utilisateur';
+  const displayName = displayUser?.name || (displayUser as any)?.name || 'Utilisateur';
   const avatarUrl = displayUser?.profilePhoto 
     ? displayUser.profilePhoto 
     : `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random&bold=true`;
@@ -111,11 +109,17 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
   return (
     <header className={`h-16 flex items-center justify-between px-8 sticky top-0 z-20 bg-white border-b border-slate-100`}>
       <div className="flex items-center gap-4">
+        <button 
+          onClick={() => router.back()}
+          className={`p-2 rounded-lg transition-colors hover:bg-slate-100 text-slate-400`}
+          title="Retour"
+        >
+          <ArrowLeft size={20} />
+        </button>
         <h1 className="text-lg font-bold text-slate-900">{title}</h1>
       </div>
 
       <div className="flex items-center gap-6">
-
         <div className="flex items-center gap-3">
           <div className="relative" ref={notificationsRef}>
             <button 
@@ -178,7 +182,6 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
           
           <div className="h-8 w-px bg-slate-200 dark:bg-slate-800 mx-2"></div>
 
-          {/* Menu Déroulant Utilisateur */}
           <div className="relative" ref={dropdownRef}>
             <button 
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -189,7 +192,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                 className="w-8 h-8 rounded-lg object-cover" 
                 alt={displayName}
               />
-              <span className={`text-xs font-bold hidden sm:block ${isAdmin ? 'text-slate-900' : 'text-white'}`}>
+              <span className="text-xs font-bold hidden sm:block text-slate-900">
                 {displayName}
               </span>
               <ChevronDown 
@@ -198,7 +201,6 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
               />
             </button>
 
-            {/* Contenu du Dropdown */}
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 animate-in fade-in slide-in-from-top-2">
                 <div className="px-4 py-2 border-b border-slate-100 mb-1">
@@ -217,20 +219,21 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                 ) : (
                   <>
                     <Link 
-                      href="/dashboard/seller/settings/account" 
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                      href="/dashboard/client/profile" 
+                      className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-forest-night/5 hover:text-forest-night transition-colors"
                       onClick={() => setIsDropdownOpen(false)}
                     >
                       <User size={16} /> Mon Profil
                     </Link>
-                    
-                    <Link 
-                      href="/dashboard/seller/settings/store" 
-                      className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
-                      onClick={() => setIsDropdownOpen(false)}
-                    >
-                      <Settings size={16} /> Ma Boutique
-                    </Link>
+                    {pathname.includes('/seller') && (
+                      <Link 
+                        href="/dashboard/seller/settings/store" 
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                        onClick={() => setIsDropdownOpen(false)}
+                      >
+                        <Settings size={16} /> Ma Boutique
+                      </Link>
+                    )}
                   </>
                 )}
 

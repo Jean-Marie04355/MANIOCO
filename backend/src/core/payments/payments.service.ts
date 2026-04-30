@@ -26,12 +26,22 @@ export class PaymentsService {
     private readonly ordersService: OrdersService,
   ) {}
 
+  private getFrontendBaseUrl(): string {
+    const configuredUrls = this.configService.get<string>('FRONTEND_URL', '');
+    const firstUrl = configuredUrls
+      .split(',')
+      .map((url) => url.trim())
+      .find(Boolean);
+
+    return firstUrl || 'http://localhost:3000';
+  }
+
   /**
    * Creates a transaction with split-payment
    */
   async createTransaction(
     order: Order,
-    sellerPayoutAccountId: string,
+    sellerPayoutAccountId?: string,
   ): Promise<{ transactionId: string; url: string }> {
     const amount = Number(order.totalAmount);
 
@@ -43,9 +53,12 @@ export class PaymentsService {
     });
 
     try {
-      const callbackUrl =
-        this.configService.get('FRONTEND_URL', 'https://localhost:3000') +
-        `/payment-callback?orderId=${order.id}`;
+      const callbackUrl = new URL(
+        `/payment-callback?orderId=${order.id}`,
+        this.getFrontendBaseUrl(),
+      ).toString();
+
+      this.logger.log(`Using payment callback URL: ${callbackUrl}`);
 
       // Delegate to external provider
       const paymentResponse = await this.paymentProvider.createTransaction({

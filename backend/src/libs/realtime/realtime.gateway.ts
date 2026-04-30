@@ -51,10 +51,17 @@ export class RealtimeGateway
   @UseGuards(WsJwtGuard)
   @SubscribeMessage('join_conversation')
   async joinConversation(
-    @ConnectedSocket() client: Socket,
+    @ConnectedSocket() client: Socket & { user?: any },
     @MessageBody() body: { conversationId: string },
   ) {
-    await client.join(`conversation_${body.conversationId}`);
+    if (client.user?.userId) {
+      await client.join(`user_${client.user.userId}`);
+    }
+    
+    if (body.conversationId !== 'global') {
+      await client.join(`conversation_${body.conversationId}`);
+    }
+    
     return { event: 'joined', data: { conversationId: body.conversationId } };
   }
 

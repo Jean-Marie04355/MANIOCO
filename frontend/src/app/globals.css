@@ -1,11 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
 @import "tailwindcss";
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: 'Plus Jakarta Sans', var(--font-geist-sans);
-  --font-display: 'Outfit', sans-serif;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-display: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
 
   /* Premium V2 Tokens */
   --color-organic-cream: #F9F8F3;
@@ -23,7 +22,7 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
 }
 
@@ -43,7 +42,7 @@ body::before {
 
 @layer utilities {
   .text-huge {
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-display);
     @apply text-[14rem] font-black leading-none tracking-tighter opacity-[0.07] transition-all duration-700;
   }
 
