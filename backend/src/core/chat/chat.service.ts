@@ -52,7 +52,7 @@ export class ChatService {
         throw new NotFoundException('Conversation introuvable ou impossible à créer');
       }
 
-      const conversation = await this.conversationRepo.findOne({ id: finalConversationId } as object);
+      let conversation = await this.conversationRepo.findOne({ id: finalConversationId } as object);
       if (!conversation) {
         throw new NotFoundException('Conversation introuvable');
       }
@@ -71,22 +71,29 @@ export class ChatService {
       } as object as Partial<Conversation>);
 
       // Notify the other participant so the chat shows up in the bell icon
-      const store = await this.storeService.findOne(conversation.storeId);
-      const isSellerMessage = String(senderId) === String(store.ownerId);
-      const recipientId = isSellerMessage ? conversation.customerId : store.ownerId;
+      let recipientId: string | null = null;
+      try {
+        const store = await this.storeService.findOne(conversation.storeId);
+        if (store) {
+          const isSellerMessage = String(senderId) === String(store.ownerId);
+          recipientId = isSellerMessage ? conversation.customerId : store.ownerId;
 
-      await this.notificationsService.create({
-        userId: recipientId,
-        type: NotificationType.MESSAGE,
-        title: 'Nouveau message',
-        message: isSellerMessage
-          ? 'Vous avez reçu une réponse du vendeur.'
-          : 'Vous avez reçu un nouveau message client.',
-        metadata: JSON.stringify({
-          conversationId: finalConversationId,
-          senderId,
-        }),
-      });
+          await this.notificationsService.create({
+            userId: recipientId,
+            type: NotificationType.MESSAGE,
+            title: 'Nouveau message',
+            message: isSellerMessage
+              ? 'Vous avez reçu une réponse du vendeur.'
+              : 'Vous avez reçu un nouveau message client.',
+            metadata: JSON.stringify({
+              conversationId: finalConversationId,
+              senderId,
+            }),
+          });
+        }
+      } catch (e) {
+        console.error('Failed to send notification for chat message:', e);
+      }
 
       // Recharge avec les relations pour le frontend
       const messageWithRelations = await this.messageRepo.findOne({
@@ -95,15 +102,17 @@ export class ChatService {
       } as any);
 
       // On s'assure d'avoir l'objet conversation pour les relations store
-      const conversation = await this.conversationRepo.findOne({
+      conversation = await this.conversationRepo.findOne({
         where: { id: finalConversationId },
         relations: ['store', 'customer']
       } as any);
 
       const normalizedMsg = {
         ...(messageWithRelations || message),
-        senderId: typeof message.senderId === 'object' ? (message.senderId as any).id : message.senderId,
-        conversation: conversation
+        senderId: message?.senderId && typeof message.senderId === 'object' 
+          ? (message.senderId as any).id 
+          : (message?.senderId || senderId),
+        conversation: conversation || {}
       };
 
       // Broadcast message via WebSocket
@@ -114,9 +123,11 @@ export class ChatService {
           .emit('new_message', normalizedMsg);
           
         // Envoi direct à l'utilisateur destinataire (pour signalement global/point rouge)
-        this.realtimeGateway.server
-          .to(`user_${recipientId}`)
-          .emit('new_message', normalizedMsg);
+        if (recipientId) {
+          this.realtimeGateway.server
+            .to(`user_${recipientId}`)
+            .emit('new_message', normalizedMsg);
+        }
       }
       return normalizedMsg as Message;
     } catch (error: any) {
@@ -128,12 +139,18 @@ export class ChatService {
 
   async getConversations(user: AuthenticatedUser): Promise<Conversation[]> {
     if (user.role === UserRole.VENDEUR) {
-      const store = await this.storeService.findByOwnerId(user.userId);
-      return this.conversationRepo.find({
-        where: { storeId: store.id },
-        relations: ['customer'],
-        order: { lastMessageAt: 'DESC' }
-      } as object);
+      try {
+        const store = await this.storeService.findByOwnerId(user.userId);
+        if (!store) return [];
+        
+        return this.conversationRepo.find({
+          where: { storeId: store.id },
+          relations: ['customer'],
+          order: { lastMessageAt: 'DESC' }
+        } as any);
+      } catch (e) {
+        return [];
+      }
     }
 
     return this.conversationRepo.find({

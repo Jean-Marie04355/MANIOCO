@@ -11,11 +11,33 @@ export class SqlRepository<T extends { id: string | number }>
   }
 
   findOne(criteria: any): Promise<T | null> {
-    const { withDeleted, ...where } = criteria;
-    return this.repo.findOne({ 
-      where: where as FindOptionsWhere<T>,
-      withDeleted: !!withDeleted 
-    });
+    const options: any = {};
+    
+    // Si criteria contient des options TypeORM connues
+    if (criteria.where || criteria.relations || criteria.order || criteria.select) {
+      options.where = criteria.where;
+      options.relations = criteria.relations;
+      options.order = criteria.order;
+      options.select = criteria.select;
+      options.withDeleted = !!criteria.withDeleted;
+
+      // Si criteria contient aussi d'autres champs à la racine (comme 'id'), 
+      // et que 'where' n'est pas défini, on les utilise comme 'where'
+      if (!options.where) {
+        const { relations, withDeleted, order, select, ...where } = criteria;
+        options.where = where as FindOptionsWhere<T>;
+      }
+    } else {
+      // Sinon on traite criteria comme l'objet 'where'
+      const { relations, withDeleted, order, select, ...where } = criteria;
+      options.where = where as FindOptionsWhere<T>;
+      options.relations = relations;
+      options.order = order;
+      options.select = select;
+      options.withDeleted = !!withDeleted;
+    }
+
+    return this.repo.findOne(options);
   }
 
   async create(data: Partial<T>): Promise<T> {

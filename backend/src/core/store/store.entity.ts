@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne, JoinColumn } from 'typeorm';
 import { ProductCategory } from '../product-categories/product-category.entity';
+import { User } from '../users/user.entity';
 
 @Entity({ name: 'store' })
 export class Store {
@@ -9,7 +10,7 @@ export class Store {
   @Column()
   name: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, nullable: true })
   ownerId: string;
 
   @Column({ nullable: true })
@@ -38,4 +39,8 @@ export class Store {
 
   @Column({ nullable: true })
   payoutAccountId: string;
+
+  @ManyToOne(() => User, { nullable: true })
+  @JoinColumn({ name: 'ownerId' })
+  owner: User;
 }
