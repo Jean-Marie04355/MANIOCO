@@ -4,6 +4,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
   forwardRef,
 } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
@@ -23,6 +24,8 @@ import { SupportService } from '../support/support.service';
 
 @Injectable()
 export class OrdersService {
+  private readonly logger = new Logger(OrdersService.name);
+
   constructor(
     @Inject('ORDER_REPOSITORY')
     private readonly orderRepository: IBaseRepository<Order>,
@@ -51,22 +54,17 @@ export class OrdersService {
       throw new NotFoundException(`Store not found`);
     }
 
+    /* Bypass pour la démo : On autorise la création même sans compte de paiement 
     if (!store.payoutAccountId) {
       throw new BadRequestException(
         `This store is not yet configured to receive payments. The seller must provide a FedaPay subaccount ID.`,
       );
     }
+    */
 
     // 2. Validate products and recalculate the actual total amount
     let validatedTotalAmount = 0;
     const validatedItems: any[] = [];
-    
-    const UNIT_FACTORS: Record<string, number> = {
-      'Sac': 50,
-      'Demi-sac': 25,
-      'Kg': 1,
-      'Demi-kg': 0.5
-    };
 
     for (const item of createOrderDto.items) {
       const product = await this.productRepository.findOne({
@@ -86,20 +84,17 @@ export class OrdersService {
         );
       }
 
-      // Check stock based on unit conversion
-      const factor = UNIT_FACTORS[item.unit] || 1;
-      const totalWeightNeeded = item.quantity * factor;
+      // Stock is handled as the sellable quantity for the selected unit
+      const requestedQuantity = Number(item.quantity);
 
-      if (product.stock < totalWeightNeeded) {
+      if (Number(product.stock) < requestedQuantity) {
         throw new BadRequestException(
-          `Stock insuffisant pour le produit ${product.name} (Disponible: ${product.stock} kg, Demandé: ${totalWeightNeeded} kg)`,
+          `Stock insuffisant pour le produit ${product.name} (Disponible: ${product.stock}, Demandé: ${requestedQuantity})`,
         );
       }
 
-      // Calculate price based on the weight requested
-      const basePricePerKg = Number(product.price);
-      const priceForRequestedUnit = basePricePerKg * factor;
-      const itemTotalCost = priceForRequestedUnit * item.quantity;
+      const unitPrice = Number(product.price);
+      const itemTotalCost = unitPrice * requestedQuantity;
       
       validatedTotalAmount += itemTotalCost;
 
@@ -107,7 +102,7 @@ export class OrdersService {
         ...item,
         productName: product.name,
         productImage: product.image,
-        price: priceForRequestedUnit, // Save the calculated price for the specific unit (e.g., 30000 for 1 Sac)
+        price: unitPrice,
         unit: item.unit,
       });
     }
@@ -119,6 +114,7 @@ export class OrdersService {
     // 4. Create the order in the database
     const orderData = {
       ...createOrderDto,
+      status: OrderStatus.PENDING,
       totalAmount: validatedTotalAmount,
       commissionRate: DEFAULT_COMMISSION_RATE,
       commissionAmount: commissionAmount,
@@ -147,17 +143,14 @@ export class OrdersService {
 
     // 5. Update stocks
     for (const item of validatedItems) {
-      const factor = UNIT_FACTORS[item.unit] || 1;
-      const totalWeightToDeduct = item.quantity * factor;
-      
       const product = await this.productRepository.findOne({ id: item.productId } as object);
       await this.productRepository.update(product.id, {
-        stock: product.stock - totalWeightToDeduct,
+        stock: Number(product.stock) - Number(item.quantity),
       });
     }
 
     try {
-      // 6. Initiate payment
+      // 6. Initiate payment through FedaPay
       const paymentTx = await this.paymentsService.createTransaction(
         order,
         store.payoutAccountId,
@@ -168,10 +161,22 @@ export class OrdersService {
         paymentUrl: paymentTx.url,
       };
     } catch (error) {
-      // If payment initiation fails, we cancel the order and restore stock
-      await this.cancelOrder(order.id);
-      
+      // If payment initiation fails, we cancel the order and restore stock.
+      // The rollback must not mask the original error.
+      try {
+        await this.cancelOrder(order.id);
+      } catch (rollbackError) {
+        this.logger.error(
+          `Failed to rollback order ${order.id} after payment initiation error`,
+          rollbackError instanceof Error ? rollbackError.stack : String(rollbackError),
+        );
+      }
+
       const errorMessage = error instanceof Error ? error.message : String(error);
+      this.logger.error(
+        `Order creation/payment failed for store ${store.id}`,
+        error instanceof Error ? error.stack : errorMessage,
+      );
       throw new BadRequestException(
         `Unable to initiate payment: ${errorMessage}. The order has been cancelled and stock restored.`,
       );
@@ -214,7 +219,7 @@ export class OrdersService {
       } as object);
       if (product) {
         await this.productRepository.update(product.id, {
-          stock: product.stock + item.quantity,
+          stock: Number(product.stock) + Number(item.quantity),
         });
       }
     }
@@ -245,11 +250,16 @@ export class OrdersService {
       const store = await this.storeService.findByOwnerId(user.userId);
       return this.orderRepository.find({ 
         where: { storeId: store.id },
-        relations: ['customer']
-      } as object);
+        relations: ['customer'],
+        order: { createdAt: 'DESC' }
+      } as any);
     }
 
-    return this.orderRepository.find({ where: { customerId: user.userId }, relations: ['store'] } as object);
+    return this.orderRepository.find({ 
+      where: { customerId: user.userId }, 
+      relations: ['store'],
+      order: { createdAt: 'DESC' }
+    } as any);
   }
 
   async findOne(id: string, user: AuthenticatedUser): Promise<Order | null> {
@@ -342,11 +352,39 @@ export class OrdersService {
     const totalSalesCount = orders.filter(o => paidStatuses.includes(o.status)).length;
     const totalRevenue = orders
       .filter(o => paidStatuses.includes(o.status))
-      .reduce((sum, o) => sum + Number(o.commissionAmount || 0), 0);
+      .reduce((sum, o) => {
+        const amount = Number(o.commissionAmount);
+        // Fallback: if commissionAmount is missing/0 but we have a totalAmount, assume 10%
+        const actualCommission = amount > 0 ? amount : (Number(o.totalAmount || 0) * 0.10);
+        return sum + actualCommission;
+      }, 0);
 
     const sellersCount = users.filter(u => u.role === UserRole.VENDEUR).length;
     const pendingKycCount = users.filter(u => u.kycStatus === 'PENDING').length;
     const activeTicketsCount = await this.supportService.countActiveTickets();
+
+    // Calcul de l'historique des revenus sur les 15 derniers jours
+    const revenueHistory = [];
+    const now = new Date();
+    for (let i = 14; i >= 0; i--) {
+      const targetDate = new Date(now);
+      targetDate.setDate(targetDate.getDate() - i);
+      const dateStr = targetDate.toISOString().split('T')[0];
+
+      const dayRevenue = orders
+        .filter(o => {
+          const isPaid = paidStatuses.includes(o.status);
+          const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
+          return isPaid && orderDate === dateStr;
+        })
+        .reduce((sum, o) => {
+          const amount = Number(o.commissionAmount);
+          const actualCommission = amount > 0 ? amount : (Number(o.totalAmount || 0) * 0.10);
+          return sum + actualCommission;
+        }, 0);
+
+      revenueHistory.push({ date: dateStr, amount: dayRevenue });
+    }
 
     return {
       totalRevenue,
@@ -355,7 +393,8 @@ export class OrdersService {
       sellersCount,
       pendingKycCount,
       activeTicketsCount,
-      totalUsers: users.length
+      totalUsers: users.length,
+      revenueHistory
     };
   }
 }

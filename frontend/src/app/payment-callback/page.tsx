@@ -1,107 +1,50 @@
 "use client";
-import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import { CheckCircle, XCircle, ArrowRight, Package, Loader2, Calendar, CreditCard } from 'lucide-react';
-import Link from 'next/link';
-import api from '@/lib/axios';
+
+import { useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { CheckCircle2, Loader2, ShoppingBag } from 'lucide-react';
 
 export default function PaymentCallbackPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [order, setOrder] = useState<any>(null);
 
   useEffect(() => {
-    const checkOrder = async () => {
-      if (!orderId) {
-        setStatus('error');
-        return;
-      }
+    const timer = window.setTimeout(() => {
+      router.push('/dashboard/client/orders');
+    }, 2500);
 
-      try {
-        // En réalité, on attend un peu que le webhook du backend soit passé
-        // On va boucler ou simplement demander l'état de la commande
-        const res = await api.get(`/orders/${orderId}`);
-        setOrder(res.data);
-        
-        if (res.data.status === 'PAID') {
-          setStatus('success');
-        } else {
-          // On peut attendre encore un peu ou considérer que c'est en cours
-          setStatus('success'); // On affiche quand même un succès car FedaPay a redirigé ici
-        }
-      } catch (err) {
-        console.error("Erreur vérification commande:", err);
-        setStatus('error');
-      }
-    };
-
-    checkOrder();
-  }, [orderId]);
+    return () => window.clearTimeout(timer);
+  }, [router]);
 
   return (
-    <div className="min-h-screen bg-luxury-cream flex items-center justify-center p-6 font-sans">
-      <div className="w-full max-w-2xl bg-white rounded-[64px] shadow-[0_80px_160px_-40px_rgba(10,33,24,0.1)] border border-forest-night/5 overflow-hidden animate-reveal p-16 md:p-24 text-center">
-        
-        {status === 'loading' ? (
-          <div className="flex flex-col items-center gap-8 py-20">
-             <Loader2 className="w-16 h-16 text-forest-night animate-spin" />
-             <p className="text-[10px] font-black uppercase tracking-[0.5em] text-forest-night/20">Validation de la transaction...</p>
-          </div>
-        ) : status === 'success' ? (
-          <div className="animate-reveal">
-            <div className="w-32 h-32 bg-soft-mint rounded-full flex items-center justify-center mx-auto mb-12 shadow-xl">
-               <CheckCircle size={64} className="text-afrigari-gold" />
-            </div>
-            
-            <h1 className="text-5xl font-black tracking-tighter uppercase italic mb-6">Paiement <br/> <span className="text-afrigari-gold">Confirmé !</span></h1>
-            <p className="text-forest-night/40 font-bold mb-12 max-w-sm mx-auto leading-relaxed italic">Merci pour votre confiance. Nos artisans préparent déjà vos trésors du terroir.</p>
-
-            {order && (
-              <div className="bg-luxury-cream/50 rounded-[32px] p-8 mb-12 border border-forest-night/5 text-left flex justify-between items-center">
-                 <div>
-                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-forest-night/30 mb-2">Référence de Commande</p>
-                    <h4 className="font-black text-xl text-forest-night italic">#{order.id.split('-')[0]}</h4>
-                 </div>
-                 <div className="text-right">
-                    <p className="text-[9px] font-black uppercase tracking-[0.4em] text-forest-night/30 mb-2">Montant Réglé</p>
-                    <h4 className="font-black text-2xl text-afrigari-gold italic">{Number(order.totalAmount).toLocaleString()} F</h4>
-                 </div>
-              </div>
-            )}
-
-            <div className="flex flex-col md:flex-row gap-6 justify-center">
-               <Link href="/dashboard/client/orders" className="bg-forest-night text-white px-12 py-6 rounded-[24px] font-black text-xs uppercase tracking-[0.3em] hover:bg-afrigari-gold hover:text-forest-night transition-all shadow-xl flex items-center justify-center gap-4">
-                  Suivre ma commande <ArrowRight size={18} />
-               </Link>
-               <Link href="/dashboard/client" className="text-forest-night/40 hover:text-forest-night px-12 py-6 font-black text-[10px] uppercase tracking-widest transition-all italic border-b-2 border-transparent hover:border-forest-night/10">
-                  Retour au marché
-               </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="animate-reveal">
-            <div className="w-32 h-32 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-12 shadow-xl">
-               <XCircle size={64} className="text-red-500" />
-            </div>
-            <h1 className="text-4xl font-black tracking-tighter uppercase italic mb-6 text-red-600">Échec du <br/> Paiement</h1>
-            <p className="text-forest-night/40 font-bold mb-12 max-w-sm mx-auto leading-relaxed">Une erreur est survenue lors de la transaction. Aucun montant n&apos;a été débité.</p>
-            <Link href="/dashboard/client" className="bg-forest-night text-white px-12 py-6 rounded-[24px] font-black text-xs uppercase tracking-[0.3em] hover:scale-105 transition-all shadow-xl">
-               Réessayer mes achats
-            </Link>
-          </div>
-        )}
-
-        <div className="mt-20 flex items-center justify-center gap-10 opacity-20 border-t border-forest-night/5 pt-10">
-           <div className="flex items-center gap-3">
-              <Calendar size={14} />
-              <span className="text-[9px] font-black uppercase tracking-widest">{new Date().getFullYear()} AFRIGARI</span>
-           </div>
-           <div className="flex items-center gap-3">
-              <CreditCard size={14} />
-              <span className="text-[9px] font-black uppercase tracking-widest italic">PLATFORME SÉCURISÉE</span>
-           </div>
+    <div className="min-h-screen bg-organic-cream flex items-center justify-center px-6">
+      <div className="w-full max-w-xl bg-white rounded-[3rem] shadow-2xl border border-forest-green/5 p-10 md:p-14 text-center">
+        <div className="w-20 h-20 mx-auto rounded-full bg-forest-green/5 flex items-center justify-center text-forest-green mb-8">
+          <CheckCircle2 size={38} />
         </div>
+
+        <h1 className="text-3xl md:text-4xl font-black text-forest-green mb-4 uppercase tracking-tight">
+          Paiement en cours de validation
+        </h1>
+        <p className="text-sm text-forest-green/60 font-medium leading-relaxed mb-8">
+          {orderId
+            ? `Votre commande ${orderId} a bien ete envoyee. Des que FedaPay confirme le paiement, le statut passera a "En cours".`
+            : 'Votre commande a bien ete envoyee. Des que FedaPay confirme le paiement, le statut passera a "En cours".'}
+        </p>
+
+        <div className="flex items-center justify-center gap-3 text-xs font-black uppercase tracking-[0.2em] text-forest-green/40">
+          <Loader2 className="animate-spin" size={16} />
+          Retour automatique vers vos commandes
+        </div>
+
+        <button
+          onClick={() => router.push('/dashboard/client/orders')}
+          className="mt-10 inline-flex items-center gap-3 bg-forest-green text-white px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-afrigari-gold transition-all"
+        >
+          <ShoppingBag size={16} />
+          Voir mes commandes
+        </button>
       </div>
     </div>
   );

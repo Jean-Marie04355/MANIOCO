@@ -1,22 +1,11 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/features/auth/AuthContext";
-import { CartProvider } from "@/context/CartContext";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { CartProvider } from "@/features/cart/CartContext";
 
 export const metadata: Metadata = {
-  title: "Afrigari - Excellence Agro-Industrielle",
-  description: "Le meilleur des terroirs africains.",
+  title: "Afrigari - Marché d'Excellence Africaine",
+  description: "La plateforme d'agro-alimentaire premium pour le Gari, Tapioca et produits dérivés.",
 };
 
 export default function RootLayout({
@@ -28,7 +17,7 @@ export default function RootLayout({
     <html
       lang="fr"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>

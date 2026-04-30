@@ -70,13 +70,55 @@ export class ChatService {
         lastMessageAt: new Date(),
       } as object as Partial<Conversation>);
 
+      // Notify the other participant so the chat shows up in the bell icon
+      const store = await this.storeService.findOne(conversation.storeId);
+      const isSellerMessage = String(senderId) === String(store.ownerId);
+      const recipientId = isSellerMessage ? conversation.customerId : store.ownerId;
+
+      await this.notificationsService.create({
+        userId: recipientId,
+        type: NotificationType.MESSAGE,
+        title: 'Nouveau message',
+        message: isSellerMessage
+          ? 'Vous avez reçu une réponse du vendeur.'
+          : 'Vous avez reçu un nouveau message client.',
+        metadata: JSON.stringify({
+          conversationId: finalConversationId,
+          senderId,
+        }),
+      });
+
+      // Recharge avec les relations pour le frontend
+      const messageWithRelations = await this.messageRepo.findOne({
+        where: { id: message.id },
+        relations: ['sender']
+      } as any);
+
+      // On s'assure d'avoir l'objet conversation pour les relations store
+      const conversation = await this.conversationRepo.findOne({
+        where: { id: finalConversationId },
+        relations: ['store', 'customer']
+      } as any);
+
+      const normalizedMsg = {
+        ...(messageWithRelations || message),
+        senderId: typeof message.senderId === 'object' ? (message.senderId as any).id : message.senderId,
+        conversation: conversation
+      };
+
       // Broadcast message via WebSocket
       if (this.realtimeGateway.server) {
+        // Envoi au salon spécifique de la conversation
         this.realtimeGateway.server
           .to(`conversation_${finalConversationId}`)
-          .emit('new_message', message);
+          .emit('new_message', normalizedMsg);
+          
+        // Envoi direct à l'utilisateur destinataire (pour signalement global/point rouge)
+        this.realtimeGateway.server
+          .to(`user_${recipientId}`)
+          .emit('new_message', normalizedMsg);
       }
-      return message;
+      return normalizedMsg as Message;
     } catch (error: any) {
       console.error('sendMessage ERROR:', error);
       throw new NotFoundException(error.message || 'Error creating message');
@@ -96,7 +138,7 @@ export class ChatService {
 
     return this.conversationRepo.find({
       where: { customerId: user.userId },
-      relations: ['store'],
+      relations: ['store', 'store.owner'],
       order: { lastMessageAt: 'DESC' }
     } as object);
   }
@@ -109,7 +151,10 @@ export class ChatService {
       relations: ['sender']
     } as object);
     console.log('getMessages found:', messages.length, 'messages');
-    return messages;
+    return messages.map(m => ({
+      ...m,
+      senderId: typeof m.senderId === 'object' ? (m.senderId as any).id : m.senderId
+    })) as Message[];
   }
 
   async getUnreadCount(user: AuthenticatedUser): Promise<number> {
@@ -121,7 +166,10 @@ export class ChatService {
     let count = 0;
     for (const convId of conversationIds) {
       const messages = await this.messageRepo.find({ where: { conversationId: convId, isRead: false } } as object);
-      count += messages.filter(m => m.senderId !== user.userId).length;
+      count += messages.filter(m => {
+        const sid = typeof m.senderId === 'object' ? (m.senderId as any).id : m.senderId;
+        return String(sid) !== String(user.userId);
+      }).length;
     }
     return count;
   }
@@ -129,7 +177,8 @@ export class ChatService {
   async markConversationAsRead(conversationId: string, user: AuthenticatedUser): Promise<void> {
     const messages = await this.messageRepo.find({ where: { conversationId, isRead: false } } as object);
     for (const msg of messages) {
-      if (msg.senderId !== user.userId) {
+      const sid = typeof msg.senderId === 'object' ? (msg.senderId as any).id : msg.senderId;
+      if (String(sid) !== String(user.userId)) {
         await this.messageRepo.update(msg.id, { isRead: true });
       }
     }

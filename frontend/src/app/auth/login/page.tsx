@@ -1,5 +1,5 @@
 "use client";
-import { Gem, ArrowRight, Mail, Lock, User, Leaf, Globe, Sparkles, ShieldCheck, CheckCircle2, Circle, Loader2, AlertCircle } from 'lucide-react';
+import { Gem, ArrowRight, Mail, Lock, User, Leaf, Globe, Sparkles, ShieldCheck, CheckCircle2, Circle } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
@@ -40,16 +40,21 @@ export default function AuthPage() {
     setError('');
     try {
       const response = await api.post('/auth/login', { email, password });
-      const { accessToken, user } = response.data;
+      const { accessToken } = response.data;
       if (accessToken) {
-        login(accessToken, user);
-        // Redirection intelligente basée sur le rôle
-        if (user.role === 'vendeur' || user.role === 'VENDEUR') {
-            router.push('/dashboard/seller');
-        } else if (user.role === 'admin' || user.role === 'super-admin') {
-            router.push('/dashboard/admin');
+        login(accessToken);
+        
+        // Récupérer les infos de l'utilisateur pour connaître son rôle
+        const userRes = await api.get('/auth/me', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        
+        const userRole = userRes.data.role;
+        
+        if (userRole === 'vendeur' || userRole === 'seller') {
+          router.push('/dashboard/seller');
         } else {
-            router.push('/dashboard/client');
+          router.push('/dashboard/client');
         }
       }
     } catch (err: any) {
@@ -121,56 +126,148 @@ export default function AuthPage() {
     }));
   }, [mounted]);
 
-  if (!mounted) return null;
-
   return (
-    <div className="min-h-screen bg-luxury-cream flex items-center justify-center p-6 selection:bg-afrigari-gold selection:text-forest-night font-sans text-forest-night overflow-hidden relative">
+    <div className="min-h-screen bg-organic-cream flex items-center justify-center p-4 selection:bg-afrigari-gold selection:text-white font-sans overflow-hidden relative">
       
-      {/* Background Particles */}
-      {particles.map((p) => (
-        <div 
-          key={p.id}
-          className={`absolute rounded-full pointer-events-none transition-all duration-[10s] ${p.blur} ${p.type === 'leaf' ? 'bg-forest-night' : 'bg-afrigari-gold'}`}
-          style={{
-            width: p.size,
-            height: p.size,
-            left: `${p.x}%`,
-            top: `${p.y}%`,
-            opacity: p.opacity,
-            animation: `float ${p.duration}s infinite ease-in-out ${p.delay}s`
-          }}
-        />
-      ))}
+      {/* --- ANTIGRAVITY ENGINE (Back-Layer Overload) --- */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+         <div className="absolute -top-40 -left-40 w-[1000px] h-[1000px] bg-forest-green/10 rounded-full blur-[180px] animate-float opacity-70"></div>
+         <div className="absolute -bottom-40 -right-40 w-[1000px] h-[1000px] bg-afrigari-gold/10 rounded-full blur-[180px] animate-float-reverse opacity-70"></div>
 
-      <div className="w-full max-w-6xl h-[800px] bg-white rounded-[80px] shadow-[0_80px_160px_-40px_rgba(10,33,24,0.2)] border border-forest-night/5 overflow-hidden animate-reveal flex relative">
-         
-         {/* Redirection / Toggle side */}
-         <div className={`absolute top-0 w-1/2 h-full transition-all duration-[800ms] cubic-bezier(0.68, -0.6, 0.32, 1.6) z-[100] ${isSignIn ? 'left-1/2' : 'left-0'}`}>
-            <div className={`h-full bg-forest-night relative overflow-hidden transition-all duration-700 ${isSignIn ? 'rounded-l-[150px]' : 'rounded-r-[150px]'}`}>
-               {/* Visual Overlays */}
-               <div className="absolute inset-0 opacity-20">
-                  <div className="absolute -top-20 -left-20 w-80 h-80 bg-afrigari-gold rounded-full blur-[120px]"></div>
-                  <div className="absolute -bottom-20 -right-20 w-80 h-80 bg-afrigari-gold rounded-full blur-[120px]"></div>
+         {mounted && particles.map((p) => (
+            <div 
+               key={p.id}
+               className={`absolute animate-drift-slow ${p.blur}`}
+               style={{ 
+                  left: `${p.x}%`, 
+                  top: `${p.y}%`,
+                  animationDuration: `${p.duration}s`,
+                  animationDelay: `${p.delay}s`,
+                  opacity: p.opacity
+               }}
+            >
+               <div className="animate-slow-bounce">
+                  {p.type === 'leaf' ? (
+                     <Leaf size={p.size} className="text-forest-green rotate-45" fill="currentColor" />
+                  ) : (
+                     <div className="bg-afrigari-gold rounded-full shadow-[0_0_15px_rgba(197,160,89,0.5)]" style={{ width: p.size/2, height: p.size/2 }}></div>
+                  )}
                </div>
-               
-               <div className="h-full flex flex-col items-center justify-center text-center p-16 text-white relative z-10">
-                  <div className="w-16 h-16 bg-afrigari-gold rounded-2xl flex items-center justify-center text-forest-night mb-10 shadow-2xl">
-                     <Leaf size={32} fill="currentColor" />
-                  </div>
+            </div>
+         ))}
+      </div>
+
+      {/* Main Container */}
+      <div className="relative z-50 w-full max-w-5xl h-[720px] bg-white/30 backdrop-blur-3xl rounded-[64px] shadow-[0_60px_150px_-30px_rgba(45,70,53,0.35)] border border-white/40 overflow-hidden animate-reveal flex">
+         
+         <div className="absolute top-0 left-0 h-full w-1/2 transition-all duration-700">
+            <div className={`h-full flex flex-col items-center justify-center p-12 lg:p-20 transition-all duration-700 ${isSignIn ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none -translate-x-20'}`}>
+               <div className="flex gap-2 mb-8 items-center">
+                  <Leaf size={56} className="text-green-500" fill="currentColor" />
+                  <span className="text-3xl font-black italic text-forest-green tracking-tighter">AFRIGARI</span>
+               </div>
+               <h1 className="text-6xl font-black uppercase text-forest-green mb-10 tracking-tighter italic">Login</h1>
+               <form onSubmit={handleLogin} className="w-full space-y-5 max-w-[340px]">
+                  {error && <div className="p-3 bg-red-50 text-red-500 text-sm rounded-xl font-bold border border-red-100">{error}</div>}
+                  <Input 
+                    icon={Mail} 
+                    type="email"
+                    placeholder="Adresse Email" 
+                    value={email}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
+                    required
+                  />
+                  <Input 
+                    icon={Lock} 
+                    type="password" 
+                    placeholder="Mot de passe" 
+                    value={password}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button 
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-forest-green text-white py-6 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-afrigari-gold transition-all shadow-2xl shadow-forest-green/20 mt-6 active:scale-95 disabled:opacity-70 flex justify-center items-center"
+                  >
+                    {isLoading ? "Connexion..." : "Se Connecter"}
+                  </button>
+               </form>
+            </div>
+         </div>
+
+         <div className="absolute top-0 left-1/2 h-full w-1/2 transition-all duration-700">
+            <div className={`h-full flex flex-col items-center justify-center p-12 lg:p-20 transition-all duration-700 ${!isSignIn ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none translate-x-20'}`}>
+               <div className="flex gap-2 mb-8 items-center">
+                  <Leaf size={56} className="text-green-500" fill="currentColor" />
+                  <span className="text-3xl font-black italic text-forest-green tracking-tighter">AFRIGARI</span>
+               </div>
+               <h1 className="text-5xl font-black uppercase text-forest-green mb-8 tracking-tighter italic">Register</h1>
+               <form onSubmit={handleRegister} className="w-full space-y-4 max-w-[360px]">
+                  {registerError && <div className="p-3 bg-red-50 text-red-500 text-sm rounded-xl font-bold border border-red-100">{registerError}</div>}
+                  {registerSuccess && <div className="p-3 bg-green-50 text-green-600 text-sm rounded-xl font-bold border border-green-100">Compte créé avec succès !</div>}
                   
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                     <RoleBtn active={role === 'client'} onClick={() => setRole('client')} label="Client" color="forest" />
+                     <RoleBtn active={role === 'seller'} onClick={() => setRole('seller')} label="Vendeur" color="gold" />
+                  </div>
+                  <Input 
+                    icon={User} 
+                    placeholder="Nom Complet" 
+                    value={registerName}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterName(e.target.value)}
+                    required
+                  />
+                  <Input 
+                    icon={Mail} 
+                    type="email"
+                    placeholder="Email" 
+                    value={registerEmail}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterEmail(e.target.value)}
+                    required
+                  />
+                  <Input 
+                    icon={Lock} 
+                    type="password" 
+                    placeholder="Mot de passe" 
+                    value={registerPassword}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setRegisterPassword(e.target.value)}
+                    required
+                  />
+                  <div className="flex items-start gap-4 px-2 py-2">
+                     <div className="relative h-6 w-6 flex items-center justify-center pt-1">
+                        <input type="checkbox" checked={agreed} onChange={() => setAgreed(!agreed)} className="appearance-none h-5 w-5 rounded-lg border-2 border-slate-200 checked:bg-forest-green checked:border-forest-green transition-all cursor-pointer" />
+                        {agreed && <CheckCircle2 size={12} className="text-white absolute pointer-events-none" />}
+                     </div>
+                     <p className="text-[11px] font-bold text-forest-green/50 leading-relaxed">J'accepte les <span className="text-forest-green font-black underline">règles de confidentialité</span>.</p>
+                  </div>
+                  <button 
+                    type="submit"
+                    disabled={!agreed || isRegistering} 
+                    className={`w-full py-6 rounded-[24px] font-black text-sm uppercase tracking-widest transition-all shadow-xl flex justify-center items-center ${(agreed && !isRegistering) ? 'bg-forest-green text-white hover:bg-afrigari-gold active:scale-95' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
+                  >
+                    {isRegistering ? "Création..." : "Créer Compte"}
+                  </button>
+               </form>
+            </div>
+         </div>
+
+         <div className={`absolute top-0 w-1/2 h-full transition-all duration-[800ms] cubic-bezier(0.68, -0.6, 0.32, 1.6) z-[100] ${isSignIn ? 'left-1/2' : 'left-0'}`}>
+            <div className={`h-full bg-gradient-to-br from-forest-green to-forest-light relative overflow-hidden transition-all duration-700 ${isSignIn ? 'rounded-l-[150px]' : 'rounded-r-[150px]'}`}>
+               <div className="h-full flex flex-col items-center justify-center text-center p-16 text-white relative z-10">
                   {isSignIn ? (
                      <div className="animate-reveal">
-                        <h2 className="text-6xl font-black mb-8 tracking-tighter italic uppercase">Nouveau ?</h2>
-                        <p className="text-white/70 text-lg mb-14 max-w-[320px] mx-auto leading-relaxed italic">Rejoignez l'élite des producteurs et clients de l'agro-industrie africaine.</p>
-                        <button onClick={() => setIsSignIn(false)} className="group border-2 border-white/20 px-20 py-6 rounded-full font-black text-[10px] uppercase tracking-[0.4em] hover:bg-white hover:text-forest-night transition-all flex items-center gap-4">
+                        <h2 className="text-6xl font-black mb-8 tracking-tighter italic">Nouveau ?</h2>
+                        <p className="text-white/70 text-base mb-14 max-w-[280px] mx-auto leading-relaxed italic">Rejoignez l'élite des producteurs et clients Afrigari.</p>
+                        <button onClick={() => setIsSignIn(false)} className="group border-2 border-white/40 px-20 py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-forest-green transition-all flex items-center gap-3">
                            S'inscrire <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                         </button>
                      </div>
                   ) : (
                      <div className="animate-reveal">
-                        <h2 className="text-6xl font-black mb-8 tracking-tighter italic uppercase">Déjà Membre ?</h2>
-                        <p className="text-white/70 text-lg mb-14 max-w-[320px] mx-auto leading-relaxed italic">Connectez-vous pour piloter vos commandes et vos revenus.</p>
-                        <button onClick={() => setIsSignIn(true)} className="group border-2 border-white/20 px-20 py-6 rounded-full font-black text-[10px] uppercase tracking-[0.4em] hover:bg-white hover:text-forest-night transition-all flex items-center gap-4">
+                        <h2 className="text-6xl font-black mb-8 tracking-tighter italic">Déjà Membre ?</h2>
+                        <p className="text-white/70 text-base mb-14 max-w-[280px] mx-auto leading-relaxed italic">Connectez-vous pour retrouver vos saveurs préférées.</p>
+                        <button onClick={() => setIsSignIn(true)} className="group border-2 border-white/40 px-20 py-5 rounded-full font-black text-xs uppercase tracking-[0.2em] hover:bg-white hover:text-forest-green transition-all flex items-center gap-3">
                            Se Connecter <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                         </button>
                      </div>
@@ -178,139 +275,8 @@ export default function AuthPage() {
                </div>
             </div>
          </div>
-
-         {/* Forms Side */}
-         <div className="flex-1 flex relative">
-            {/* Login Form */}
-            <div className={`w-1/2 h-full flex flex-col items-center justify-center p-20 transition-all duration-700 ${isSignIn ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none -translate-x-20'}`}>
-               <div className="w-full max-w-[400px]">
-                  <div className="mb-16">
-                     <p className="text-[10px] font-black uppercase tracking-[0.5em] text-afrigari-gold mb-2">Bienvenue sur Afrigari</p>
-                     <h1 className="text-6xl font-black uppercase text-forest-night tracking-tighter italic">Connexion.</h1>
-                  </div>
-
-                  <form onSubmit={handleLogin} className="space-y-6">
-                     {error && (
-                        <div className="p-4 bg-red-50 text-red-600 text-xs font-black rounded-2xl border border-red-100 flex items-center gap-3 animate-reveal">
-                           <AlertCircle size={18} /> {error}
-                        </div>
-                     )}
-                     
-                     <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-forest-night/40 ml-2">Email</label>
-                        <Input 
-                           icon={Mail} 
-                           type="email"
-                           placeholder="votre@prestige.com" 
-                           value={email}
-                           onChange={(e) => setEmail(e.target.value)}
-                           required
-                           className="bg-luxury-cream/30 h-16 border-transparent focus:bg-white"
-                        />
-                     </div>
-
-                     <div className="space-y-2">
-                        <div className="flex justify-between items-center px-2">
-                           <label className="text-[9px] font-black uppercase tracking-widest text-forest-night/40">Code Secret</label>
-                           <button type="button" className="text-[8px] font-black text-afrigari-gold uppercase tracking-widest opacity-40 hover:opacity-100 italic transition-all">Oublié ?</button>
-                        </div>
-                        <Input 
-                           icon={Lock} 
-                           type="password" 
-                           placeholder="••••••••" 
-                           value={password}
-                           onChange={(e) => setPassword(e.target.value)}
-                           required
-                           className="bg-luxury-cream/30 h-16 border-transparent focus:bg-white"
-                        />
-                     </div>
-
-                     <button 
-                        type="submit"
-                        disabled={isLoading}
-                        className="w-full bg-forest-night text-white py-6 rounded-[28px] font-black text-[10px] uppercase tracking-[0.3em] hover:bg-afrigari-gold hover:text-forest-night transition-all shadow-2xl mt-8 flex justify-center items-center gap-4 active:scale-95 disabled:opacity-70 group"
-                     >
-                        {isLoading ? <Loader2 className="animate-spin" /> : (
-                           <>Accéder au Dashboard <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" /></>
-                        )}
-                     </button>
-                  </form>
-               </div>
-            </div>
-
-            {/* Register Form */}
-            <div className={`w-1/2 h-full flex flex-col items-center justify-center p-20 transition-all duration-700 ml-auto ${!isSignIn ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none translate-x-20'}`}>
-               <div className="w-full max-w-[420px]">
-                  <div className="mb-10 text-right">
-                     <p className="text-[10px] font-black uppercase tracking-[0.5em] text-afrigari-gold mb-2">Rejoignez-nous</p>
-                     <h1 className="text-6xl font-black uppercase text-forest-night tracking-tighter italic">Inscription.</h1>
-                  </div>
-
-                  <form onSubmit={handleRegister} className="space-y-5">
-                     {registerError && (
-                        <div className="p-4 bg-red-50 text-red-600 text-xs font-black rounded-2xl border border-red-100 flex items-center gap-3">
-                           <AlertCircle size={18} /> {registerError}
-                        </div>
-                     )}
-                     {registerSuccess && (
-                        <div className="p-4 bg-green-50 text-green-600 text-xs font-black rounded-2xl border border-green-100 flex items-center gap-3 italic">
-                           <CheckCircle2 size={18} /> Compte créé avec succès !
-                        </div>
-                     )}
-                     
-                     <div className="grid grid-cols-2 gap-4 mb-4">
-                        <RoleBtn active={role === 'client'} onClick={() => setRole('client')} label="Client" color="forest" />
-                        <RoleBtn active={role === 'seller'} onClick={() => setRole('seller')} label="Vendeur" color="gold" />
-                     </div>
-
-                     <Input 
-                        icon={User} 
-                        placeholder="Nom & Prénoms" 
-                        value={registerName}
-                        onChange={(e) => setRegisterName(e.target.value)}
-                        required
-                        className="bg-luxury-cream/30 h-14 border-transparent focus:bg-white"
-                     />
-                     <Input 
-                        icon={Mail} 
-                        type="email"
-                        placeholder="Email Professionnel" 
-                        value={registerEmail}
-                        onChange={(e) => setRegisterEmail(e.target.value)}
-                        required
-                        className="bg-luxury-cream/30 h-14 border-transparent focus:bg-white"
-                     />
-                     <Input 
-                        icon={Lock} 
-                        type="password" 
-                        placeholder="Mot de passe" 
-                        value={registerPassword}
-                        onChange={(e) => setRegisterPassword(e.target.value)}
-                        required
-                        minLength={6}
-                        className="bg-luxury-cream/30 h-14 border-transparent focus:bg-white"
-                     />
-
-                     <div className="flex items-start gap-4 px-2 py-2">
-                        <div className="relative h-6 w-6 flex items-center justify-center">
-                           <input type="checkbox" checked={agreed} onChange={() => setAgreed(!agreed)} className="appearance-none h-5 w-5 rounded-lg border-2 border-forest-night/20 checked:bg-forest-night checked:border-forest-night transition-all cursor-pointer" />
-                           {agreed && <CheckCircle2 size={12} className="text-white absolute pointer-events-none" />}
-                        </div>
-                        <p className="text-[10px] font-bold text-forest-night/40 leading-relaxed">J'accepte les <span className="text-forest-night font-black underline cursor-pointer">règles de confidentialité</span> d'Afrigari.</p>
-                     </div>
-
-                     <button 
-                        type="submit"
-                        disabled={!agreed || isRegistering} 
-                        className={`w-full py-6 rounded-[28px] font-black text-[10px] uppercase tracking-widest transition-all shadow-xl flex justify-center items-center gap-4 ${(agreed && !isRegistering) ? 'bg-forest-night text-white hover:bg-afrigari-gold active:scale-95' : 'bg-slate-100 text-slate-400 cursor-not-allowed'}`}
-                     >
-                        {isRegistering ? <Loader2 className="animate-spin" /> : "Créer Mon Compte"}
-                     </button>
-                  </form>
-               </div>
-            </div>
-         </div>
       </div>
     </div>
   );
 }
+

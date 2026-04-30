@@ -23,10 +23,37 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    const responseData = error?.response?.data;
+    const details = {
+      message: error?.message,
+      code: error?.code,
+      url: error?.config?.url,
+      method: error?.config?.method,
+      status: error?.response?.status,
+      statusText: error?.response?.statusText,
+      data:
+        typeof responseData === 'string'
+          ? responseData
+          : responseData ?? undefined,
+      headers: error?.config?.headers,
+      isAxiosError: error?.isAxiosError,
+      requestPresent: Boolean(error?.request),
+    };
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.groupCollapsed('AXIOS ERROR DETAILS');
+      console.log(details);
+      if (typeof error?.toJSON === 'function') {
+        console.log('AXIOS ERROR JSON', error.toJSON());
+      }
+      console.groupEnd();
+    } else {
+      console.warn('AXIOS ERROR DETAILS:', details);
+    }
+
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
         localStorage.removeItem('accessToken');
-        // Prevent redirect loop if already on auth pages
         if (!window.location.pathname.startsWith('/auth')) {
           window.location.href = '/auth/login';
         }

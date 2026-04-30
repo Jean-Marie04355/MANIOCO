@@ -31,8 +31,7 @@ export class OrdersController {
 
   @Get()
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(Permission.ORDERS_MANAGE)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Lister toutes les commandes' })
   findAll(@CurrentUser() user: AuthenticatedUser) {
     return this.ordersService.findAll(user);

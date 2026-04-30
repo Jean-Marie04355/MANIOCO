@@ -1,336 +1,547 @@
 "use client";
-import { ShoppingCart, Search, Plus, Star, ArrowRight, Heart, Grid, Package, Wallet, UserCircle, Settings, HelpCircle, ChevronDown, Clock, ShieldCheck, MapPin, Sparkles, Filter, Store, PackageCheck, LogOut, Loader2, User, LayoutGrid, TrendingUp, ArrowUpRight, Activity as ActivityIcon, History, ArrowLeft } from 'lucide-react';
+/* eslint-disable react/no-unescaped-entities */
+import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
-import { useCart } from '@/context/CartContext';
-import CartSidebar from '../../components/CartSidebar';
-import Sidebar from '../components/Sidebar';
+import { useAuth } from '@/features/auth/AuthContext';
+import { useCart } from '@/features/cart/CartContext';
+import CartDrawer from '@/components/CartDrawer';
 
-export default function ClientDashboard() {
-  const { addToCart, itemCount } = useCart();
-  const [isCartOpen, setIsCartOpen] = useState(false);
-  const [products, setProducts] = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [user, setUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [activeCategory, setActiveCategory] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [scrolled, setScrolled] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [stats, setStats] = useState({ orders: 0, balance: 0, points: 0 });
-  const [recentOrders, setRecentOrders] = useState<any[]>([]);
-  const [nearbyStores, setNearbyStores] = useState<any[]>([]);
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+interface Category {
+   id: string | number;
+   name: string;
+}
 
-  useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
-    window.addEventListener('scroll', handleScroll);
-    
-    const fetchData = async () => {
-      try {
-        const [prodRes, catRes, userRes] = await Promise.all([
-          api.get('/products'),
-          api.get('/product-categories'),
-          api.get('/auth/me').catch(() => null)
-        ]);
-        
-        setProducts(prodRes?.data || []);
-        setCategories(catRes?.data || []);
-        
-        if (userRes?.data) {
-          setUser(userRes.data);
-          // Fetch real stats
-          try {
-             const ordersRes = await api.get('/orders');
-             const orders = ordersRes.data || [];
-             
-             // Calculer le total dépensé réel
-             const totalSpent = orders.reduce((acc: number, order: any) => {
-                // On ne compte que les commandes payées ou livrées si nécessaire, 
-                // mais ici on prend tout ce qui est validé
-                return acc + Number(order.totalAmount || 0);
-             }, 0);
+interface ProductStore {
+   id?: string | number;
+   name?: string;
+   profilePhoto?: string;
+}
 
-             setStats({ 
-                orders: orders.length, 
-                balance: totalSpent, 
-                points: Math.floor(totalSpent / 100) // Exemple: 1 point pour 100F dépensés
-             });
-             setRecentOrders(orders.slice(0, 5));
-          } catch (e) {
-             console.error("Erreur stats commandes", e);
-          }
-        }
+interface ProductCategory {
+   name?: string;
+}
 
-        // Fetch nearby stores if geolocation is available
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(async (pos) => {
-            const loc = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            setUserLocation(loc);
-            try {
-              const nearbyRes = await api.get(`/stores/nearby?lat=${loc.lat}&lng=${loc.lng}&radius=50`);
-              setNearbyStores(nearbyRes.data.slice(0, 3));
-            } catch (e) {
-              console.error("Erreur chargement boutiques proches", e);
-            }
-          });
-        }
-      } catch (error: any) {
-        console.error("Erreur chargement données client", error);
-      } finally {
-        setIsLoading(false);
+interface Product {
+   id: string | number;
+   name: string;
+   image?: string;
+   price: number | string;
+   unit?: string;
+   categoryId?: string | number | null;
+   category?: ProductCategory;
+   storeId?: string | number | null;
+   store?: ProductStore;
+}
+
+export default function ClientDashboardV3() {
+   const { user, logout } = useAuth();
+   const { addToCart, totalItems } = useCart();
+   const [scrolled, setScrolled] = useState(false);
+   const [isProfileOpen, setIsProfileOpen] = useState(false);
+   const [isExploreOpen, setIsExploreOpen] = useState(false);
+   const [isCartOpen, setIsCartOpen] = useState(false);
+   const [showSuccessOrder, setShowSuccessOrder] = useState(false);
+
+   const [products, setProducts] = useState<Product[]>([]);
+   const [categories, setCategories] = useState<Category[]>([]);
+   const [isLoading, setIsLoading] = useState(true);
+   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+   const [searchQuery, setSearchQuery] = useState('');
+   const [visibleCount, setVisibleCount] = useState(8);
+
+   // Bibliothèque de liens internet réels pour la démo
+   const getRealInternetLink = (product: Pick<Product, 'name' | 'image'>) => {
+      const name = (product.name || "").toLowerCase();
+      const dbPath = product.image;
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+
+      // Si le lien en DB est déjà un vrai lien internet qui marche, on le garde
+      if (dbPath && dbPath.startsWith('http') && !dbPath.includes('127.0.0.1') && !dbPath.includes('localhost')) {
+         return dbPath;
       }
-    };
 
-    fetchData();
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+      if (dbPath && (dbPath.startsWith('/') || dbPath.startsWith('uploads/'))) {
+         return `${apiUrl}${dbPath.startsWith('/') ? '' : '/'}${dbPath}`;
+      }
 
-  return (
-    <div className="flex bg-slate-50 min-h-screen text-forest-night selection:bg-afrigari-gold selection:text-white font-sans">
-      
-      {/* 1. Fixed Sidebar */}
-      <Sidebar mode="client" />
+      if (dbPath?.startsWith('data:image')) {
+         return dbPath;
+      }
 
-      <div className="flex-1 ml-64 flex flex-col min-h-screen">
-         
-         {/* 2. Top Navigation Bar */}
-         <nav className={`sticky top-0 z-50 transition-all duration-500 px-8 py-4 ${scrolled ? 'bg-white/80 backdrop-blur-xl border-b border-forest-night/5 shadow-sm' : 'bg-transparent'}`}>
-            <div className="max-w-7xl mx-auto flex justify-between items-center">
-               <div className="flex items-center gap-4">
-                  <button onClick={() => window.history.back()} className="p-2 hover:bg-forest-night/5 rounded-xl transition-all mr-2">
-                     <ArrowLeft size={20} />
-                  </button>
-                  <h1 className="text-xl font-black tracking-tighter uppercase italic text-forest-night">Dashboard <span className="text-afrigari-gold">Client</span></h1>
+      // Sinon, on pioche dans notre bibliothèque de liens internet haute qualité
+      if (name.includes('gari premium')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('gari sodja')) return "https://images.unsplash.com/photo-1590736704728-f4730bb3c3af?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('gari')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('farine')) return "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('manioc')) return "https://images.unsplash.com/photo-1590736704728-f4730bb3c3af?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('maïs')) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('huile')) return "https://images.unsplash.com/photo-1474979266404-7eaacbadcbaf?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('soja')) return "https://images.unsplash.com/photo-1589927951682-5110a39423e8?auto=format&fit=crop&q=80&w=800";
+
+      // Lien par défaut (Panier de produits frais)
+      return "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&q=80&w=800";
+   };
+
+   useEffect(() => {
+      const handleScroll = () => setScrolled(window.scrollY > 50);
+      window.addEventListener('scroll', handleScroll);
+
+      const fetchDynamicData = async () => {
+         try {
+            const [prodRes, catRes] = await Promise.all([
+               api.get('/products'),
+               api.get('/product-categories')
+            ]);
+            setProducts((prodRes?.data || []) as Product[]);
+            setCategories((catRes?.data || []) as Category[]);
+         } catch (error) {
+            console.error("Erreur de chargement", error);
+         } finally {
+            setIsLoading(false);
+         }
+      };
+
+      fetchDynamicData();
+      return () => window.removeEventListener('scroll', handleScroll);
+   }, []);
+
+   const filteredProducts = products.filter(p => {
+      const matchesCategory = activeCategoryId ? p.categoryId === activeCategoryId : true;
+      const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         p.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+         p.store?.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+   });
+
+   return (
+      <div className="bg-[#fcfbf7] min-h-screen text-[#1a2e22] selection:bg-[#c5a059] selection:text-white font-sans overflow-x-hidden">
+
+         {/* Premium Background Decor */}
+         <div className="fixed top-0 right-0 w-1/2 h-screen bg-gradient-to-l from-[#f4f1ea] to-transparent pointer-events-none -z-10 opacity-50"></div>
+
+         {/* 1. Header & Navigation */}
+         <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-1000 px-8 ${scrolled ? 'py-4' : 'py-12'}`}>
+            <div className={`max-w-[1400px] mx-auto flex justify-between items-center px-12 py-6 transition-all duration-700 ${scrolled ? 'bg-white/80 backdrop-blur-2xl rounded-full shadow-[0_20px_50px_rgba(26,46,34,0.1)] border border-white' : ''}`}>
+               <div className="flex items-center gap-16">
+                  <Link href="/dashboard/client" className="flex items-center gap-3 group">
+                     <div className="w-10 h-10 rounded-xl bg-[#1a2e22] flex items-center justify-center text-[#c5a059] rotate-3 group-hover:rotate-12 transition-transform shadow-lg">
+                        <Leaf size={20} />
+                     </div>
+                     <span className="font-black text-3xl tracking-[-0.05em] uppercase font-serif italic text-[#1a2e22]">AFRIGARI</span>
+                  </Link>
+                  <div className="hidden lg:flex gap-12 text-[11px] font-black uppercase tracking-[0.3em]">
+                     <Link href="/dashboard/client/shops" className="hover:text-[#c5a059] transition-colors">Nos Producteurs</Link>
+                     <button onClick={() => document.getElementById('arrivages')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-[#c5a059] transition-colors text-[#c5a059]">Catalogue Complet</button>
+                  </div>
                </div>
 
-               <div className="flex items-center gap-6">
-                  <div className="relative hidden md:block group">
-                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-forest-night/30 group-focus-within:text-afrigari-gold transition-colors" />
-                    <input 
-                      type="text"
-                      placeholder="Rechercher une commande..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="bg-white border border-forest-night/5 rounded-full py-2.5 pl-12 pr-6 text-xs font-bold w-64 focus:w-80 transition-all outline-none focus:ring-4 focus:ring-afrigari-gold/5"
-                    />
-                  </div>
-                  
-                  <div className="flex items-center gap-4 border-l border-forest-night/10 pl-6">
-                     <button onClick={() => setIsCartOpen(true)} className="relative p-2 hover:bg-forest-night/5 rounded-xl transition-all">
-                        <ShoppingCart size={20} />
-                        {itemCount > 0 && <span className="absolute -top-1 -right-1 w-5 h-5 bg-afrigari-gold text-white text-[10px] flex items-center justify-center rounded-full font-black ring-2 ring-white">{itemCount}</span>}
-                     </button>
-                     <div className="relative">
-                        <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-10 h-10 rounded-xl overflow-hidden border-2 border-white shadow-lg hover:scale-105 transition-transform">
-                           <img src={`https://ui-avatars.com/api/?name=${user?.name || 'Client'}&background=random`} alt="Avatar" />
-                        </button>
-                        
-                        {isProfileOpen && (
-                          <div className="absolute top-14 right-0 w-64 bg-white rounded-3xl p-6 shadow-2xl border border-forest-night/5 animate-reveal">
-                             <div className="flex items-center gap-4 mb-4 pb-4 border-b border-forest-night/5">
-                                <div className="w-10 h-10 rounded-full bg-forest-night/5 flex items-center justify-center text-forest-night"><User size={20} /></div>
-                                <div>
-                                   <p className="text-[10px] font-black uppercase text-forest-night">{user?.name || 'Client'}</p>
-                                   <p className="text-[9px] text-forest-night/40 font-bold">{user?.email}</p>
-                                </div>
-                             </div>
-                             <div className="space-y-2">
-                                <Link href="/dashboard/client/profile" className="flex items-center gap-3 p-3 rounded-xl hover:bg-forest-night/5 text-[10px] font-black uppercase tracking-widest text-forest-night/60 transition-colors"><Settings size={16} /> Paramètres</Link>
-                                <button onClick={() => { localStorage.removeItem('token'); window.location.href = '/auth/login'; }} className="flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-[10px] font-black uppercase tracking-widest text-red-500 transition-colors w-full text-left"><LogOut size={16} /> Déconnexion</button>
-                             </div>
-                          </div>
+               <div className="flex items-center gap-10">
+                  <div className="flex gap-8 items-center border-r border-[#1a2e22]/10 pr-10">
+                     <div className="relative group hidden xl:block">
+                        <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1a2e22]/20 group-focus-within:text-[#c5a059] transition-colors" />
+                        <input
+                           type="text"
+                           placeholder="Rechercher..."
+                           value={searchQuery}
+                           onChange={(e) => setSearchQuery(e.target.value)}
+                           className="bg-[#1a2e22]/5 border-none rounded-full py-3.5 pl-12 pr-8 text-[11px] font-black uppercase tracking-widest focus:ring-2 focus:ring-[#c5a059] outline-none w-48 transition-all focus:w-80"
+                        />
+                     </div>
+                     <div
+                        onClick={() => setIsCartOpen(true)}
+                        className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
+                     >
+                        <ShoppingCart size={22} className="group-hover:scale-110 transition-transform" />
+                        {totalItems > 0 && (
+                           <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#c5a059] text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-white animate-bounce">
+                              {totalItems}
+                           </span>
                         )}
                      </div>
                   </div>
+                  <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-12 h-12 rounded-full border-2 border-white shadow-2xl hover:scale-110 transition-all overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
+                     {user?.profilePhoto ? (
+                        <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover" />
+                     ) : (
+                        <span>{user?.name?.[0] || 'U'}</span>
+                     )}
+                  </button>
                </div>
             </div>
          </nav>
 
-         <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+         <main className="max-w-[1400px] mx-auto pt-48 px-12 pb-32">
 
-         {/* 3. Main Dashboard Content */}
-         <main className="flex-1 p-8 lg:p-12 space-y-10 animate-reveal">
-            
-            {/* Header: Welcome & Stats */}
-            <div className="flex flex-col gap-8">
-               <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                  <div>
-                     <h2 className="text-4xl font-black tracking-tighter text-forest-night">Ravi de vous revoir, <span className="text-afrigari-gold uppercase italic">{user?.name?.split(' ')[0] || 'Cher Client'}</span></h2>
-                     <p className="text-xs font-bold text-forest-night/40 mt-1 uppercase tracking-widest flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                        Statut : Client Privilège • {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' })}
+            {/* Hero Section */}
+            <section className="relative grid grid-cols-1 lg:grid-cols-2 gap-24 mb-60 items-center animate-reveal">
+               <div className="z-20">
+                  <div className="flex items-center gap-4 mb-8">
+                     <span className="w-12 h-[2px] bg-[#c5a059]"></span>
+                     <span className="text-xs font-black uppercase tracking-[0.5em] text-[#c5a059]">Héritage Agro-Alimentaire</span>
+                  </div>
+
+                  <div className="relative z-10 space-y-10">
+                     <h2 className="text-7xl md:text-[110px] font-black leading-[0.85] tracking-[-0.06em] text-[#1a2e22]">
+                        L&apos;Or Blanc <br />
+                        <span className="text-[#c5a059] italic font-serif lowercase tracking-normal">du</span> <br />
+                        Manioc.
+                     </h2>
+                     <p className="text-lg font-medium text-[#1a2e22]/60 max-w-lg leading-relaxed">
+                        Le Gari de luxe, transformé à la main par nos maîtres artisans. Une finesse incomparable pour une expérience gastronomique authentique.
                      </p>
-                  </div>
-                  <div className="flex gap-4">
-                     <Link href="/dashboard/client/shops" className="bg-forest-night text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl hover:translate-y-[-2px] transition-all flex items-center gap-2">
-                        <Plus size={14} /> Nouvelle Commande
-                     </Link>
+                     <div className="flex gap-8 items-center pt-6">
+                        <button
+                           onClick={() => document.getElementById('arrivages')?.scrollIntoView({ behavior: 'smooth' })}
+                           className="bg-[#1a2e22] text-white px-16 py-7 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#c5a059] transition-all shadow-xl flex items-center gap-4 group"
+                        >
+                           Explorer le Catalogue <ArrowRight size={20} className="group-hover:translate-x-2 transition-transform" />
+                        </button>
+                     </div>
                   </div>
                </div>
 
-               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                  <StatCard icon={Wallet} label="Total Dépensé" value={`${stats.balance.toLocaleString()} F`} change="+2.5% ce mois" color="bg-forest-night text-white" />
-                  <StatCard icon={Package} label="Commandes" value={stats.orders.toString().padStart(2, '0')} desc="Dernière commande : hier" color="bg-white border border-forest-night/5 shadow-sm" />
-                  <StatCard icon={Star} label="Fidélité" value={`${stats.points.toLocaleString()} pts`} change="+150 ce mois" color="bg-white border border-forest-night/5 shadow-sm" />
-                  <StatCard icon={ActivityIcon} label="Impact Social" value="Elevé" desc="Soutien local" color="bg-afrigari-gold text-white" />
-               </div>
-            </div>
-
-            {/* Middle Section: Analytics & Traceability */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-               {/* Spending Graph */}
-               <div className="lg:col-span-2 bg-white rounded-[40px] p-10 border border-forest-night/5 shadow-sm relative overflow-hidden group">
-                  <div className="flex justify-between items-start mb-10">
-                     <div>
-                        <h3 className="text-xl font-black tracking-tighter text-forest-night">Analyse des Dépenses</h3>
-                        <p className="text-[10px] font-bold text-forest-night/30 uppercase tracking-widest">Évolution des 6 derniers mois</p>
-                     </div>
-                     <div className="flex gap-2">
-                        <span className="flex items-center gap-1 text-[10px] font-black text-green-500 bg-green-50 px-3 py-1 rounded-full"><TrendingUp size={12} /> +12%</span>
-                     </div>
+               <div className="relative">
+                  <div className="relative w-full aspect-[4/5] rounded-[80px] overflow-hidden shadow-2xl border-[16px] border-white bg-white">
+                     <img
+                        src="https://res.cloudinary.com/hv9ssmzrz/image/fetch/c_fill,f_auto,h_675,q_auto:eco,w_1200/https://images-ca-1-0-1-eu.s3-eu-west-1.amazonaws.com/photos/original/1980/manioc-produit-AdobeStock_230338430.jpeg" className="w-full h-full object-cover block"
+                        alt="Afrigari Premium"
+                     />
+                     <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/20 to-transparent"></div>
                   </div>
+                </div>
+            </section>
+
+            {/* Category Showcase (Restored & Optimized) */}
+            <section className="mb-60 scroll-mt-40">
+               <div className="text-center mb-16">
+                  <p className="text-[11px] font-black uppercase tracking-[0.6em] text-[#c5a059] mb-4 text-center">Sélections du moment</p>
+                  <h3 className="text-5xl font-black tracking-tighter text-[#1a2e22] text-center uppercase">Nos Filières <span className="text-[#c5a059] font-serif italic font-normal lowercase">Sélectives</span></h3>
+               </div>
+               
+               <div className="flex flex-wrap justify-center gap-8 md:gap-12">
+                  <div onClick={() => setActiveCategoryId(null)} className="cursor-pointer">
+                     <LuxuryCategoryBubble label="Tout" active={activeCategoryId === null} icon="🌍" />
+                  </div>
+                  {categories.slice(0, isExploreOpen ? categories.length : 8).map(cat => (
+                      <div key={cat.id} onClick={() => {
+                         const categoryId = String(cat.id);
+                         setActiveCategoryId(categoryId === activeCategoryId ? null : categoryId);
+                         document.getElementById('arrivages')?.scrollIntoView({ behavior: 'smooth' });
+                      }} className="cursor-pointer">
+                        <LuxuryCategoryBubble 
+                           label={cat.name} 
+                           active={activeCategoryId === String(cat.id)} 
+                           icon={cat.name.toLowerCase().includes('manioc') ? '🥔' : cat.name.toLowerCase().includes('maïs') ? '🌽' : '🌾'} 
+                        />
+                     </div>
+                  ))}
+               </div>
+
+               {categories.length > 8 && (
+                  <div className="flex justify-center mt-12">
+                     <button 
+                        onClick={() => setIsExploreOpen(!isExploreOpen)}
+                        className="text-[10px] font-black uppercase tracking-widest text-[#c5a059] border-b-2 border-[#c5a059]/20 hover:border-[#c5a059] pb-1 transition-all"
+                     >
+                        {isExploreOpen ? 'Réduire les catégories' : 'Voir toutes les catégories'}
+                     </button>
+                  </div>
+               )}
+            </section>
+
+            {/* Products Grid */}
+            <section id="arrivages" className="mb-60 scroll-mt-40">
+               <div className="flex flex-col md:flex-row justify-between items-center mb-24 gap-8">
+                  <h3 className="text-4xl font-black tracking-tight text-[#1a2e22] uppercase">
+                     {activeCategoryId ? `Produits : ${categories.find(c => c.id === activeCategoryId)?.name}` : 'Le Catalogue Complet'}
+                  </h3>
+                  {activeCategoryId && (
+                     <button onClick={() => setActiveCategoryId(null)} className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 flex items-center gap-2">
+                        <X size={14} /> Réinitialiser le filtre
+                     </button>
+                  )}
+               </div>
+
+               {isLoading ? (
+                  <div className="py-40 flex justify-center w-full">
+                     <Loader2 className="w-12 h-12 text-[#c5a059] animate-spin" />
+                  </div>
+               ) : (
+                  <>
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-16">
+                        {filteredProducts.slice(0, visibleCount).map((product) => (
+                           <AfrigariAgroCard
+                              key={product.id}
+                              product={product}
+                              addToCart={addToCart}
+                              storeId={product.storeId || product.store?.id}
+                              name={product.name}
+                              unit={product.unit || 'Kg'}
+                              producer={product.store?.name || 'Artisan Certifié'}
+                              price={`${Number(product.price).toLocaleString('fr-FR')} FCFA`}
+                              img={getRealInternetLink(product)}
+                              badge={product.category?.name}
+                           />
+                        ))}
+                     </div>
+
+                     {visibleCount < filteredProducts.length && (
+                        <div className="flex justify-center mt-24">
+                           <button
+                              onClick={() => setVisibleCount(prev => prev + 8)}
+                              className="group flex items-center gap-4 bg-white border-2 border-[#1a2e22] text-[#1a2e22] px-12 py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-[#1a2e22] hover:text-white transition-all shadow-xl"
+                           >
+                              Voir plus de produits
+                              <Plus size={18} className="group-hover:rotate-90 transition-transform" />
+                           </button>
+                        </div>
+                     )}
+                  </>
+               )}
+            </section>
+
+            {/* Transformation Section */}
+            <section className="mb-60">
+               <div className="text-center mb-24">
+                  <div className="w-20 h-20 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center mx-auto mb-8 shadow-xl">
+                     <TrendingUp size={32} />
+                  </div>
+                  <p className="text-xs font-black uppercase tracking-[0.6em] text-[#c5a059] mb-4">Maîtrise de la Filière</p>
+                  <h3 className="text-6xl font-black tracking-tighter uppercase leading-none">De la Terre à l'Or Blanc</h3>
+               </div>
+
+               <div className="flex flex-col lg:flex-row items-center justify-center gap-12 lg:gap-32">
+                  <div className="flex-1 w-full max-w-md group text-center">
+                     <div className="relative aspect-square rounded-[60px] overflow-hidden mb-8 border-[12px] border-white shadow-2xl group-hover:scale-105 transition-transform duration-700 bg-white">
+                         <img
+                           src="https://magoerevision.com/imgUpload/imageExosMatiereurl_copy_chapitre_temps1697537870.png"
+                           className="w-full h-full object-cover block"
+                           alt="Racines de manioc"
+                         />
+                        <div className="absolute top-8 left-8 bg-[#1a2e22] text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">Étape 01 : Récolte</div>
+                     </div>
+                     <h4 className="text-3xl font-black mb-4 tracking-tight">Racines de Manioc</h4>
+                     <p className="text-[#1a2e22]/60 text-sm font-medium leading-relaxed">Sélection rigoureuse des meilleurs tubercules.</p>
+                  </div>
+
+                  <div className="flex w-24 h-24 bg-[#1a2e22] text-[#c5a059] rounded-full items-center justify-center shadow-2xl z-10 shrink-0 rotate-90 lg:rotate-0">
+                     <ArrowRight size={40} />
+                  </div>
+
+                  <div className="flex-1 w-full max-w-md group text-center">
+                     <div className="relative aspect-square rounded-[60px] overflow-hidden mb-8 border-[12px] border-white shadow-2xl group-hover:scale-105 transition-transform duration-700 bg-white">
+                         <img
+                           src="https://www.elviadelices.fr/cdn/shop/files/Farine_de_gari.jpg?v=1743090440&width=416"
+                           className="w-full h-full object-cover block"
+                           alt="Farine de gari"
+                         />
+                        <div className="absolute top-8 left-8 bg-[#c5a059] text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest">Étape Finale : Excellence</div>
+                     </div>
+                     <h4 className="text-3xl font-black mb-4 tracking-tight text-[#c5a059]">Gari Fini Premium</h4>
+                     <p className="text-[#1a2e22]/60 text-sm font-medium leading-relaxed">Le résultat d'un savoir-faire ancestral préservé.</p>
+                  </div>
+               </div>
+            </section>
+
+            {/* Engagement Section (Rich Vibrant Manifest) */}
+            <section className="mb-40">
+               <div className="bg-gradient-to-br from-[#f2e6d0] via-[#f9f3e5] to-[#f4d081]/30 rounded-[60px] py-24 px-12 md:px-20 relative overflow-hidden shadow-[0_40px_80px_-20px_rgba(197,160,89,0.2)] border border-[#c5a059]/20">
+                  {/* Decorative Vibrant Orbs */}
+                  <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#c5a059]/30 rounded-full blur-[150px] -z-0 animate-pulse"></div>
+                  <div className="absolute -bottom-40 -left-20 w-96 h-96 bg-[#1a2e22]/20 rounded-full blur-[120px] -z-0"></div>
                   
-                  {/* Simulated Spending Graph */}
-                  <div className="h-64 flex items-end justify-between gap-4 px-4 relative">
-                     <div className="absolute inset-x-0 bottom-0 border-b border-forest-night/5"></div>
-                     {[35, 55, 45, 85, 65, 95].map((h, i) => (
-                        <div key={i} className="flex-1 flex flex-col items-center gap-4 group/bar">
-                           <div className="relative w-full flex items-end justify-center">
-                              <div 
-                                 style={{ height: `${h}%` }} 
-                                 className="w-full bg-forest-night/5 group-hover/bar:bg-afrigari-gold/20 rounded-2xl transition-all duration-700"
-                              ></div>
-                              <div 
-                                 style={{ height: `${h * 0.4}%` }} 
-                                 className="absolute bottom-0 w-full bg-forest-night rounded-2xl group-hover/bar:bg-afrigari-gold transition-all duration-500 shadow-lg"
-                              ></div>
-                              <div className="absolute bottom-full mb-2 opacity-0 group-hover/bar:opacity-100 transition-all bg-forest-night text-white text-[10px] font-black px-2 py-1 rounded-lg translate-y-2 group-hover/bar:translate-y-0">
-                                 {Math.round(h * 1000).toLocaleString()} F
-                              </div>
+                  <div className="flex flex-col lg:flex-row gap-24 items-start relative z-10">
+                     <div className="lg:w-1/3">
+                        <div className="w-20 h-2 bg-[#1a2e22] mb-12 rounded-full"></div>
+                        <h3 className="text-7xl font-black tracking-tighter leading-[0.85] text-[#1a2e22] mb-12">Notre <br /> <span className="text-[#c5a059] font-serif italic font-normal lowercase tracking-normal">manifeste</span>.</h3>
+                        <p className="text-[#1a2e22] text-sm font-black leading-relaxed max-w-xs opacity-80">Une vision ancrée dans le terroir béninois, tournée vers l'excellence mondiale.</p>
+                     </div>
+                     
+                     <div className="flex-1 grid grid-cols-1 md:grid-cols-3 gap-16 relative">
+                        {/* 01 */}
+                        <div className="relative pt-16 group">
+                           <span className="absolute top-0 left-0 text-9xl font-serif italic text-[#c5a059]/30 font-light group-hover:text-[#c5a059]/50 group-hover:-translate-y-4 transition-all duration-700">01</span>
+                           <div className="relative">
+                              <h4 className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1a2e22] mb-8">Éthique Pure</h4>
+                              <h5 className="text-2xl font-black mb-6 tracking-tight text-[#1a2e22]">Rémunération Juste</h5>
+                              <p className="text-[#1a2e22] text-[13px] leading-relaxed font-bold border-l-4 border-[#1a2e22]/20 pl-8 group-hover:border-[#c5a059] transition-colors duration-700 opacity-70">Nous garantissons que l'essentiel de la valeur ajoutée profite directement à nos artisans locaux.</p>
                            </div>
-                           <span className="text-[9px] font-black text-forest-night/30 uppercase tracking-widest">{['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin'][i]}</span>
                         </div>
-                     ))}
+
+                        {/* 02 */}
+                        <div className="relative pt-16 group">
+                           <span className="absolute top-0 left-0 text-9xl font-serif italic text-[#c5a059]/30 font-light group-hover:text-[#c5a059]/50 group-hover:-translate-y-4 transition-all duration-700">02</span>
+                           <div className="relative">
+                              <h4 className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1a2e22] mb-8">Excellence</h4>
+                              <h5 className="text-2xl font-black mb-6 tracking-tight text-[#1a2e22]">Qualité Artisanale</h5>
+                              <p className="text-[#1a2e22] text-[13px] leading-relaxed font-bold border-l-4 border-[#1a2e22]/20 pl-8 group-hover:border-[#c5a059] transition-colors duration-700 opacity-70">Un protocole de sélection rigoureux garantissant une pureté et un goût d'exception.</p>
+                           </div>
+                        </div>
+
+                        {/* 03 */}
+                        <div className="relative pt-16 group">
+                           <span className="absolute top-0 left-0 text-9xl font-serif italic text-[#c5a059]/30 font-light group-hover:text-[#c5a059]/50 group-hover:-translate-y-4 transition-all duration-700">03</span>
+                           <div className="relative">
+                              <h4 className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1a2e22] mb-8">Héritage</h4>
+                              <h5 className="text-2xl font-black mb-6 tracking-tight text-[#1a2e22]">Impact Durable</h5>
+                              <p className="text-[#1a2e22] text-[13px] leading-relaxed font-bold border-l-4 border-[#1a2e22]/20 pl-8 group-hover:border-[#c5a059] transition-colors duration-700 opacity-70">Préserver les méthodes ancestrales tout en les modernisant pour un futur durable.</p>
+                           </div>
+                        </div>
+                     </div>
                   </div>
                </div>
+            </section>
 
-               {/* Nearby Shops Widget - NEW LOCALIZATION FEATURE */}
-               <div className="bg-white rounded-[40px] p-10 border border-forest-night/5 shadow-sm overflow-hidden relative">
-                  <div className="flex justify-between items-center mb-8">
-                     <h3 className="text-xl font-black tracking-tighter text-forest-night italic uppercase">Proches de vous.</h3>
-                     <MapPin size={20} className="text-afrigari-gold" />
-                  </div>
-                  
-                  <div className="space-y-6">
-                     {nearbyStores.length === 0 ? (
-                        <div className="py-10 text-center space-y-4">
-                           <div className="w-12 h-12 bg-luxury-cream rounded-full flex items-center justify-center mx-auto text-forest-night/10"><MapPin size={24} /></div>
-                           <p className="text-[10px] font-black text-forest-night/30 uppercase tracking-widest">Recherche d&apos;artisans à proximité...</p>
-                        </div>
+         </main>
+
+         {/* Profile Dropdown */}
+         {isProfileOpen && (
+            <div className="fixed top-28 right-12 w-80 bg-white shadow-2xl rounded-[48px] p-10 z-[300] border border-white animate-reveal">
+               <div className="flex flex-col items-center mb-10">
+                  <div className="w-24 h-24 rounded-full border-4 border-[#c5a059]/20 p-1.5 mb-6 overflow-hidden bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-3xl font-black uppercase">
+                     {user?.profilePhoto ? (
+                         <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover rounded-full" />
                      ) : (
-                        nearbyStores.map((store) => (
-                           <Link href={`/dashboard/client/shops/${store.id}`} key={store.id} className="flex items-center gap-4 group p-2 hover:bg-slate-50 rounded-2xl transition-all">
-                              <div className="w-12 h-12 rounded-xl overflow-hidden shrink-0 shadow-md">
-                                 <img src={store.profilePhoto || "https://via.placeholder.com/100"} className="w-full h-full object-cover" alt={store.name} />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                 <p className="text-xs font-black text-forest-night truncate uppercase">{store.name}</p>
-                                 <p className="text-[9px] font-bold text-afrigari-gold">{store.distance} km • {store.city}</p>
-                              </div>
-                              <ArrowRight size={14} className="text-forest-night/20 group-hover:translate-x-1 group-hover:text-forest-night transition-all" />
-                           </Link>
-                        ))
+                        <span>{user?.name?.[0] || 'U'}</span>
                      )}
                   </div>
-
-                  <Link href="/dashboard/client/shops" className="mt-10 w-full py-4 bg-forest-night/5 hover:bg-forest-night hover:text-white rounded-2xl text-[9px] font-black uppercase tracking-widest text-center transition-all flex items-center justify-center gap-2">
-                     Voir la carte <LayoutGrid size={14} />
+                  <h4 className="font-black text-2xl text-[#1a2e22] text-center tracking-tight">{user?.name || 'Utilisateur'}</h4>
+                  <p className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.5em] mt-2">{user?.role || 'Client Privilège'}</p>
+               </div>
+               <div className="space-y-3">
+                  <Link href="/dashboard/client/messages" className="w-full flex items-center justify-between p-5 rounded-3xl hover:bg-[#1a2e22]/5 transition-all group">
+                     <div className="flex items-center gap-5">
+                        <MessageSquare size={22} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Conversations</span>
+                     </div>
                   </Link>
+                  <Link href="/dashboard/client/orders" className="w-full flex items-center justify-between p-5 rounded-3xl hover:bg-[#1a2e22]/5 transition-all group">
+                     <div className="flex items-center gap-5">
+                        <Clock size={22} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Mes Commandes</span>
+                     </div>
+                  </Link>
+                  <div className="h-px bg-[#1a2e22]/5 my-6 mx-4"></div>
+                  <button onClick={() => logout()} className="w-full flex items-center gap-5 p-5 rounded-3xl hover:bg-red-50 text-red-500 transition-all font-black text-[11px] uppercase tracking-widest">
+                     <LogOut size={22} />
+                     <span>Déconnexion</span>
+                  </button>
                </div>
             </div>
+         )}
 
-            {/* Bottom Section: Recent Orders & Discovery */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 pb-20">
-               {/* Recent Orders List */}
-               <div className="lg:col-span-2 bg-white rounded-[40px] p-10 border border-forest-night/5 shadow-sm">
-                  <div className="flex justify-between items-center mb-10">
-                     <div>
-                        <h3 className="text-xl font-black tracking-tighter text-forest-night italic">Dernières Commandes</h3>
-                        <p className="text-[10px] font-bold text-forest-night/30 uppercase tracking-widest">Historique de vos achats</p>
-                     </div>
-                     <Link href="/dashboard/client/orders" className="p-3 bg-forest-night/5 rounded-xl hover:bg-forest-night hover:text-white transition-all"><History size={18} /></Link>
-                  </div>
+         <CartDrawer
+            isOpen={isCartOpen}
+            onClose={() => setIsCartOpen(false)}
+            onSuccess={() => { setShowSuccessOrder(true); setIsCartOpen(false); }}
+         />
 
-                  <div className="space-y-4">
-                     {recentOrders.length === 0 ? (
-                        <div className="text-center py-10 italic text-forest-night/20 text-sm border-2 border-dashed border-forest-night/5 rounded-3xl uppercase font-black tracking-widest">Aucune commande récente</div>
-                     ) : recentOrders.map((order: any) => (
-                        <div key={order.id} className="flex items-center justify-between p-5 rounded-3xl hover:bg-slate-50 transition-all group border border-transparent hover:border-forest-night/5">
-                           <div className="flex items-center gap-5">
-                              <div className="w-14 h-14 bg-forest-night/5 rounded-2xl flex items-center justify-center text-[10px] font-black text-forest-night/40 italic">#{order.id.slice(0, 5)}</div>
-                              <div>
-                                 <p className="font-black text-forest-night">{order.items?.[0]?.productName || "Commande"}</p>
-                                 <p className="text-[9px] font-black text-forest-night/30 uppercase tracking-widest mt-1">{new Date(order.createdAt).toLocaleDateString('fr-FR')}</p>
-                              </div>
-                           </div>
-                           <div className="flex items-center gap-8">
-                              <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                                 order.status === 'COMPLETED' ? 'bg-green-100 text-green-600' : 
-                                 order.status === 'PENDING' ? 'bg-orange-100 text-orange-600' : 
-                                 'bg-blue-100 text-blue-600'
-                              }`}>{order.status}</span>
-                              <p className="text-sm font-black text-forest-night">{Number(order.totalAmount).toLocaleString()} F</p>
-                              <button className="p-2 text-forest-night/20 group-hover:text-afrigari-gold transition-colors"><ArrowUpRight size={20} /></button>
-                           </div>
-                        </div>
-                     ))}
+         {/* Success Notification */}
+         {showSuccessOrder && (
+            <div className="fixed inset-0 z-[500] bg-[#1a2e22]/80 backdrop-blur-sm flex items-center justify-center p-8 animate-reveal">
+               <div className="bg-white rounded-[60px] p-16 text-center max-w-xl shadow-3xl">
+                  <div className="w-20 h-20 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl animate-bounce">
+                     <PackageCheck size={40} />
                   </div>
-               </div>
-
-               {/* Discovery Card */}
-               <div className="bg-white rounded-[40px] p-10 border border-forest-night/5 shadow-sm flex flex-col justify-between group overflow-hidden relative">
-                  <div className="relative z-10">
-                     <h3 className="text-xl font-black tracking-tighter text-forest-night italic mb-2">Explorer le Marché.</h3>
-                     <p className="text-[10px] font-bold text-forest-night/30 uppercase tracking-widest leading-relaxed">Découvrez les nouveautés de nos producteurs partenaires.</p>
-                  </div>
-                  <div className="py-8 relative z-10">
-                     <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl transform group-hover:scale-105 transition-transform duration-700">
-                        <img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=400" className="w-full h-full object-cover" alt="Market" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-forest-night/80 to-transparent flex items-end p-6">
-                           <div className="flex items-center gap-2 text-white">
-                              <Sparkles size={14} className="text-afrigari-gold" />
-                              <p className="text-[10px] font-black uppercase tracking-widest">Nouveautés Terroir</p>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-                  <Link href="/dashboard/client/shops" className="w-full bg-forest-night text-white py-5 rounded-2xl font-black text-[10px] uppercase tracking-widest text-center hover:bg-afrigari-gold transition-colors shadow-xl relative z-10">
-                     Accéder à la Boutique
-                  </Link>
-                  <div className="absolute -bottom-20 -right-20 w-64 h-64 bg-forest-night/5 rounded-full blur-3xl group-hover:bg-afrigari-gold/5 transition-all"></div>
+                  <h3 className="text-4xl font-black mb-4">Commande Confirmée !</h3>
+                  <p className="text-slate-500 mb-10 font-medium">Votre commande a été transmise au producteur. Un SMS de confirmation vous sera envoyé.</p>
+                  <button onClick={() => setShowSuccessOrder(false)} className="bg-[#1a2e22] text-white px-12 py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl">Génial !</button>
                </div>
             </div>
-         </main>
+         )}
       </div>
-    </div>
-  );
+   );
 }
 
-// Internal Logic Components
-function StatCard({ icon: Icon, label, value, change, desc, color = "bg-white text-forest-night" }: { icon: any; label: string; value: string; change?: string; desc?: string; color?: string }) {
-  return (
-    <div className={`${color} p-8 rounded-[32px] transition-all group hover:scale-[1.02] shadow-sm hover:shadow-xl`}>
-       <div className="flex justify-between items-start mb-6">
-          <div className={`p-3 rounded-2xl ${color.includes('forest-night') ? 'bg-white/10' : 'bg-forest-night/5'} group-hover:scale-110 transition-transform`}><Icon size={20} /></div>
-          {change && <span className={`text-[9px] font-black px-2 py-1 rounded-full ${color.includes('forest-night') ? 'bg-white/10 text-white' : 'bg-green-50 text-green-500'}`}>{change}</span>}
-       </div>
-       <h4 className="text-3xl font-black tracking-tighter">{value}</h4>
-       <div className="flex items-center justify-between mt-2">
-          <p className={`text-[10px] font-black uppercase tracking-widest ${color.includes('forest-night') ? 'text-white/40' : 'text-forest-night/30'}`}>{label}</p>
-          {desc && <span className={`text-[9px] font-black ${color.includes('forest-night') ? 'text-white/30' : 'text-forest-night/20'}`}>{desc}</span>}
-       </div>
-    </div>
-  );
+// Logic Components
+type LuxuryCategoryBubbleProps = {
+   label: string;
+   active?: boolean;
+   icon: string;
+};
+
+function LuxuryCategoryBubble({ label, active = false, icon }: LuxuryCategoryBubbleProps) {
+   return (
+      <div className="flex flex-col items-center gap-6 group">
+         <div className={`w-28 h-28 rounded-full flex items-center justify-center text-4xl transition-all duration-700 shadow-xl border-4 ${active ? 'bg-[#1a2e22] border-[#c5a059] scale-110 rotate-12' : 'bg-white border-white group-hover:border-[#c5a059]/30 group-hover:-translate-y-3 group-hover:shadow-2xl'}`}>
+            <span className="group-hover:scale-125 transition-transform duration-700">{icon}</span>
+         </div>
+         <div className="text-center">
+            <h5 className={`text-[11px] font-black uppercase tracking-[0.3em] transition-colors duration-500 ${active ? 'text-[#c5a059]' : 'text-[#1a2e22]/60 group-hover:text-[#1a2e22]'}`}>{label}</h5>
+            {active && <div className="w-1 h-1 bg-[#c5a059] rounded-full mx-auto mt-2 animate-ping"></div>}
+         </div>
+      </div>
+   );
+}
+
+type AfrigariAgroCardProps = {
+   product: Product;
+   addToCart: (product: Product) => void;
+   storeId?: string | number | null;
+   name: string;
+   unit: string;
+   producer: string;
+   price: string;
+   img: string;
+   badge?: string;
+};
+
+function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, price, img, badge }: AfrigariAgroCardProps) {
+   return (
+      <div className="block group animate-reveal">
+         <div className="relative aspect-[4/5] rounded-[70px] overflow-hidden mb-12 shadow-2xl group-hover:-translate-y-4 transition-all duration-1000 ring-1 ring-[#1a2e22]/5 border-[10px] border-white bg-white">
+             <img src={img} alt={name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[4s] block" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
+            {badge && <span className="absolute top-10 left-10 bg-[#c5a059] text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl border border-white/20 z-20">{badge}</span>}
+
+            <Link href={storeId ? `/dashboard/client/shops/${storeId}` : '#'} className="absolute inset-0 z-10"></Link>
+
+            <button
+               onClick={(e) => { e.preventDefault(); addToCart(product); }}
+               className="absolute bottom-10 right-10 w-16 h-16 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transition-all translate-y-6 group-hover:translate-y-0 hover:bg-[#c5a059] hover:text-white z-30 duration-700"
+            >
+               <Plus size={28} className="group-hover:rotate-90 transition-transform" />
+            </button>
+            
+            <Link 
+               href="/dashboard/client/messages"
+               className="absolute bottom-10 left-10 w-16 h-16 bg-white text-[#1a2e22] rounded-full flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transition-all translate-y-6 group-hover:translate-y-0 hover:text-[#c5a059] z-30 duration-700 delay-75"
+            >
+               <MessageSquare size={24} />
+            </Link>
+         </div>
+         <div className="px-6">
+            <div className="flex items-center gap-3 mb-3">
+               <div className="w-5 h-5 rounded-md bg-[#c5a059]/10 flex items-center justify-center text-[#c5a059]"><Package size={12} /></div>
+               <p className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.4em]">{unit}</p>
+            </div>
+            <Link href={storeId ? `/dashboard/client/shops/${storeId}` : '#'}>
+               <h4 className="text-[28px] font-black mb-4 tracking-[-0.03em] text-[#1a2e22] group-hover:text-[#c5a059] transition-colors uppercase leading-none truncate cursor-pointer">{name}</h4>
+            </Link>
+            <div className="flex items-center gap-4 text-[11px] font-bold text-[#1a2e22]/30 uppercase tracking-[0.1em] mb-8 border-b border-[#1a2e22]/5 pb-8">
+               <Store size={14} />
+               <span>{producer}</span>
+            </div>
+            <div className="flex justify-between items-center bg-white p-3 rounded-[32px] border border-[#1a2e22]/5 group-hover:border-[#c5a059]/30 transition-all shadow-sm">
+               <span className="text-2xl font-black text-[#1a2e22] ml-4">{price}</span>
+               <div className="flex gap-2">
+                  <Link
+                     href="/dashboard/client/messages"
+                     className="w-14 h-14 rounded-2xl bg-[#f4f1ea] flex items-center justify-center text-[#1a2e22] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-md"
+                  >
+                     <MessageSquare size={18} />
+                  </Link>
+                  <div
+                     onClick={(e) => { e.preventDefault(); addToCart(product); }}
+                     className="w-14 h-14 rounded-2xl bg-[#1a2e22] flex items-center justify-center text-[#c5a059] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-xl"
+                  >
+                     <ShoppingCart size={20} />
+                  </div>
+               </div>
+            </div>
+         </div>
+      </div>
+   );
 }
