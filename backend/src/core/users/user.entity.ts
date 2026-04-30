@@ -40,7 +40,7 @@ export class User {
   @Column({ default: true })
   isVerified: boolean;
 
-  @Column({ type: 'timestamp', nullable: true })
+  @Column({ nullable: true })
   suspensionUntil: Date;
 
   @Column({ nullable: true })

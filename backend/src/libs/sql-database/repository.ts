@@ -7,7 +7,22 @@ export class SqlRepository<
   constructor(protected readonly repo: Repository<T>) {}
 
   find(options?: object): Promise<T[]> {
-    return this.repo.find(options as FindManyOptions<T>);
+    if (!options) return this.repo.find();
+
+    // Si l'objet contient déjà des clés d'options TypeORM, on le passe tel quel
+    const keys = Object.keys(options);
+    const isFullOptions = keys.some(key => 
+      ['where', 'relations', 'select', 'order', 'take', 'skip'].includes(key)
+    );
+
+    if (isFullOptions) {
+      return this.repo.find(options as FindManyOptions<T>);
+    }
+
+    // Sinon, on traite comme un critère simple (where)
+    return this.repo.find({ 
+      where: options as FindOptionsWhere<T> 
+    });
   }
 
   findOne(options: any): Promise<T | null> {
