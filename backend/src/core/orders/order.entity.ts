@@ -56,6 +56,9 @@ export class Order {
     productImage?: string;
   }[];
 
+  @Column({ nullable: true })
+  cancellationReason: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

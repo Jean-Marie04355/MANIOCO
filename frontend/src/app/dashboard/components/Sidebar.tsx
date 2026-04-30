@@ -23,6 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
   const [orderCount, setOrderCount] = useState<number | null>(0);
   const [chatCount, setChatCount] = useState<number | null>(0);
   const [notificationCount, setNotificationCount] = useState(0);
+  const [storeId, setStoreId] = useState<string | null>(null);
   const [cachedUser, setCachedUser] = useState(user);
 
   useEffect(() => {
@@ -31,48 +32,61 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
 
   const displayUser = user || cachedUser;
 
+  // 1. Identifier la boutique une seule fois au chargement
   useEffect(() => {
-    if (user) {
-      const fetchCounts = async () => {
-        try {
-          if (mode === 'admin' || mode === 'super-admin') {
-            const notifRes = await api.get('/notifications/unread/count');
-            setNotificationCount(notifRes.data.count || 0);
-          }
-          
-          if (mode === 'seller') {
-            const storesRes = await api.get('/stores');
-            const currentUserId = user.id || (user as any).userId;
-            const myStore = storesRes.data.find((s: any) => s.ownerId === currentUserId);
-
-            if (myStore) {
-              // Commandes
-              const ordersRes = await api.get(`/orders/store/${myStore.id}`);
-              const totalOrders = ordersRes.data.length;
-              const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${myStore.id}`) || '0');
-              
-              if (pathname === '/dashboard/seller/orders') {
-                localStorage.setItem(`lastSeenOrders_${myStore.id}`, totalOrders.toString());
-                setOrderCount(null);
-              } else {
-                setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
-              }
-
-              // Chat / Messages
-              const chatRes = await api.get('/chat/unread-count');
-              setChatCount(chatRes.data > 0 ? chatRes.data : null);
-            }
-          }
-        } catch (error) {
-          console.error("Erreur récupération des compteurs sidebar", error);
-        }
-      };
-      
-      fetchCounts();
-      const interval = setInterval(fetchCounts, 60000);
-      return () => clearInterval(interval);
+    if (user && mode === 'seller' && !storeId) {
+      api.get('/stores').then(res => {
+        const currentUserId = user.id || (user as any).userId;
+        const myStore = res.data.find((s: any) => s.ownerId === currentUserId);
+        if (myStore) setStoreId(myStore.id);
+      }).catch(err => console.error("Erreur identification boutique", err));
     }
-  }, [mode, user, pathname]);
+  }, [user, mode, storeId]);
+
+  // 2. Charger les compteurs (une fois au début, puis par intervalle)
+  // On retire 'pathname' des dépendances pour ne pas bloquer la navigation
+  useEffect(() => {
+    if (!user) return;
+
+    const fetchCounts = async () => {
+      try {
+        if (mode === 'admin' || mode === 'super-admin') {
+          const notifRes = await api.get('/notifications/unread/count');
+          setNotificationCount(notifRes.data.count || 0);
+        }
+        
+        if (mode === 'seller' && storeId) {
+          // Commandes
+          const ordersRes = await api.get(`/orders/store/${storeId}`);
+          const totalOrders = ordersRes.data.length;
+          const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${storeId}`) || '0');
+          setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
+
+          // Chat / Messages
+          const chatRes = await api.get('/chat/unread-count');
+          setChatCount(chatRes.data > 0 ? chatRes.data : null);
+        }
+      } catch (error) {
+        console.error("Erreur badges sidebar", error);
+      }
+    };
+    
+    fetchCounts();
+    const interval = setInterval(fetchCounts, 60000); // Mise à jour toutes les 60s
+    return () => clearInterval(interval);
+  }, [mode, user, storeId]);
+
+  // 3. Gestion spécifique du badge quand on arrive sur la page concernée (léger)
+  useEffect(() => {
+    if (mode === 'seller' && storeId) {
+      if (pathname === '/dashboard/seller/orders') {
+        setOrderCount(null);
+      }
+      if (pathname === '/dashboard/seller/messages') {
+        setChatCount(null);
+      }
+    }
+  }, [pathname, mode, storeId]);
 
   const isActive = (href: string) => {
     if (href === '#') return false;

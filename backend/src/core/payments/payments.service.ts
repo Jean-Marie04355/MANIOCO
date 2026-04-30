@@ -100,7 +100,7 @@ export class PaymentsService {
         );
 
         // Fetch order details for notification
-        const order = await this.ordersService.findOneById(transaction.orderId);
+        const order = await this.ordersService.findById(transaction.orderId);
         if (order) {
           // Fetch customer email
           const customer = await this.userRepository.findOne({

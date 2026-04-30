@@ -10,7 +10,8 @@ import {
   CheckCircle2,
   Clock,
   Truck,
-  Loader2
+  Loader2,
+  XCircle
 } from 'lucide-react';
 import { useAuth } from '@/features/auth/AuthContext';
 import api from '@/lib/axios';
@@ -24,6 +25,9 @@ export default function SellerOrders() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasStore, setHasStore] = useState(false);
   const [storeId, setStoreId] = useState<string | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [targetOrderId, setTargetOrderId] = useState<string | null>(null);
 
   useEffect(() => {
     const initializeOrders = async () => {
@@ -43,6 +47,7 @@ export default function SellerOrders() {
           const mappedOrders: Order[] = response.data.map((order: any) => ({
             id: order.id.split('-')[0].toUpperCase(), // Format court pour l'ID
             realId: order.id, // Pour les appels API
+            customerId: order.customerId, // Pour le lien vers le chat
             realDate: order.createdAt, // On garde la date brute pour le filtrage
             client: order.customer ? order.customer.name : "Client Inconnu",
             date: new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -53,6 +58,9 @@ export default function SellerOrders() {
           }));
           
           setOrders(mappedOrders);
+          
+          // Mettre à jour le compteur de "vu" pour la sidebar
+          localStorage.setItem(`lastSeenOrders_${myStore.id}`, response.data.length.toString());
         } else {
           setHasStore(false);
         }
@@ -90,6 +98,12 @@ export default function SellerOrders() {
     const orderToUpdate = orders.find(o => o.id === id);
     if (!orderToUpdate) return;
 
+    if (newStatus === 'Annulée') {
+      setTargetOrderId(id);
+      setShowCancelModal(true);
+      return;
+    }
+
     try {
       await api.patch(`/orders/${(orderToUpdate as any).realId}/status`, { 
         status: mapStatusToBackend(newStatus) 
@@ -100,6 +114,30 @@ export default function SellerOrders() {
       ));
     } catch (error) {
       alert("Erreur lors du changement de statut");
+    }
+  };
+
+  const confirmCancellation = async () => {
+    if (!targetOrderId || !cancelReason.trim()) return;
+
+    const orderToUpdate = orders.find(o => o.id === targetOrderId);
+    if (!orderToUpdate) return;
+
+    try {
+      await api.patch(`/orders/${(orderToUpdate as any).realId}/status`, { 
+        status: 'CANCELLED',
+        reason: cancelReason
+      });
+      
+      setOrders(orders.map(order => 
+        order.id === targetOrderId ? { ...order, status: 'Annulée' as any } : order
+      ));
+      
+      setShowCancelModal(false);
+      setCancelReason("");
+      setTargetOrderId(null);
+    } catch (error) {
+      alert("Erreur lors de l'annulation");
     }
   };
 
@@ -138,7 +176,6 @@ export default function SellerOrders() {
             </div>
           ) : (
             <>
-              {/* Stats Bar */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 {stats.map((stat, i) => (
                   <div key={i} className="bg-white p-6 rounded-[2rem] border border-slate-200/60 shadow-sm flex items-center gap-4">
@@ -153,7 +190,6 @@ export default function SellerOrders() {
                 ))}
               </div>
 
-              {/* Header Actions */}
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
                 <div className="relative flex-1 max-w-md w-full">
                   <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -215,6 +251,50 @@ export default function SellerOrders() {
           )}
         </div>
       </main>
+
+      {/* Cancellation Modal */}
+      {showCancelModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-8">
+              <div className="w-16 h-16 rounded-3xl bg-red-50 text-red-500 flex items-center justify-center mb-6">
+                <XCircle size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">Annuler la commande</h3>
+              <p className="text-slate-500 text-sm font-medium mb-8 leading-relaxed">
+                Veuillez expliquer pourquoi vous annulez cette commande. Cette raison sera enregistrée pour le client et les administrateurs.
+              </p>
+              
+              <textarea 
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="Ex: Problème logistique, stock endommagé..."
+                className="w-full h-32 p-6 bg-slate-50 border-none rounded-[1.5rem] text-sm font-bold text-slate-600 placeholder:text-slate-300 focus:ring-2 focus:ring-red-500/20 transition-all outline-none resize-none"
+              />
+            </div>
+            
+            <div className="p-6 bg-slate-50 flex gap-4">
+              <button 
+                onClick={() => {
+                  setShowCancelModal(false);
+                  setCancelReason("");
+                  setTargetOrderId(null);
+                }}
+                className="flex-1 py-4 bg-white text-slate-600 text-sm font-black rounded-2xl border border-slate-200 hover:bg-slate-100 transition-all"
+              >
+                RETOUR
+              </button>
+              <button 
+                onClick={confirmCancellation}
+                disabled={!cancelReason.trim()}
+                className="flex-1 py-4 bg-red-500 text-white text-sm font-black rounded-2xl shadow-lg shadow-red-500/20 hover:bg-red-600 disabled:opacity-50 transition-all uppercase tracking-widest"
+              >
+                CONFIRMER
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

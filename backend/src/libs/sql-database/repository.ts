@@ -10,9 +10,17 @@ export class SqlRepository<
     return this.repo.find(options as FindManyOptions<T>);
   }
 
-  findOne(criteria: any): Promise<T | null> {
-    const { withDeleted, ...where } = criteria;
-    return this.repo.findOne({
+  findOne(options: any): Promise<T | null> {
+    if (!options) return this.repo.findOne({ where: {} as any });
+
+    // Si l'objet contient déjà des clés d'options TypeORM, on le passe tel quel
+    if (options.where || options.relations || options.select || options.order || options.take || options.skip) {
+      return this.repo.findOne(options as FindManyOptions<T>);
+    }
+
+    // Sinon, on traite comme un critère simple (comportement d'origine)
+    const { withDeleted, ...where } = options;
+    return this.repo.findOne({ 
       where: where as FindOptionsWhere<T>,
       withDeleted: !!withDeleted,
     });

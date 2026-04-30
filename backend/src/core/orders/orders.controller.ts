@@ -88,8 +88,9 @@ export class OrdersController {
   updateStatus(
     @Param('id') id: string,
     @Body('status') status: OrderStatus,
+    @Body('reason') reason: string,
     @CurrentUser() user: AuthenticatedUser,
   ) {
-    return this.ordersService.updateStatus(id, status, user);
+    return this.ordersService.updateStatus(id, status, user, reason);
   }
 }
