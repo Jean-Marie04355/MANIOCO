@@ -1,8 +1,4 @@
-import {
-  CanActivate,
-  ExecutionContext,
-  Injectable,
-} from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -33,7 +29,7 @@ export class RolesGuard implements CanActivate {
 
     // Direct check against enum (System Roles)
     if (requiredRoles.includes(user.role)) {
-       return true;
+      return true;
     }
 
     // Dynamic check against Database roles
@@ -41,12 +37,15 @@ export class RolesGuard implements CanActivate {
     if (!dbRole) return false;
 
     // Check if the role is a Super Admin (full access)
-    if (dbRole.name === UserRole.SUPER_ADMIN || dbRole.permissions.includes('*')) {
+    if (
+      dbRole.name === UserRole.SUPER_ADMIN ||
+      dbRole.permissions.includes('*')
+    ) {
       return true;
     }
-    
+
     // Future extension: Check specific permissions here if needed
-    
+
     return false;
   }
 }

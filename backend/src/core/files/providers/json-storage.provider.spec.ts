@@ -10,7 +10,13 @@ describe('JsonStorageProvider', () => {
   let s3ServiceMock: any;
 
   const mockData = [
-    { id: '1', filename: 'test.png', path: 'p', mimetype: 'image/png', size: 100 },
+    {
+      id: '1',
+      filename: 'test.png',
+      path: 'p',
+      mimetype: 'image/png',
+      size: 100,
+    },
   ];
 
   beforeEach(async () => {
@@ -62,7 +68,12 @@ describe('JsonStorageProvider', () => {
 
   it('should create a new item', async () => {
     (fs.readFileSync as jest.Mock).mockReturnValue(JSON.stringify([]));
-    const dto = { filename: 'new.png', path: 'p', mimetype: 'image/png', size: 200 };
+    const dto = {
+      filename: 'new.png',
+      path: 'p',
+      mimetype: 'image/png',
+      size: 200,
+    };
     const result = await provider.create(dto);
     expect(result.id).toBeDefined();
     expect(result.filename).toBe('new.png');

@@ -25,7 +25,7 @@ describe('RealtimeGateway', () => {
   it('should handle ping event and return pong', () => {
     const mockClient = { user: { id: 'test', email: 'test@test.com' } } as any;
     const mockBody = { msg: 'hello' };
-    
+
     const result = gateway.ping(mockClient, mockBody);
 
     expect(result.event).toBe('pong');
@@ -37,7 +37,7 @@ describe('RealtimeGateway', () => {
 
   it('should handle ping event without user or body', () => {
     const mockClient = {} as any;
-    
+
     const result = gateway.ping(mockClient, undefined);
 
     expect(result.event).toBe('pong');

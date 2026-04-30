@@ -71,7 +71,11 @@ export default function LuxuryLogsPage() {
   };
 
   const filtered = logs.filter(log => {
-      const matchesSearch = log.details?.toLowerCase().includes(searchQuery.toLowerCase()) || log.adminName?.toLowerCase().includes(searchQuery.toLowerCase());
+      const name = (log.adminName || '').toLowerCase();
+      const details = (log.details || '').toLowerCase();
+      const query = searchQuery.toLowerCase();
+      
+      const matchesSearch = name.includes(query) || details.includes(query);
       if (filterLevel === 'all') return matchesSearch;
       const intensity = getIntensityIcon(log.action);
       return matchesSearch && intensity.label.toLowerCase() === filterLevel.toLowerCase();
@@ -80,7 +84,7 @@ export default function LuxuryLogsPage() {
   return (
     <div className="flex bg-[#F8FAFF] min-h-screen text-slate-800 font-sans selection:bg-indigo-100">
       <Sidebar mode="super-admin" />
-      <main className="flex-1 ml-80 p-16">
+      <main className="flex-1 ml-72 p-16">
         
         <header className="mb-16 relative">
           <div className="absolute -left-10 top-0 w-2 h-32 bg-indigo-600 rounded-full opacity-30 blur-[2px]"></div>
@@ -178,7 +182,7 @@ export default function LuxuryLogsPage() {
                                             <div className="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-black text-[12px] group-hover:rotate-12 transition-transform">
                                                 {log.adminName?.charAt(0)}
                                             </div>
-                                            <span className="text-sm font-black text-slate-800 uppercase italic tracking-tighter">{log.adminName}</span>
+                                            <span className="text-sm font-black text-slate-800 uppercase italic tracking-tighter">{log.adminName || 'Système'}</span>
                                         </div>
                                     </td>
                                     <td className="p-10 font-mono text-[10px] uppercase font-black text-slate-300 bg-slate-50/30">

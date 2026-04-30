@@ -48,7 +48,6 @@ export class BullMQService implements IQueueService {
   // BullMQ doesn't have a native listQueues, so we use common ones + ones we know
   async getAllQueuesStats() {
     const names = Array.from(new Set(['default', ...this.queues.keys()]));
-    return Promise.all(names.map(name => this.getQueueStats(name)));
+    return Promise.all(names.map((name) => this.getQueueStats(name)));
   }
 }
-

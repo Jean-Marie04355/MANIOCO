@@ -17,7 +17,7 @@ export class CreateUserDto {
   @IsEmail()
   email: string;
 
-  @ApiProperty({ description: "Mot de passe (minimum 6 caracteres)" })
+  @ApiProperty({ description: 'Mot de passe (minimum 6 caracteres)' })
   @MinLength(6)
   password: string;
 
@@ -34,7 +34,7 @@ export class CreateUserDto {
   @IsOptional()
   permissions?: string[];
 
-  @ApiProperty({ description: "URL de la photo de profil", required: false })
+  @ApiProperty({ description: 'URL de la photo de profil', required: false })
   @IsOptional()
   profilePhoto?: string;
 }

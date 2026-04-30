@@ -26,15 +26,21 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 export default function SellerDashboard() {
-  const { user } = useAuth();
+  const { user, isLoading: isAuthLoading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (user && !user.isVerified) {
+    if (isAuthLoading) return;
+    if (!user) {
+      router.push('/auth/login');
+      return;
+    }
+    // Rediriger vers la vérification UNIQUEMENT pour les vendeurs non vérifiés
+    if (user.role === 'vendeur' && !user.isVerified) {
       router.push('/dashboard/seller/verification');
     }
-  }, [user, router]);
+  }, [user, isAuthLoading, router]);
   const [stats, setStats] = useState({
     totalSales: 0,
     totalRevenue: 0,
@@ -55,25 +61,24 @@ export default function SellerDashboard() {
         // 1. Récupérer la boutique
         const storesRes = await api.get('/stores');
         const myStore = storesRes.data.find((s: any) => s.ownerId === currentUserId);
-        
+
         if (myStore) {
-          // 2. Récupérer les produits
-          const productsRes = await api.get(`/products?storeId=${myStore.id}`);
+          // 2. Lancer toutes les requêtes EN PARALLÈLE (3x plus rapide)
+          const [productsRes, ordersRes, chatRes] = await Promise.all([
+            api.get(`/products?storeId=${myStore.id}`),
+            api.get(`/orders/store/${myStore.id}`),
+            api.get('/chat/conversations'),
+          ]);
+
           const products = productsRes.data;
-
-          // 3. Récupérer les commandes
-          const ordersRes = await api.get(`/orders/store/${myStore.id}`);
           const orders = ordersRes.data;
-
-          // 4. Récupérer les conversations
-          const chatRes = await api.get('/chat/conversations');
           const conversations = chatRes.data;
 
           // Calculer les stats
           const successfulOrders = orders.filter((o: any) => ['PAID', 'SHIPPED', 'DELIVERED'].includes(o.status));
           const totalRevenue = successfulOrders.reduce((acc: number, o: any) => {
-             const commission = Number(o.commissionAmount) || (Number(o.totalAmount) * 0.10);
-             return acc + (Number(o.totalAmount) - commission);
+            const commission = Number(o.commissionAmount) || (Number(o.totalAmount) * 0.10);
+            return acc + (Number(o.totalAmount) - commission);
           }, 0);
           const uniqueClients = new Set(orders.map((o: any) => o.customerId)).size;
 
@@ -88,17 +93,12 @@ export default function SellerDashboard() {
           setRecentMessages(conversations.slice(0, 3));
           setTopProducts(products.slice(0, 4));
 
-          // 5. Préparer les données du graphique (6 derniers mois)
+          // 3. Préparer les données du graphique (6 derniers mois)
           const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
           const last6Months = Array.from({ length: 6 }, (_, i) => {
             const d = new Date();
             d.setMonth(d.getMonth() - (5 - i));
-            return {
-              month: d.getMonth(),
-              year: d.getFullYear(),
-              monthName: months[d.getMonth()],
-              revenue: 0
-            };
+            return { month: d.getMonth(), year: d.getFullYear(), monthName: months[d.getMonth()], revenue: 0 };
           });
 
           successfulOrders.forEach((order: any) => {

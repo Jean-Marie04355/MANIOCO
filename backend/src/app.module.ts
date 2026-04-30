@@ -51,9 +51,6 @@ import { SupportModule } from './core/support/support.module';
   ],
 
   controllers: [AppController, InfraController],
-  providers: [
-    AppService,
-    AdminSeeder,
-  ],
+  providers: [AppService, AdminSeeder],
 })
 export class AppModule {}

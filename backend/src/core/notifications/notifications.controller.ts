@@ -1,4 +1,12 @@
-import { Controller, Get, Patch, Param, UseGuards, Request, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Patch,
+  Param,
+  UseGuards,
+  Request,
+  Delete,
+} from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -18,7 +26,9 @@ export class NotificationsController {
   }
 
   @Get()
-  @ApiOperation({ summary: 'Récupérer les notifications de l\'utilisateur connecté' })
+  @ApiOperation({
+    summary: "Récupérer les notifications de l'utilisateur connecté",
+  })
   async findAll(@Request() req: any) {
     const userId = req.user.id || req.user.userId;
     return this.notificationsService.findAllByUser(userId);

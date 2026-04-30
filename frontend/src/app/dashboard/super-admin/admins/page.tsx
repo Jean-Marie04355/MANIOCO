@@ -33,7 +33,7 @@ export default function StylishAdminsPage() {
     try {
       const res = await api.get('/users/admin/all');
       if (res.status === 200) {
-        const data = res.data;
+        const data = Array.isArray(res.data) ? res.data : [];
         setAdmins(data.filter((u: any) => {
           const role = (u.role || '').toLowerCase();
           return role.includes('admin');
@@ -121,7 +121,7 @@ export default function StylishAdminsPage() {
   return (
     <div className="flex bg-slate-50 min-h-screen text-slate-800 font-sans">
       <Sidebar mode="super-admin" />
-      <main className="flex-1 ml-64 p-12">
+      <main className="flex-1 ml-72 p-12">
         <header className="mb-12 flex justify-between items-end">
           <div>
             <div className="flex items-center gap-3 text-indigo-600 mb-2">

@@ -40,7 +40,7 @@ async function bootstrap() {
   // Basic auth for Swagger routes
   const swaggerUser = configService.getOrThrow<string>('SWAGGER_USERNAME');
   const swaggerPassword = configService.getOrThrow<string>('SWAGGER_PASSWORD');
-  
+
   app.use(
     ['/api', '/api-json'],
     basicAuth({

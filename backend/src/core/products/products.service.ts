@@ -1,4 +1,9 @@
-import { Injectable, Inject, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { Product } from './product.entity';
@@ -24,22 +29,28 @@ export class ProductsService {
     }
 
     // Handle Base64 image upload to S3
-    if (createProductDto.image && createProductDto.image.startsWith('data:image')) {
+    if (
+      createProductDto.image &&
+      createProductDto.image.startsWith('data:image')
+    ) {
       try {
         const base64Data = createProductDto.image.split(',')[1];
         const mimeType = createProductDto.image.split(';')[0].split(':')[1];
         const extension = mimeType.split('/')[1];
         const buffer = Buffer.from(base64Data, 'base64');
-        
+
         const fileUrl = await this.storageService.uploadFile({
           buffer,
           originalname: `product-${Date.now()}.${extension}`,
           mimetype: mimeType,
         });
-        
+
         createProductDto.image = fileUrl;
       } catch (error) {
-        console.error('Erreur lors de l\'upload de l\'image du produit vers S3', error);
+        console.error(
+          "Erreur lors de l'upload de l'image du produit vers S3",
+          error,
+        );
       }
     }
 
@@ -59,14 +70,20 @@ export class ProductsService {
     return this.repo.findOne({ id } as object);
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto, user: AuthenticatedUser) {
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+    user: AuthenticatedUser,
+  ) {
     const product = await this.findOne(id);
     if (!product) throw new NotFoundException('Produit non trouvé');
 
     if (user.role === UserRole.VENDEUR) {
       const store = await this.storeService.findByOwnerId(user.userId);
       if (product.storeId !== store.id) {
-        throw new ForbiddenException('Vous ne pouvez modifier que vos propres produits');
+        throw new ForbiddenException(
+          'Vous ne pouvez modifier que vos propres produits',
+        );
       }
     }
 
@@ -76,22 +93,28 @@ export class ProductsService {
     }
 
     // Handle Base64 image upload to S3 for update
-    if (updateProductDto.image && updateProductDto.image.startsWith('data:image')) {
+    if (
+      updateProductDto.image &&
+      updateProductDto.image.startsWith('data:image')
+    ) {
       try {
         const base64Data = updateProductDto.image.split(',')[1];
         const mimeType = updateProductDto.image.split(';')[0].split(':')[1];
         const extension = mimeType.split('/')[1];
         const buffer = Buffer.from(base64Data, 'base64');
-        
+
         const fileUrl = await this.storageService.uploadFile({
           buffer,
           originalname: `product-update-${Date.now()}.${extension}`,
           mimetype: mimeType,
         });
-        
+
         updateProductDto.image = fileUrl;
       } catch (error) {
-        console.error('Erreur lors de l\'upload de l\'image du produit vers S3', error);
+        console.error(
+          "Erreur lors de l'upload de l'image du produit vers S3",
+          error,
+        );
       }
     }
 
@@ -109,7 +132,9 @@ export class ProductsService {
     if (user.role === UserRole.VENDEUR) {
       const store = await this.storeService.findByOwnerId(user.userId);
       if (product.storeId !== store.id) {
-        throw new ForbiddenException('Vous ne pouvez supprimer que vos propres produits');
+        throw new ForbiddenException(
+          'Vous ne pouvez supprimer que vos propres produits',
+        );
       }
     }
     return this.repo.softDelete(id);

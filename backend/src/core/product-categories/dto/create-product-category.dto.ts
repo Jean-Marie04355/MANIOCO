@@ -18,7 +18,10 @@ export class CreateProductCategoryDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({ example: 'uuid-du-store', description: 'ID du store associé' })
+  @ApiPropertyOptional({
+    example: 'uuid-du-store',
+    description: 'ID du store associé',
+  })
   @IsString()
   @IsOptional()
   storeId?: string;

@@ -42,7 +42,7 @@ export class OrdersController {
   @ApiBearerAuth()
   @UseGuards(JwtAuthGuard, PermissionsGuard)
   @Permissions(Permission.ORDERS_MANAGE)
-  @ApiOperation({ summary: "Statistiques réelles pour le dashboard admin" })
+  @ApiOperation({ summary: 'Statistiques réelles pour le dashboard admin' })
   getAdminStats() {
     return this.ordersService.getAdminDashboardStats();
   }

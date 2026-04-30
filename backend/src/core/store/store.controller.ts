@@ -104,10 +104,7 @@ export class StoreController {
     type: Store,
   })
   @ApiResponse({ status: 404, description: 'Store not found.' })
-  update(
-    @Param('id') id: string,
-    @Body() updateStoreDto: UpdateStoreDto,
-  ) {
+  update(@Param('id') id: string, @Body() updateStoreDto: UpdateStoreDto) {
     return this.storeService.update(id, updateStoreDto);
   }
 

@@ -106,6 +106,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
           { icon: ShieldCheck, label: 'Admins & Rôles', href: '/dashboard/super-admin/admins' },
           { icon: Shield, label: 'Permissions', href: '/dashboard/super-admin/permissions' },
           { icon: Database, label: 'Logs système', href: '/dashboard/super-admin/logs' },
+          { icon: Activity, label: 'Tâches système', href: '/dashboard/super-admin/tasks' },
         ];
       case 'client':
         return [

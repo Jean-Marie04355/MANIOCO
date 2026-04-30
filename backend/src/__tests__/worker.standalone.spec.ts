@@ -13,7 +13,12 @@ describe('Worker Standalone', () => {
   it('should handle send-order-confirmation job', async () => {
     const job = {
       name: 'send-order-confirmation',
-      data: { email: 'order@example.com', orderId: 'ORD-1', totalAmount: 500, items: [] },
+      data: {
+        email: 'order@example.com',
+        orderId: 'ORD-1',
+        totalAmount: 500,
+        items: [],
+      },
     };
     const result = await handleWorkerJob(job as any);
     expect(result).toEqual({ ok: true, emailSent: true });

@@ -1,4 +1,4 @@
-import { Controller, Get, Optional } from '@nestjs/common';
+import { Controller, Get, Optional, UseGuards } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CacheService } from './libs/cache/cache.service';
 import { BullMQService } from './libs/queues/bullmq.service';
@@ -7,19 +7,27 @@ import { InjectConnection } from '@nestjs/typeorm';
 import { Connection } from 'typeorm';
 import { InjectConnection as InjectMongoConnection } from '@nestjs/mongoose';
 import { Connection as MongoConnection } from 'mongoose';
+import { JwtAuthGuard } from './core/auth/guards/jwt-auth.guard';
+import { PermissionsGuard } from './common/guards/permissions.guard';
+import { Permissions } from './common/decorators/permissions.decorator';
+import { Permission } from './common/enum/permission.enum';
 
 @ApiTags('Infrastructure')
 @Controller('infra')
+@UseGuards(JwtAuthGuard, PermissionsGuard)
 export class InfraController {
   constructor(
     private readonly cache: CacheService,
     private readonly queues: BullMQService,
     private readonly s3: S3StorageService,
     @Optional() @InjectConnection() private readonly postgres: Connection,
-    @Optional() @InjectMongoConnection() private readonly mongo: MongoConnection,
+    @Optional()
+    @InjectMongoConnection()
+    private readonly mongo: MongoConnection,
   ) {}
 
   @Get('health')
+  @Permissions(Permission.SETTINGS_MANAGE)
   @ApiOperation({ summary: 'Check infrastructure health' })
   async health() {
     const status = {
@@ -61,7 +69,9 @@ export class InfraController {
       status.s3 = 'up';
     } catch {}
 
-    const isAllUp = Object.values(status).every((s) => s === 'up' || typeof s !== 'string'); 
+    const isAllUp = Object.values(status).every(
+      (s) => s === 'up' || typeof s !== 'string',
+    );
 
     return {
       status: isAllUp ? 'healthy' : 'degraded',
@@ -70,6 +80,7 @@ export class InfraController {
   }
 
   @Get('queues/stats')
+  @Permissions(Permission.SETTINGS_MANAGE)
   @ApiOperation({ summary: 'Get BullMQ statistics' })
   async getQueueStats() {
     return this.queues.getAllQueuesStats();

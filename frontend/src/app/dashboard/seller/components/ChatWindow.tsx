@@ -115,7 +115,7 @@ export default function ChatWindow() {
     if (!currentUserId) return;
 
     // Connexion au namespace /realtime
-    const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001';
+    const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://127.0.0.1:3000';
     socketRef.current = io(`${socketUrl}/realtime`, {
       auth: { token: localStorage.getItem('token') }
     });

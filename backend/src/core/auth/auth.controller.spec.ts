@@ -40,7 +40,10 @@ describe('AuthController', () => {
 
       const result = await controller.adminLogin(dto);
       expect(result).toEqual({ message: 'OTP sent' });
-      expect(serviceMock.adminLogin).toHaveBeenCalledWith(dto.email, dto.password);
+      expect(serviceMock.adminLogin).toHaveBeenCalledWith(
+        dto.email,
+        dto.password,
+      );
     });
   });
 
@@ -51,7 +54,10 @@ describe('AuthController', () => {
 
       const result = await controller.verifyOtp(dto);
       expect(result).toEqual({ accessToken: 'token' });
-      expect(serviceMock.verifyAdminOtp).toHaveBeenCalledWith(dto.email, dto.otpCode);
+      expect(serviceMock.verifyAdminOtp).toHaveBeenCalledWith(
+        dto.email,
+        dto.otpCode,
+      );
     });
   });
 

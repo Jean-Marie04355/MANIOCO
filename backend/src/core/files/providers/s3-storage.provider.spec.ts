@@ -26,7 +26,10 @@ describe('S3StorageProvider', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         S3StorageProvider,
-        { provide: getRepositoryToken(FileEntity), useValue: fileRepositoryMock },
+        {
+          provide: getRepositoryToken(FileEntity),
+          useValue: fileRepositoryMock,
+        },
         { provide: S3StorageService, useValue: s3ServiceMock },
       ],
     }).compile();
@@ -66,7 +69,12 @@ describe('S3StorageProvider', () => {
   });
 
   it('should create a file', async () => {
-    const dto = { filename: 'test.png', path: 'path', mimetype: 'image/png', size: 100 };
+    const dto = {
+      filename: 'test.png',
+      path: 'path',
+      mimetype: 'image/png',
+      size: 100,
+    };
     fileRepositoryMock.create.mockReturnValue(dto);
     fileRepositoryMock.save.mockResolvedValue({ id: '1', ...dto });
     const result = await provider.create(dto);

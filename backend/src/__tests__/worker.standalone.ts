@@ -3,12 +3,14 @@ import { Worker, type ConnectionOptions, type Job } from 'bullmq';
 
 export async function handleWorkerJob(job: Job) {
   const log = (msg: string) => process.stdout.write(`${msg}\n`);
-  
+
   if (job.name === 'send-otp-email') {
     const { email, otpCode } = job.data;
     log('\n==========================================');
     log(`📧 [SIMULATED EMAIL]`);
-    const maskedEmail = email ? email.replace(/(.{3}).*@/, '$1***@') : 'unknown';
+    const maskedEmail = email
+      ? email.replace(/(.{3}).*@/, '$1***@')
+      : 'unknown';
     log(`To           : ${maskedEmail}`);
     log(`OTP Code     : ${otpCode}`);
     log(`Status       : OTP Sent`);
@@ -20,7 +22,9 @@ export async function handleWorkerJob(job: Job) {
     const { email, orderId } = job.data;
     log('\n==========================================');
     log(`📧 [COMMANDE RÉUSSIE]`);
-    const maskedEmail = email ? email.replace(/(.{3}).*@/, '$1***@') : 'unknown';
+    const maskedEmail = email
+      ? email.replace(/(.{3}).*@/, '$1***@')
+      : 'unknown';
     log(`To           : ${maskedEmail}`);
     log(`Commande ID  : #${orderId}`);
     log(`Status       : Confirmation Sent`);
@@ -39,12 +43,14 @@ function main() {
   const REDIS_DB = Number(process.env.REDIS_DB ?? 0);
   const queueName = process.env.BULLMQ_QUEUE ?? 'default';
 
-  const connection: ConnectionOptions = REDIS_URL ? { url: REDIS_URL } : {
-    host: REDIS_HOST,
-    port: REDIS_PORT,
-    password: REDIS_PASSWORD || undefined,
-    db: REDIS_DB,
-  };
+  const connection: ConnectionOptions = REDIS_URL
+    ? { url: REDIS_URL }
+    : {
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+        password: REDIS_PASSWORD || undefined,
+        db: REDIS_DB,
+      };
 
   const worker = new Worker(queueName, handleWorkerJob, { connection });
 
@@ -52,7 +58,9 @@ function main() {
     process.stdout.write(`[worker] completed ${job.id} ${job.name}\n`);
   });
   worker.on('failed', (job, err) => {
-    process.stderr.write(`[worker] failed ${job?.id} ${job?.name}: ${err.message}\n`);
+    process.stderr.write(
+      `[worker] failed ${job?.id} ${job?.name}: ${err.message}\n`,
+    );
   });
 
   process.stdout.write(`[worker] started for queue "${queueName}"\n`);

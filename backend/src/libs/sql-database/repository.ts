@@ -1,9 +1,9 @@
 import { Repository, FindManyOptions, FindOptionsWhere } from 'typeorm';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
-export class SqlRepository<T extends { id: string | number }>
-  implements IBaseRepository<T>
-{
+export class SqlRepository<
+  T extends { id: string | number },
+> implements IBaseRepository<T> {
   constructor(protected readonly repo: Repository<T>) {}
 
   find(options?: object): Promise<T[]> {
@@ -12,9 +12,9 @@ export class SqlRepository<T extends { id: string | number }>
 
   findOne(criteria: any): Promise<T | null> {
     const { withDeleted, ...where } = criteria;
-    return this.repo.findOne({ 
+    return this.repo.findOne({
       where: where as FindOptionsWhere<T>,
-      withDeleted: !!withDeleted 
+      withDeleted: !!withDeleted,
     });
   }
 

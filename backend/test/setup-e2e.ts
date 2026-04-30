@@ -18,7 +18,7 @@ beforeAll(async () => {
     process.env.MONGODB_URI = uri;
   }
 
-  // SQLite in-memory doesn't need much setup here, 
+  // SQLite in-memory doesn't need much setup here,
   // but it's handled by TypeORM configuration in DatabaseModule via process.env.DB_TYPE
 });
 

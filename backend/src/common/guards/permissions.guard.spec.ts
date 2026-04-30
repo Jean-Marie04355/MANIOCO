@@ -18,7 +18,10 @@ describe('PermissionsGuard', () => {
     guard = new PermissionsGuard(reflector, rolesService);
   });
 
-  const createMockContext = (user: any, permissions: Permission[]): ExecutionContext => {
+  const createMockContext = (
+    user: any,
+    permissions: Permission[],
+  ): ExecutionContext => {
     const context = {
       switchToHttp: () => ({
         getRequest: () => ({ user }),
@@ -37,34 +40,46 @@ describe('PermissionsGuard', () => {
   });
 
   it('should allow access if user is super_admin', async () => {
-    const context = createMockContext({ role: UserRole.SUPER_ADMIN }, [Permission.ROLES_MANAGE]);
-    (rolesService.findByName as jest.Mock).mockResolvedValue({ permissions: [Permission.ALL] });
-    
+    const context = createMockContext({ role: UserRole.SUPER_ADMIN }, [
+      Permission.ROLES_MANAGE,
+    ]);
+    (rolesService.findByName as jest.Mock).mockResolvedValue({
+      permissions: [Permission.ALL],
+    });
+
     expect(await guard.canActivate(context)).toBe(true);
   });
 
   it('should allow access if role has required permission', async () => {
-    const context = createMockContext({ role: UserRole.ADMIN }, [Permission.USERS_MANAGE]);
-    (rolesService.findByName as jest.Mock).mockResolvedValue({ 
-      permissions: [Permission.USERS_MANAGE, Permission.PRODUCTS_MANAGE] 
+    const context = createMockContext({ role: UserRole.ADMIN }, [
+      Permission.USERS_MANAGE,
+    ]);
+    (rolesService.findByName as jest.Mock).mockResolvedValue({
+      permissions: [Permission.USERS_MANAGE, Permission.PRODUCTS_MANAGE],
     });
-    
+
     expect(await guard.canActivate(context)).toBe(true);
   });
 
   it('should deny access if role is missing required permission', async () => {
-    const context = createMockContext({ role: UserRole.VENDEUR }, [Permission.ROLES_MANAGE]);
-    (rolesService.findByName as jest.Mock).mockResolvedValue({ 
-      permissions: [Permission.PRODUCTS_MANAGE] 
+    const context = createMockContext({ role: UserRole.VENDEUR }, [
+      Permission.ROLES_MANAGE,
+    ]);
+    (rolesService.findByName as jest.Mock).mockResolvedValue({
+      permissions: [Permission.PRODUCTS_MANAGE],
     });
-    
-    await expect(guard.canActivate(context)).rejects.toThrow(ForbiddenException);
+
+    await expect(guard.canActivate(context)).rejects.toThrow(
+      ForbiddenException,
+    );
   });
 
   it('should return false if user role is not found in database', async () => {
-    const context = createMockContext({ role: 'unknown' }, [Permission.USERS_MANAGE]);
+    const context = createMockContext({ role: 'unknown' }, [
+      Permission.USERS_MANAGE,
+    ]);
     (rolesService.findByName as jest.Mock).mockResolvedValue(null);
-    
+
     expect(await guard.canActivate(context)).toBe(false);
   });
 });

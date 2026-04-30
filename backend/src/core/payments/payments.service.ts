@@ -92,29 +92,41 @@ export class PaymentsService {
           status: 'APPROVED',
           paymentMethod: result.mode || 'unknown',
         });
-        
+
         // Update order status to PAID (internal call, no user context needed)
-        await this.ordersService.updateStatusInternal(transaction.orderId, 'PAID' as any);
-        
+        await this.ordersService.updateStatusInternal(
+          transaction.orderId,
+          'PAID' as any,
+        );
+
         // Fetch order details for notification
         const order = await this.ordersService.findOneById(transaction.orderId);
         if (order) {
           // Fetch customer email
-          const customer = await this.userRepository.findOne({ id: order.customerId });
+          const customer = await this.userRepository.findOne({
+            id: order.customerId,
+          });
           if (customer) {
             // Queue order confirmation email
-            const queueToken = this.configService.get('QUEUE_NAME') || 'default';
-            await this.queueService.addJob(queueToken, 'send-order-confirmation', {
-              email: customer.email,
-              orderId: order.id,
-              totalAmount: order.totalAmount,
-              items: order.items,
-            });
+            const queueToken =
+              this.configService.get('QUEUE_NAME') || 'default';
+            await this.queueService.addJob(
+              queueToken,
+              'send-order-confirmation',
+              {
+                email: customer.email,
+                orderId: order.id,
+                totalAmount: order.totalAmount,
+                items: order.items,
+              },
+            );
             this.logger.log(`Order confirmation queued for ${customer.email}`);
           }
         }
-        
-        this.logger.log(`Payment approved for transaction ${result.externalId}`);
+
+        this.logger.log(
+          `Payment approved for transaction ${result.externalId}`,
+        );
       }
     } else if (result?.status === 'DECLINED') {
       const transaction = await this.transactionRepository.findOne({
@@ -126,11 +138,13 @@ export class PaymentsService {
           status: 'DECLINED',
           paymentMethod: result.mode || 'unknown',
         });
-        
+
         // Cancel order and restore stock
         await this.ordersService.cancelOrder(transaction.orderId);
-        
-        this.logger.warn(`Payment declined/canceled for transaction ${result.externalId}. Order cancelled.`);
+
+        this.logger.warn(
+          `Payment declined/canceled for transaction ${result.externalId}. Order cancelled.`,
+        );
       }
     }
   }

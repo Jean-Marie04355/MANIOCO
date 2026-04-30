@@ -7,13 +7,13 @@ import { ConfigService } from '@nestjs/config';
 import { ChatService } from './chat.service';
 import { ChatController } from './chat.controller';
 import { Conversation, Message } from './entities/chat.entity';
-import { 
-  Conversation as MongoConversation, 
-  ConversationSchema 
+import {
+  Conversation as MongoConversation,
+  ConversationSchema,
 } from './schemas/conversation.schema';
-import { 
-  Message as MongoMessage, 
-  MessageSchema 
+import {
+  Message as MongoMessage,
+  MessageSchema,
 } from './schemas/message.schema';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';

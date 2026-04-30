@@ -46,7 +46,7 @@ export class OrdersService {
     const store = await this.storeRepository.findOne({
       id: createOrderDto.storeId,
     } as object);
-    
+
     if (!store) {
       throw new NotFoundException(`Store not found`);
     }
@@ -60,12 +60,12 @@ export class OrdersService {
     // 2. Validate products and recalculate the actual total amount
     let validatedTotalAmount = 0;
     const validatedItems: any[] = [];
-    
+
     const UNIT_FACTORS: Record<string, number> = {
-      'Sac': 50,
+      Sac: 50,
       'Demi-sac': 25,
-      'Kg': 1,
-      'Demi-kg': 0.5
+      Kg: 1,
+      'Demi-kg': 0.5,
     };
 
     for (const item of createOrderDto.items) {
@@ -100,7 +100,7 @@ export class OrdersService {
       const basePricePerKg = Number(product.price);
       const priceForRequestedUnit = basePricePerKg * factor;
       const itemTotalCost = priceForRequestedUnit * item.quantity;
-      
+
       validatedTotalAmount += itemTotalCost;
 
       validatedItems.push({
@@ -114,7 +114,8 @@ export class OrdersService {
 
     // 3. Calculate platform commission (default 10%)
     const DEFAULT_COMMISSION_RATE = 10.0;
-    const commissionAmount = (validatedTotalAmount * DEFAULT_COMMISSION_RATE) / 100;
+    const commissionAmount =
+      (validatedTotalAmount * DEFAULT_COMMISSION_RATE) / 100;
 
     // 4. Create the order in the database
     const orderData = {
@@ -149,8 +150,10 @@ export class OrdersService {
     for (const item of validatedItems) {
       const factor = UNIT_FACTORS[item.unit] || 1;
       const totalWeightToDeduct = item.quantity * factor;
-      
-      const product = await this.productRepository.findOne({ id: item.productId } as object);
+
+      const product = await this.productRepository.findOne({
+        id: item.productId,
+      } as object);
       await this.productRepository.update(product.id, {
         stock: product.stock - totalWeightToDeduct,
       });
@@ -170,8 +173,9 @@ export class OrdersService {
     } catch (error) {
       // If payment initiation fails, we cancel the order and restore stock
       await this.cancelOrder(order.id);
-      
-      const errorMessage = error instanceof Error ? error.message : String(error);
+
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       throw new BadRequestException(
         `Unable to initiate payment: ${errorMessage}. The order has been cancelled and stock restored.`,
       );
@@ -181,10 +185,7 @@ export class OrdersService {
   private async notifyAdminsOfNewOrder(order: Order, amount: number) {
     try {
       const admins = await this.userRepository.find({
-        where: [
-          { role: UserRole.ADMIN },
-          { role: UserRole.SUPER_ADMIN }
-        ]
+        where: [{ role: UserRole.ADMIN }, { role: UserRole.SUPER_ADMIN }],
       } as any);
 
       for (const admin of admins) {
@@ -193,7 +194,7 @@ export class OrdersService {
           type: NotificationType.ORDER,
           title: 'Nouvelle vente Afrigari',
           message: `Une commande de ${amount.toLocaleString()} FCFA vient d'être passée (#${order.id.split('-')[0]}).`,
-          metadata: JSON.stringify({ orderId: order.id })
+          metadata: JSON.stringify({ orderId: order.id }),
         });
       }
     } catch (error) {
@@ -229,7 +230,7 @@ export class OrdersService {
 
     await this.orderRepository.update(id, { status: OrderStatus.CANCELLED });
     await this.restoreStock(id);
-    
+
     return this.orderRepository.findOne({ id } as object);
   }
 
@@ -237,23 +238,29 @@ export class OrdersService {
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
       return this.orderRepository.find({
         relations: ['customer', 'store'],
-        order: { createdAt: 'DESC' }
+        order: { createdAt: 'DESC' },
       } as any);
     }
 
     if (user.role === UserRole.VENDEUR) {
       const store = await this.storeService.findByOwnerId(user.userId);
-      return this.orderRepository.find({ 
+      return this.orderRepository.find({
         where: { storeId: store.id },
-        relations: ['customer']
+        relations: ['customer'],
       } as object);
     }
 
-    return this.orderRepository.find({ where: { customerId: user.userId }, relations: ['store'] } as object);
+    return this.orderRepository.find({
+      where: { customerId: user.userId },
+      relations: ['store'],
+    } as object);
   }
 
   async findOne(id: string, user: AuthenticatedUser): Promise<Order | null> {
-    const order = await this.orderRepository.findOne({ id, relations: ['customer', 'store'] } as object);
+    const order = await this.orderRepository.findOne({
+      id,
+      relations: ['customer', 'store'],
+    } as object);
     if (!order) {
       throw new NotFoundException(`Commande avec l'ID ${id} non trouvée`);
     }
@@ -278,7 +285,10 @@ export class OrdersService {
     return order;
   }
 
-  async findByCustomer(customerId: string, user: AuthenticatedUser): Promise<Order[]> {
+  async findByCustomer(
+    customerId: string,
+    user: AuthenticatedUser,
+  ): Promise<Order[]> {
     if (
       user.role === UserRole.ADMIN ||
       user.role === UserRole.SUPER_ADMIN ||
@@ -289,7 +299,10 @@ export class OrdersService {
     throw new ForbiddenException('You do not have access to these orders');
   }
 
-  async findByStore(storeId: string, user: AuthenticatedUser): Promise<Order[]> {
+  async findByStore(
+    storeId: string,
+    user: AuthenticatedUser,
+  ): Promise<Order[]> {
     if (user.role === UserRole.ADMIN || user.role === UserRole.SUPER_ADMIN) {
       return this.orderRepository.find({ where: { storeId } } as object);
     }
@@ -299,21 +312,25 @@ export class OrdersService {
       if (store.id !== storeId) {
         throw new ForbiddenException('You do not have access to these orders');
       }
-      return this.orderRepository.find({ 
+      return this.orderRepository.find({
         where: { storeId },
-        relations: ['customer']
+        relations: ['customer'],
       } as object);
     }
 
     throw new ForbiddenException('You do not have access to these orders');
   }
 
-  async updateStatus(id: string, status: OrderStatus, user: AuthenticatedUser): Promise<Order | null> {
+  async updateStatus(
+    id: string,
+    status: OrderStatus,
+    user: AuthenticatedUser,
+  ): Promise<Order | null> {
     const order = await this.findOne(id, user); // findOne already checks permissions
-    
+
     // Only vendors (owners) and admins can update status
     if (user.role === UserRole.CLIENT && order.customerId === user.userId) {
-        throw new ForbiddenException('Clients cannot update order status');
+      throw new ForbiddenException('Clients cannot update order status');
     }
 
     await this.orderRepository.update(id, { status });
@@ -328,7 +345,10 @@ export class OrdersService {
    * Internal method to update order status without permission checks.
    * Used by payment webhooks and other system-level operations.
    */
-  async updateStatusInternal(id: string, status: OrderStatus): Promise<Order | null> {
+  async updateStatusInternal(
+    id: string,
+    status: OrderStatus,
+  ): Promise<Order | null> {
     await this.orderRepository.update(id, { status });
     return this.orderRepository.findOne({ id } as object);
   }
@@ -336,21 +356,32 @@ export class OrdersService {
   async getAdminDashboardStats() {
     const orders = await this.orderRepository.find();
     const users = await this.userRepository.find();
-    
-    const paidStatuses = [OrderStatus.PAID, OrderStatus.SHIPPED, OrderStatus.DELIVERED];
-    
-    const totalSalesCount = orders.filter(o => paidStatuses.includes(o.status)).length;
+
+    const paidStatuses = [
+      OrderStatus.PAID,
+      OrderStatus.SHIPPED,
+      OrderStatus.DELIVERED,
+    ];
+
+    const totalSalesCount = orders.filter((o) =>
+      paidStatuses.includes(o.status),
+    ).length;
     const totalRevenue = orders
-      .filter(o => paidStatuses.includes(o.status))
+      .filter((o) => paidStatuses.includes(o.status))
       .reduce((sum, o) => {
         const amount = Number(o.commissionAmount);
         // Fallback: if commissionAmount is missing/0 but we have a totalAmount, assume 10%
-        const actualCommission = amount > 0 ? amount : (Number(o.totalAmount || 0) * 0.10);
+        const actualCommission =
+          amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
         return sum + actualCommission;
       }, 0);
 
-    const sellersCount = users.filter(u => u.role === UserRole.VENDEUR).length;
-    const pendingKycCount = users.filter(u => u.kycStatus === 'PENDING').length;
+    const sellersCount = users.filter(
+      (u) => u.role === UserRole.VENDEUR,
+    ).length;
+    const pendingKycCount = users.filter(
+      (u) => u.kycStatus === 'PENDING',
+    ).length;
     const activeTicketsCount = await this.supportService.countActiveTickets();
 
     // Calcul de l'historique des revenus sur les 15 derniers jours
@@ -362,14 +393,15 @@ export class OrdersService {
       const dateStr = targetDate.toISOString().split('T')[0];
 
       const dayRevenue = orders
-        .filter(o => {
+        .filter((o) => {
           const isPaid = paidStatuses.includes(o.status);
           const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
           return isPaid && orderDate === dateStr;
         })
         .reduce((sum, o) => {
           const amount = Number(o.commissionAmount);
-          const actualCommission = amount > 0 ? amount : (Number(o.totalAmount || 0) * 0.10);
+          const actualCommission =
+            amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
           return sum + actualCommission;
         }, 0);
 
@@ -379,12 +411,12 @@ export class OrdersService {
     return {
       totalRevenue,
       totalSalesCount,
-      customersCount: users.filter(u => u.role === UserRole.CLIENT).length,
+      customersCount: users.filter((u) => u.role === UserRole.CLIENT).length,
       sellersCount,
       pendingKycCount,
       activeTicketsCount,
       totalUsers: users.length,
-      revenueHistory
+      revenueHistory,
     };
   }
 }

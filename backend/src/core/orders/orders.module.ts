@@ -17,7 +17,6 @@ import { RolesModule } from '../roles/roles.module';
 import { SupportModule } from '../support/support.module';
 import { User } from '../users/user.entity';
 
-
 import * as dotenv from 'dotenv';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';

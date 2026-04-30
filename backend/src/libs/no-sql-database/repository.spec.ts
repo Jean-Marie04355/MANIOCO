@@ -9,11 +9,21 @@ describe('NoSqlRepository', () => {
       ...data,
       save: jest.fn().mockResolvedValue({ _id: '1', ...data }),
     }));
-    modelMock.find = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
-    modelMock.findOne = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
-    modelMock.findByIdAndUpdate = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
-    modelMock.deleteOne = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue({}) });
-    modelMock.countDocuments = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+    modelMock.find = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
+    modelMock.findOne = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+    modelMock.findByIdAndUpdate = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+    modelMock.deleteOne = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn().mockResolvedValue({}) });
+    modelMock.countDocuments = jest
+      .fn()
+      .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
 
     repository = new NoSqlRepository(modelMock);
   });
@@ -31,7 +41,10 @@ describe('NoSqlRepository', () => {
 
   it('should call findOne', async () => {
     await repository.findOne({ email: 'test@test.com' });
-    expect(modelMock.findOne).toHaveBeenCalledWith({ email: 'test@test.com', deletedAt: null });
+    expect(modelMock.findOne).toHaveBeenCalledWith({
+      email: 'test@test.com',
+      deletedAt: null,
+    });
   });
 
   it('should create a document', async () => {
@@ -47,7 +60,11 @@ describe('NoSqlRepository', () => {
 
   it('should call update', async () => {
     await repository.update('1', { name: 'updated' });
-    expect(modelMock.findByIdAndUpdate).toHaveBeenCalledWith('1', { name: 'updated' }, { new: true });
+    expect(modelMock.findByIdAndUpdate).toHaveBeenCalledWith(
+      '1',
+      { name: 'updated' },
+      { new: true },
+    );
   });
 
   it('should call delete', async () => {
@@ -68,6 +85,9 @@ describe('NoSqlRepository', () => {
 
   it('should call softDelete', async () => {
     await repository.softDelete('1');
-    expect(modelMock.findByIdAndUpdate).toHaveBeenCalledWith('1', expect.objectContaining({ deletedAt: expect.any(Date) }));
+    expect(modelMock.findByIdAndUpdate).toHaveBeenCalledWith(
+      '1',
+      expect.objectContaining({ deletedAt: expect.any(Date) }),
+    );
   });
 });

@@ -40,17 +40,23 @@ export class PermissionsGuard implements CanActivate {
       return false;
     }
 
-    // 2. Super Admin bypass (Check role name or '*' permission)
+    // 2. Combine role permissions and user specific permissions
+    const userSpecificPermissions = (user.permissions as string[]) || [];
+    const allUserPermissions = [
+      ...new Set([...role.permissions, ...userSpecificPermissions]),
+    ];
+
+    // 3. Super Admin bypass (Check role name or '*' permission)
     if (
       user.role === UserRole.SUPER_ADMIN ||
-      role.permissions.includes(Permission.ALL)
+      allUserPermissions.includes(Permission.ALL)
     ) {
       return true;
     }
 
-    // 3. Check if all required permissions are met
+    // 4. Check if all required permissions are met
     const hasPermission = requiredPermissions.every((permission) =>
-      role.permissions.includes(permission),
+      allUserPermissions.includes(permission),
     );
 
     if (!hasPermission) {

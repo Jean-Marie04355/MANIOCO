@@ -18,5 +18,3 @@ import { WsJwtGuard } from './ws-jwt.guard';
   exports: [RealtimeGateway],
 })
 export class RealtimeModule {}
-
-

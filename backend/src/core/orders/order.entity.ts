@@ -45,7 +45,6 @@ export class Order {
   @Column('decimal', { precision: 12, scale: 2, default: 0 })
   commissionAmount: number;
 
-
   // Stockage des items en format JSON pour la flexibilité (compatible SQLite/Postgres)
   @Column('simple-json', { nullable: true })
   items: {

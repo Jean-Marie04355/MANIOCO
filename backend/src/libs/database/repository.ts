@@ -1,9 +1,9 @@
 import { Inject } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 
-export class AbstractRepository<T extends { id: string | number }>
-  implements IBaseRepository<T>
-{
+export class AbstractRepository<
+  T extends { id: string | number },
+> implements IBaseRepository<T> {
   constructor(
     @Inject('DATABASE_REPOSITORY')
     private readonly repo: IBaseRepository<T>,

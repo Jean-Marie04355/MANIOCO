@@ -34,13 +34,15 @@ describe('ProductCategoriesController', () => {
         Reflector,
       ],
     })
-    .overrideGuard(JwtAuthGuard)
-    .useValue({ canActivate: () => true })
-    .overrideGuard(PermissionsGuard)
-    .useValue({ canActivate: () => true })
-    .compile();
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .overrideGuard(PermissionsGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
-    controller = module.get<ProductCategoriesController>(ProductCategoriesController);
+    controller = module.get<ProductCategoriesController>(
+      ProductCategoriesController,
+    );
   });
 
   afterEach(() => {

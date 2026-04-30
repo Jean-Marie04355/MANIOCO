@@ -29,15 +29,16 @@ describe('RolesGuard', () => {
     guard = module.get<RolesGuard>(RolesGuard);
   });
 
-  const createMockContext = (userRole?: UserRole) => ({
-    getHandler: jest.fn(),
-    getClass: jest.fn(),
-    switchToHttp: () => ({
-      getRequest: () => ({
-        user: { role: userRole },
+  const createMockContext = (userRole?: UserRole) =>
+    ({
+      getHandler: jest.fn(),
+      getClass: jest.fn(),
+      switchToHttp: () => ({
+        getRequest: () => ({
+          user: { role: userRole },
+        }),
       }),
-    }),
-  } as unknown as ExecutionContext);
+    }) as unknown as ExecutionContext;
 
   it('should return true if no roles are required', async () => {
     reflectorMock.getAllAndOverride.mockReturnValue([]);
@@ -46,12 +47,16 @@ describe('RolesGuard', () => {
 
   it('should return true if user has required role', async () => {
     reflectorMock.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
-    expect(await guard.canActivate(createMockContext(UserRole.ADMIN))).toBe(true);
+    expect(await guard.canActivate(createMockContext(UserRole.ADMIN))).toBe(
+      true,
+    );
   });
 
   it('should return false if user does not have required role', async () => {
     reflectorMock.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
-    expect(await guard.canActivate(createMockContext(UserRole.CLIENT))).toBe(false);
+    expect(await guard.canActivate(createMockContext(UserRole.CLIENT))).toBe(
+      false,
+    );
   });
 
   it('should return false if no user in request', async () => {
@@ -77,12 +82,16 @@ describe('RolesGuard', () => {
     }).compile();
     const guard2 = module2.get<RolesGuard>(RolesGuard);
     reflectorMock.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
-    expect(await guard2.canActivate(createMockContext(UserRole.CLIENT))).toBe(false);
+    expect(await guard2.canActivate(createMockContext(UserRole.CLIENT))).toBe(
+      false,
+    );
   });
 
   it('should return true when DB role is SUPER_ADMIN', async () => {
     const rolesServiceMock3 = {
-      findByName: jest.fn().mockResolvedValue({ name: UserRole.SUPER_ADMIN, permissions: [] }),
+      findByName: jest
+        .fn()
+        .mockResolvedValue({ name: UserRole.SUPER_ADMIN, permissions: [] }),
     };
     const module3 = await Test.createTestingModule({
       providers: [
@@ -93,12 +102,16 @@ describe('RolesGuard', () => {
     }).compile();
     const guard3 = module3.get<RolesGuard>(RolesGuard);
     reflectorMock.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
-    expect(await guard3.canActivate(createMockContext(UserRole.CLIENT))).toBe(true);
+    expect(await guard3.canActivate(createMockContext(UserRole.CLIENT))).toBe(
+      true,
+    );
   });
 
   it('should return true when DB role has wildcard permission', async () => {
     const rolesServiceMock4 = {
-      findByName: jest.fn().mockResolvedValue({ name: 'custom', permissions: ['*'] }),
+      findByName: jest
+        .fn()
+        .mockResolvedValue({ name: 'custom', permissions: ['*'] }),
     };
     const module4 = await Test.createTestingModule({
       providers: [
@@ -109,6 +122,8 @@ describe('RolesGuard', () => {
     }).compile();
     const guard4 = module4.get<RolesGuard>(RolesGuard);
     reflectorMock.getAllAndOverride.mockReturnValue([UserRole.ADMIN]);
-    expect(await guard4.canActivate(createMockContext(UserRole.CLIENT))).toBe(true);
+    expect(await guard4.canActivate(createMockContext(UserRole.CLIENT))).toBe(
+      true,
+    );
   });
 });

@@ -8,7 +8,7 @@ export class AuditService {
   constructor(
     @InjectRepository(AuditLog)
     private auditRepository: Repository<AuditLog>,
-  ) { }
+  ) {}
 
   async log(data: {
     adminName: string;
@@ -31,15 +31,18 @@ export class AuditService {
 
   async getStats() {
     // Récupérer les actions des 7 derniers jours
-    const rawData = await this.auditRepository.createQueryBuilder('log')
-      .select("DATE(log.createdAt)", "date")
-      .addSelect("COUNT(*)", "count")
-      .where("log.createdAt > :date", { date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000) })
-      .groupBy("date")
-      .orderBy("date", "ASC")
+    const rawData = await this.auditRepository
+      .createQueryBuilder('log')
+      .select('DATE(log.createdAt)', 'date')
+      .addSelect('COUNT(*)', 'count')
+      .where('log.createdAt > :date', {
+        date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      })
+      .groupBy('date')
+      .orderBy('date', 'ASC')
       .getRawMany();
 
-    return rawData.map(d => ({
+    return rawData.map((d) => ({
       date: d.date,
       count: parseInt(d.count, 10),
     }));
