@@ -9,9 +9,9 @@ export class SqlRepository<
   find(options?: object): Promise<T[]> {
     if (!options) return this.repo.find();
 
-    // Si l'objet contient déjà des clés d'options TypeORM, on le passe tel quel
-    const keys = Object.keys(options);
-    const isFullOptions = keys.some(key => 
+    // Si l'objet contient déjà des clés d'options TypeORM (autre que withDeleted)
+    const { withDeleted, ...rest } = options as any;
+    const isFullOptions = Object.keys(rest).some(key => 
       ['where', 'relations', 'select', 'order', 'take', 'skip'].includes(key)
     );
 
@@ -21,7 +21,8 @@ export class SqlRepository<
 
     // Sinon, on traite comme un critère simple (where)
     return this.repo.find({ 
-      where: options as FindOptionsWhere<T> 
+      where: rest as FindOptionsWhere<T>,
+      withDeleted: !!withDeleted
     });
   }
 
