@@ -1,33 +1,4 @@
-<h1 align="center">
-  Mailpit - email testing for developers
-</h1>
-
-<div align="center">
-    <a href="https://github.com/axllent/mailpit/actions/workflows/tests.yml"><img src="https://github.com/axllent/mailpit/actions/workflows/tests.yml/badge.svg" alt="CI Tests status"></a>
-    <a href="https://github.com/axllent/mailpit/actions/workflows/release-build.yml"><img src="https://github.com/axllent/mailpit/actions/workflows/release-build.yml/badge.svg" alt="CI build status"></a>
-    <a href="https://github.com/axllent/mailpit/actions/workflows/build-docker.yml"><img src="https://github.com/axllent/mailpit/actions/workflows/build-docker.yml/badge.svg" alt="CI Docker build status"></a>
-    <a href="https://github.com/axllent/mailpit/actions/workflows/codeql-analysis.yml"><img src="https://github.com/axllent/mailpit/actions/workflows/codeql-analysis.yml/badge.svg" alt="Code quality"></a>
-    <a href="https://goreportcard.com/report/github.com/axllent/mailpit"><img src="https://goreportcard.com/badge/github.com/axllent/mailpit" alt="Go Report Card"></a>
-    <br>
-    <a href="https://github.com/axllent/mailpit/releases/latest"><img src="https://img.shields.io/github/v/release/axllent/mailpit.svg" alt="Latest release"></a>
-    <a href="https://hub.docker.com/r/axllent/mailpit"><img src="https://img.shields.io/docker/pulls/axllent/mailpit.svg" alt="Docker pulls"></a>
-</div>
-<br>
-<p align="center">
-  <a href="https://mailpit.axllent.org">Website</a>  •
-  <a href="https://mailpit.axllent.org/docs/">Documentation</a>  •
-  <a href="https://mailpit.axllent.org/docs/api-v1/">API</a>
-</p>
-
-<<<<<<< HEAD
-<hr>
-
-**Mailpit** is a small, fast, low memory, zero-dependency, multi-platform email testing tool & API for developers.
-=======
-- **Users** : Système complet d'authentification et de rôles.
-- **Stockage S3** : Gestion des images via Minio/AWS S3 avec conversion automatique.
-- **Notifications** : Système d'alertes en temps réel pour les commandes et messages.
-- **Produits** : Gestion intelligente des stocks (Conversion Kg/Demi).
+# Afrigari - Plateforme de vente de Gari
 
 ## 🚀 Fonctionnalités principales
 
@@ -59,17 +30,9 @@
 *   **Frontend** : Next.js 15+ avec Tailwind CSS pour un design moderne et premium.
 *   **Storage** : Minio (compatible S3) pour une gestion performante des médias.
 
-## 📅 Planning du Projet
+---
 
-*   **Semaines 1 - 2** : Analyse des besoins, Cahier des charges et Conception UI/UX.
-*   **Semaines 3 - 4** : Développement du Backend Core (Auth JWT, API, Intégration S3).
-*   **Semaines 5 - 6** : Développement du Frontend (Dashboard Vendeur finalisé, Stocks, Profil). Développement des autres vues (Client, Livreur) en parallèle par collaborateur.
-*   **Semaine 7** : Intégration des services tiers (Paiement FedaPay, Notifications Temps Réel).
-*   **Semaine 8** : Phase intensive de Tests (QA), Sécurisation et corrections de bugs.
-*   **Semaine 9** : Déploiement final, Documentation et Livraison.
-
-## 🚀 Démarrage rapide
->>>>>>> origin/feature/seller-products
+# Mailpit - email testing for developers
 
 It acts as an SMTP server, provides a modern web interface to view & test captured emails, and includes an API for automated integration testing.
 
