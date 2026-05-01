@@ -24,8 +24,12 @@ export class ProductsService {
 
   async create(createProductDto: CreateProductDto, user: AuthenticatedUser) {
     if (user.role === UserRole.VENDEUR) {
-      const store = await this.storeService.findByOwnerId(user.userId);
-      createProductDto.storeId = store.id;
+      try {
+        const store = await this.storeService.findByOwnerId(user.userId);
+        createProductDto.storeId = store.id;
+      } catch (error) {
+        throw new ForbiddenException('Vous devez créer une boutique avant d\'ajouter des produits');
+      }
     }
 
     // Handle Base64 image upload to S3
@@ -79,11 +83,14 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Produit non trouvé');
 
     if (user.role === UserRole.VENDEUR) {
-      const store = await this.storeService.findByOwnerId(user.userId);
-      if (product.storeId !== store.id) {
-        throw new ForbiddenException(
-          'Vous ne pouvez modifier que vos propres produits',
-        );
+      try {
+        const store = await this.storeService.findByOwnerId(user.userId);
+        if (String(product.storeId) !== String(store.id)) {
+          throw new ForbiddenException('Vous ne pouvez modifier que vos propres produits');
+        }
+      } catch (error) {
+        if (error instanceof ForbiddenException) throw error;
+        throw new ForbiddenException('Boutique non trouvée ou accès refusé');
       }
     }
 
@@ -130,11 +137,16 @@ export class ProductsService {
     if (!product) throw new NotFoundException('Produit non trouvé');
 
     if (user.role === UserRole.VENDEUR) {
-      const store = await this.storeService.findByOwnerId(user.userId);
-      if (product.storeId !== store.id) {
-        throw new ForbiddenException(
-          'Vous ne pouvez supprimer que vos propres produits',
-        );
+      try {
+        const store = await this.storeService.findByOwnerId(user.userId);
+        if (product.storeId !== store.id) {
+          throw new ForbiddenException(
+            'Vous ne pouvez supprimer que vos propres produits',
+          );
+        }
+      } catch (error) {
+        if (error instanceof ForbiddenException) throw error;
+        throw new ForbiddenException('Boutique non trouvée ou accès refusé');
       }
     }
     return this.repo.softDelete(id);

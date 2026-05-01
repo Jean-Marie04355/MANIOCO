@@ -57,7 +57,10 @@ export class StoreService {
         'Only users with role "vendeur" or "admin" can create a store.',
       );
     }
-    return this.storeRepository.create(createStoreDto);
+    return this.storeRepository.create({
+  ...createStoreDto,
+  ownerId: owner.id, 
+});
   }
 
   private mapToPublic(store: Store) {

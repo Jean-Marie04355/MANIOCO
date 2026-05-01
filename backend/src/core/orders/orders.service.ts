@@ -272,12 +272,17 @@ export class OrdersService {
     }
 
     if (user.role === UserRole.VENDEUR) {
-      const store = await this.storeService.findByOwnerId(user.userId);
-      return this.orderRepository.find({
-        where: { storeId: store.id },
-        relations: ['customer'],
-        order: { createdAt: 'DESC' }
-      } as any);
+      try {
+        const store = await this.storeService.findByOwnerId(user.userId);
+        return this.orderRepository.find({ 
+          where: { storeId: store.id },
+          relations: ['customer'],
+          order: { createdAt: 'DESC' }
+        } as any);
+      } catch (error) {
+        this.logger.warn(`No store found for vendor ${user.userId}, returning empty orders list`);
+        return [];
+      }
     }
 
     return this.orderRepository.find({ 
@@ -292,6 +297,7 @@ export class OrdersService {
       where: { id }, 
       relations: ['customer', 'store'] 
     } as any);
+
     if (!order) {
       throw new NotFoundException(`Commande avec l'ID ${id} non trouvée`);
     }
@@ -303,13 +309,14 @@ export class OrdersService {
 
     if (user.role === UserRole.VENDEUR) {
       const store = await this.storeService.findByOwnerId(user.userId);
-      if (order.storeId !== store.id) {
+      if (String(order.storeId) !== String(store.id)) {
+        this.logger.warn(`Access denied for vendor ${user.userId} to order ${id}. Order storeId: ${order.storeId}, Vendor storeId: ${store.id}`);
         throw new ForbiddenException('You do not have access to this order');
       }
       return order;
     }
 
-    if (order.customerId !== user.userId) {
+    if (String(order.customerId) !== String(user.userId)) {
       throw new ForbiddenException('You do not have access to this order');
     }
 
@@ -325,7 +332,11 @@ export class OrdersService {
       user.role === UserRole.SUPER_ADMIN ||
       user.userId === customerId
     ) {
-      return this.orderRepository.find({ where: { customerId } } as object);
+      return this.orderRepository.find({ 
+        where: { customerId },
+        relations: ['store'],
+        order: { createdAt: 'DESC' }
+      } as any);
     }
     throw new ForbiddenException('You do not have access to these orders');
   }
@@ -346,26 +357,38 @@ export class OrdersService {
       return this.orderRepository.find({
         where: { storeId },
         relations: ['customer'],
-      } as object);
+        order: { createdAt: 'DESC' }
+      } as any);
     }
 
     throw new ForbiddenException('You do not have access to these orders');
   }
 
   async updateStatus(id: string, status: OrderStatus, user: AuthenticatedUser, reason?: string): Promise<Order | null> {
-    const order = await this.findOne(id, user); // findOne already checks permissions
-
+    this.logger.log(`Updating status for order ${id} to ${status} by user ${user.userId}`);
+    
+    // Check if order exists and user has permission
+    const order = await this.findOne(id, user); 
+    
     // Only vendors (owners) and admins can update status
-    if (user.role === UserRole.CLIENT && order.customerId === user.userId) {
-      throw new ForbiddenException('Clients cannot update order status');
+    if (user.role === UserRole.CLIENT) {
+        throw new ForbiddenException('Clients cannot update order status');
     }
 
     if (status === OrderStatus.CANCELLED) {
       return this.cancelOrder(id, reason);
     }
 
-    await this.orderRepository.update(id, { status });
-    return this.findOne(id, user);
+    try {
+      await this.orderRepository.update(id, { status });
+      this.logger.log(`Order ${id} status updated successfully to ${status}`);
+      
+      // Reload order to return updated version
+      return this.findOne(id, user);
+    } catch (error) {
+      this.logger.error(`Failed to update order ${id} status: ${error.message}`);
+      throw new BadRequestException(`Erreur lors de la mise à jour du statut: ${error.message}`);
+    }
   }
 
   async findById(id: string): Promise<Order | null> {

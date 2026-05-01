@@ -132,8 +132,8 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.price || !formData.categoryId) {
-      alert("Veuillez remplir les champs obligatoires.");
+    if (!formData.name || !formData.price || !formData.categoryId || !imagePreview) {
+      alert("Veuillez remplir tous les champs obligatoires, y compris l'image du produit.");
       return;
     }
 
@@ -189,7 +189,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
           <form id="product-form" onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">Nom du produit</label>
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  Nom du produit <span className="text-red-500">*</span>
+                </label>
                 <input 
                   type="text" 
                   required
@@ -200,7 +202,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                 />
               </div>
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Catégorie</label>
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  Catégorie <span className="text-red-500">*</span>
+                </label>
                 <div className="relative">
                   {categories.length > 0 ? (
                     <>
@@ -238,7 +242,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Prix (FCFA)</label>
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  Prix (FCFA) <span className="text-red-500">*</span>
+                </label>
                 <input 
                   type="number" 
                   required
@@ -249,7 +255,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                 />
               </div>
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Stock disponible</label>
+                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  Stock disponible <span className="text-red-500">*</span>
+                </label>
                 <div className="flex items-center gap-2 bg-slate-50 rounded-2xl px-4 py-3.5 shadow-inner">
                   <input 
                     type="number" 
@@ -294,7 +302,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
             </div>
 
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Image du produit</label>
+              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                Image du produit <span className="text-red-500">*</span>
+              </label>
               <div className="w-40">
                 <input 
                   type="file" 

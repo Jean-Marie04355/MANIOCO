@@ -19,35 +19,35 @@ export default function ShopDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const [isStartingChat, setIsStartingChat] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  
+  const isOwner = user && store && (user.id === store.ownerId || (user as any).userId === store.ownerId);
 
   // Bibliothèque de liens internet réels (identique au dashboard principal)
   const getRealInternetLink = (product: any) => {
     const name = (product.name || "").toLowerCase();
-    const dbPath = product.image;
+    const dbPath = product.image || product.profilePhoto;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-    if (dbPath && dbPath.startsWith('http') && !dbPath.includes('127.0.0.1') && !dbPath.includes('localhost')) {
+    if (!dbPath) {
+      // Fallbacks par défaut si pas d'image
+      if (name.includes('gari')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('farine')) return "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=800";
+      if (name.includes('manioc')) return "https://images.unsplash.com/photo-1590736704728-f4730bb3c3af?auto=format&fit=crop&q=80&w=800";
+      return "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&q=80&w=800";
+    }
+
+    if (dbPath.startsWith('data:image')) {
        return dbPath;
     }
 
-    if (dbPath && (dbPath.startsWith('/') || dbPath.startsWith('uploads/'))) {
-       return `${apiUrl}${dbPath.startsWith('/') ? '' : '/'}${dbPath}`;
-    }
-
-    if (dbPath?.startsWith('data:image')) {
+    if (dbPath.startsWith('http')) {
        return dbPath;
     }
 
-    if (name.includes('gari premium')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
-    if (name.includes('gari sodja')) return "https://images.unsplash.com/photo-1590736704728-f4730bb3c3af?auto=format&fit=crop&q=80&w=800";
-    if (name.includes('gari')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
-    if (name.includes('farine')) return "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=800";
-    if (name.includes('manioc')) return "https://images.unsplash.com/photo-1590736704728-f4730bb3c3af?auto=format&fit=crop&q=80&w=800";
-    if (name.includes('maïs')) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&q=80&w=800";
-    if (name.includes('huile')) return "https://images.unsplash.com/photo-1474979266404-7eaacbadcbaf?auto=format&fit=crop&q=80&w=800";
-    if (name.includes('soja')) return "https://images.unsplash.com/photo-1589927951682-5110a39423e8?auto=format&fit=crop&q=80&w=800";
-
-    return "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&q=80&w=800";
+    // Gestion des chemins locaux (ex: uploads/image.jpg ou image.jpg)
+    const cleanPath = dbPath.startsWith('/') ? dbPath : `/${dbPath}`;
+    const finalPath = cleanPath.startsWith('/uploads') ? cleanPath : `/uploads${cleanPath}`;
+    return `${apiUrl}${finalPath}`;
   };
 
   const handleContact = async () => {
@@ -111,11 +111,13 @@ export default function ShopDetails() {
       {/* Navigation */}
       <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-700 px-8 ${scrolled ? 'py-4' : 'py-12'}`}>
          <div className={`max-w-[1400px] mx-auto flex justify-between items-center px-12 py-6 transition-all duration-700 ${scrolled ? 'bg-white/80 backdrop-blur-2xl rounded-full shadow-2xl border border-white' : ''}`}>
-            <Link href="/dashboard/client" className="flex items-center gap-4 group">
+            <Link href={isOwner ? "/dashboard/seller/settings/store" : "/dashboard/client"} className="flex items-center gap-4 group">
                <div className="w-10 h-10 rounded-full border border-[#1a2e22]/10 flex items-center justify-center group-hover:bg-[#1a2e22] group-hover:text-white transition-all shadow-sm">
                   <ArrowLeft size={20} />
                </div>
-               <span className="font-black text-[11px] uppercase tracking-[0.3em] hidden md:block">Retour au Marché</span>
+               <span className="font-black text-[11px] uppercase tracking-[0.3em] hidden md:block">
+                  {isOwner ? "Retour aux Paramètres" : "Retour au Marché"}
+               </span>
             </Link>
 
             <div className="flex items-center gap-10">
@@ -173,6 +175,13 @@ export default function ShopDetails() {
                   </div>
                   <h1 className="text-7xl md:text-8xl font-black tracking-[-0.05em] uppercase mb-8 italic font-serif leading-none">{store.name}</h1>
                   <p className="text-xl text-white/80 max-w-3xl font-medium leading-relaxed italic">{store.description || "Découvrez une sélection unique de produits d'exception, authentiques et traçables par Afrigari."}</p>
+                  
+                  {isOwner && (
+                     <div className="mt-8 inline-flex items-center gap-3 px-6 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
+                        <div className="w-2 h-2 bg-[#c5a059] rounded-full animate-pulse"></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white/90">Vous visualisez votre boutique (Mode Aperçu)</span>
+                     </div>
+                  )}
                </div>
             </div>
          </div>
@@ -216,11 +225,11 @@ export default function ShopDetails() {
                <p className="text-sm text-white/60 mb-10 relative z-10 leading-relaxed font-medium">Posez vos questions directement à l'artisan via notre messagerie sécurisée.</p>
                <button 
                   onClick={handleContact}
-                  disabled={isStartingChat}
+                  disabled={isStartingChat || isOwner}
                   className="bg-white text-[#1a2e22] px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest relative z-10 hover:bg-[#c5a059] hover:text-white transition-all disabled:opacity-50 flex items-center gap-4 group"
                >
                   <MessageSquare size={16} />
-                  {isStartingChat ? "Connexion..." : "Ouvrir le Chat"}
+                  {isOwner ? "Votre Boutique" : (isStartingChat ? "Connexion..." : "Ouvrir le Chat")}
                </button>
                <TrendingUp size={120} className="absolute -right-10 -bottom-10 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-1000" />
             </div>
@@ -248,6 +257,7 @@ export default function ShopDetails() {
                         product={product} 
                         addToCart={addToCart} 
                         getImageUrl={() => getRealInternetLink(product)} 
+                        isOwner={isOwner}
                      />
                   ))}
                </div>
@@ -272,7 +282,7 @@ function ContactItem({ icon: Icon, label, value }: any) {
    );
 }
 
-function ProductCard({ product, addToCart, getImageUrl }: any) {
+function ProductCard({ product, addToCart, getImageUrl, isOwner }: any) {
    return (
       <div className="group bg-white rounded-[70px] overflow-hidden border border-[#1a2e22]/5 shadow-2xl hover:shadow-3xl hover:-translate-y-4 transition-all duration-1000 p-6 ring-1 ring-slate-50 border-[10px] border-white">
          <div className="relative aspect-[4/3] rounded-[56px] overflow-hidden mb-8 bg-slate-50">
@@ -281,12 +291,14 @@ function ProductCard({ product, addToCart, getImageUrl }: any) {
                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s] block" 
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-            <button 
-               onClick={(e) => { e.preventDefault(); addToCart(product); }}
-               className="absolute bottom-8 right-8 w-16 h-16 bg-white text-[#1a2e22] rounded-full flex items-center justify-center shadow-3xl opacity-0 translate-y-6 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 hover:bg-[#c5a059] hover:text-white z-20"
-            >
-               <Plus size={28} className="group-hover:rotate-90 transition-transform" />
-            </button>
+            {!isOwner && (
+               <button 
+                  onClick={(e) => { e.preventDefault(); addToCart(product); }}
+                  className="absolute bottom-8 right-8 w-16 h-16 bg-white text-[#1a2e22] rounded-full flex items-center justify-center shadow-3xl opacity-0 translate-y-6 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 hover:bg-[#c5a059] hover:text-white z-20"
+               >
+                  <Plus size={28} className="group-hover:rotate-90 transition-transform" />
+               </button>
+            )}
          </div>
          
          <div className="px-6 pb-6">
@@ -298,12 +310,14 @@ function ProductCard({ product, addToCart, getImageUrl }: any) {
             
             <div className="flex justify-between items-center bg-[#1a2e22]/5 p-3 rounded-[32px] group-hover:bg-[#1a2e22] group-hover:text-white transition-all duration-700 shadow-sm border border-[#1a2e22]/5">
                <span className="text-2xl font-black ml-4 tracking-tighter">{Number(product.price).toLocaleString('fr-FR')} FCFA</span>
-               <div 
-                  onClick={(e) => { e.preventDefault(); addToCart(product); }}
-                  className="w-14 h-14 rounded-2xl bg-white text-[#1a2e22] flex items-center justify-center group-hover:bg-[#c5a059] group-hover:text-white transition-all shadow-xl cursor-pointer"
-               >
-                  <ShoppingCart size={20} />
-               </div>
+               {!isOwner && (
+                  <div 
+                     onClick={(e) => { e.preventDefault(); addToCart(product); }}
+                     className="w-14 h-14 rounded-2xl bg-white text-[#1a2e22] flex items-center justify-center group-hover:bg-[#c5a059] group-hover:text-white transition-all shadow-xl cursor-pointer"
+                  >
+                     <ShoppingCart size={20} />
+                  </div>
+               )}
             </div>
          </div>
       </div>

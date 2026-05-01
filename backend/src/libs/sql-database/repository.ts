@@ -26,20 +26,42 @@ export class SqlRepository<
     });
   }
 
-  findOne(options: any): Promise<T | null> {
-    if (!options) return this.repo.findOne({ where: {} as any });
+  findOne(criteria: any): Promise<T | null> {
+    if (!criteria) return this.repo.findOne({ where: {} as any });
 
-    // Si l'objet contient déjà des clés d'options TypeORM, on le passe tel quel
-    if (options.where || options.relations || options.select || options.order || options.take || options.skip) {
-      return this.repo.findOne(options as FindManyOptions<T>);
+    const options: any = {};
+    
+    // Si criteria contient déjà des options TypeORM connues
+    if (criteria.where || criteria.relations || criteria.order || criteria.select || criteria.take || criteria.skip) {
+      options.where = criteria.where;
+      options.relations = criteria.relations;
+      options.order = criteria.order;
+      options.select = criteria.select;
+      options.take = criteria.take;
+      options.skip = criteria.skip;
+      options.withDeleted = !!criteria.withDeleted;
+
+      // Si criteria contient aussi d'autres champs à la racine (comme 'id'), 
+      // et que 'where' n'est pas défini, on les utilise comme 'where'
+      if (!options.where) {
+        const { relations, withDeleted, order, select, take, skip, ...where } = criteria;
+        if (Object.keys(where).length > 0) {
+          options.where = where as FindOptionsWhere<T>;
+        }
+      }
+    } else {
+      // Sinon on traite criteria comme l'objet 'where'
+      const { relations, withDeleted, order, select, take, skip, ...where } = criteria;
+      options.where = where as FindOptionsWhere<T>;
+      options.relations = relations;
+      options.order = order;
+      options.select = select;
+      options.take = take;
+      options.skip = skip;
+      options.withDeleted = !!withDeleted;
     }
 
-    // Sinon, on traite comme un critère simple (comportement d'origine)
-    const { withDeleted, ...where } = options;
-    return this.repo.findOne({ 
-      where: where as FindOptionsWhere<T>,
-      withDeleted: !!withDeleted,
-    });
+    return this.repo.findOne(options);
   }
 
   async create(data: Partial<T>): Promise<T> {

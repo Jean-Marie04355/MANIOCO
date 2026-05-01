@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, Loader2, ShoppingBag } from 'lucide-react';
+import api from '@/lib/axios';
 
 export default function PaymentCallbackPage() {
   const router = useRouter();
@@ -10,12 +11,26 @@ export default function PaymentCallbackPage() {
   const orderId = searchParams.get('orderId');
 
   useEffect(() => {
+    const verifyPayment = async () => {
+      if (orderId) {
+        try {
+          // Call the manual verification endpoint
+          await api.get(`/payments/verify/${orderId}`);
+          console.log("Paiement vérifié avec succès");
+        } catch (error) {
+          console.error("Erreur lors de la vérification du paiement", error);
+        }
+      }
+    };
+
+    verifyPayment();
+
     const timer = window.setTimeout(() => {
       router.push('/dashboard/client/orders');
-    }, 2500);
+    }, 3000);
 
     return () => window.clearTimeout(timer);
-  }, [router]);
+  }, [router, orderId]);
 
   return (
     <div className="min-h-screen bg-organic-cream flex items-center justify-center px-6">

@@ -52,37 +52,29 @@ export default function ClientDashboardV3() {
    const [visibleCount, setVisibleCount] = useState(8);
 
    // Bibliothèque de liens internet réels pour la démo
-   const getRealInternetLink = (product: Pick<Product, 'name' | 'image'>) => {
-      const name = (product.name || "").toLowerCase();
-      const dbPath = product.image;
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-
-      // Si le lien en DB est déjà un vrai lien internet qui marche, on le garde
-      if (dbPath && dbPath.startsWith('http') && !dbPath.includes('127.0.0.1') && !dbPath.includes('localhost')) {
-         return dbPath;
-      }
-
-      if (dbPath && (dbPath.startsWith('/') || dbPath.startsWith('uploads/'))) {
-         return `${apiUrl}${dbPath.startsWith('/') ? '' : '/'}${dbPath}`;
-      }
-
-      if (dbPath?.startsWith('data:image')) {
-         return dbPath;
-      }
-
-      // Sinon, on pioche dans notre bibliothèque de liens internet haute qualité
-      if (name.includes('gari premium')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('gari sodja')) return "https://images.unsplash.com/photo-1590736704728-f4730bb3c3af?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('gari')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('farine')) return "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('manioc')) return "https://images.unsplash.com/photo-1590736704728-f4730bb3c3af?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('maïs')) return "https://images.unsplash.com/photo-1551754655-cd27e38d2076?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('huile')) return "https://images.unsplash.com/photo-1474979266404-7eaacbadcbaf?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('soja')) return "https://images.unsplash.com/photo-1589927951682-5110a39423e8?auto=format&fit=crop&q=80&w=800";
-
-      // Lien par défaut (Panier de produits frais)
-      return "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&q=80&w=800";
-   };
+    const getRealInternetLink = (product: Pick<Product, 'name' | 'image'>) => {
+       const dbPath = product.image;
+       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+ 
+       if (!dbPath || String(dbPath).trim() === '' || dbPath === 'null') {
+          return "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&q=80&w=800";
+       }
+ 
+       // Si c'est déjà une URL complète ou du Base64, on ne touche à rien
+       if (dbPath.startsWith('http') || dbPath.startsWith('data:')) {
+          return dbPath;
+       }
+ 
+       // Si le chemin contient déjà 'uploads/', on s'assure juste du slash initial
+       if (dbPath.includes('uploads/')) {
+          const cleanPath = dbPath.startsWith('/') ? dbPath : `/${dbPath}`;
+          return `${apiUrl}${cleanPath}`;
+       }
+ 
+       // Sinon, on rajoute /uploads/ car c'est là que le backend sert les fichiers statiques
+       const cleanPath = dbPath.startsWith('/') ? dbPath : `/${dbPath}`;
+       return `${apiUrl}/uploads${cleanPath}`;
+    };
 
    useEffect(() => {
       const handleScroll = () => setScrolled(window.scrollY > 50);

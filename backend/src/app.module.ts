@@ -25,9 +25,16 @@ import { ChatModule } from './core/chat/chat.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { SupportModule } from './core/support/support.module';
 
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
+      serveRoot: '/uploads',
+    }),
     DatabaseModule.register(),
     RolesModule,
     StorageModule,

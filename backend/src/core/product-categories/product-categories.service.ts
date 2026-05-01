@@ -22,15 +22,25 @@ export class ProductCategoriesService {
 
   async create(createDto: CreateProductCategoryDto, user: AuthenticatedUser) {
     if (user.role === UserRole.VENDEUR) {
-      const store = await this.storeService.findByOwnerId(user.userId);
-      createDto.storeId = store.id;
+      try {
+        const store = await this.storeService.findByOwnerId(user.userId);
+        createDto.storeId = store.id;
+      } catch (error) {
+        throw new ForbiddenException('Vous devez créer une boutique avant de créer une catégorie');
+      }
     }
     return this.repo.create(createDto);
   }
 
   async findAll(storeId?: string) {
     if (storeId) {
-      return this.repo.find({ where: { storeId } } as object);
+      // Retourne les catégories de la boutique PLUS les catégories globales (storeId null)
+      return this.repo.find({ 
+        where: [
+          { storeId },
+          { storeId: null }
+        ]
+      } as any);
     }
     return this.repo.find();
   }

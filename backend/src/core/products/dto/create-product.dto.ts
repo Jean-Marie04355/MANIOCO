@@ -23,18 +23,18 @@ export class CreateProductDto {
   @IsOptional()
   currency?: string;
 
-  @ApiPropertyOptional({ example: 10, description: 'Le stock disponible' })
+  @ApiProperty({ example: 10, description: 'Le stock disponible' })
   @IsNumber()
-  @IsOptional()
-  stock?: number;
+  @IsNotEmpty()
+  stock: number;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: 'Kg',
     description: 'Unité de mesure du stock',
   })
   @IsIn(['Sac', 'Demi-sac', 'Kg', 'Demi-kg'])
-  @IsOptional()
-  unit?: string;
+  @IsNotEmpty()
+  unit: string;
 
   @ApiPropertyOptional({
     example: 'Dernier modèle avec 5G',
@@ -44,21 +44,21 @@ export class CreateProductDto {
   @IsOptional()
   description?: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: 'https://example.com/image.jpg',
     description: "URL de l'image du produit",
   })
   @IsString()
-  @IsOptional()
-  image?: string;
+  @IsNotEmpty()
+  image: string;
 
-  @ApiPropertyOptional({
+  @ApiProperty({
     example: 'UUID-or-ObjectId',
     description: 'ID de la boutique associée',
   })
   @IsString()
-  @IsOptional()
-  storeId?: string;
+  @IsNotEmpty()
+  storeId: string;
 
   @ApiProperty({
     example: 'UUID-or-ObjectId',

@@ -48,8 +48,7 @@ export class OrdersController {
 
   @Get(':id')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(Permission.ORDERS_MANAGE)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: 'Récupérer une commande par son ID' })
   findOne(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.ordersService.findOne(id, user);
@@ -57,8 +56,7 @@ export class OrdersController {
 
   @Get('customer/:customerId')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(Permission.ORDERS_MANAGE)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Lister les commandes d'un client" })
   findByCustomer(
     @Param('customerId') customerId: string,
@@ -69,8 +67,7 @@ export class OrdersController {
 
   @Get('store/:storeId')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(Permission.ORDERS_MANAGE)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Lister les commandes d'une boutique" })
   findByStore(
     @Param('storeId') storeId: string,
@@ -81,8 +78,7 @@ export class OrdersController {
 
   @Patch(':id/status')
   @ApiBearerAuth()
-  @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(Permission.ORDERS_MANAGE)
+  @UseGuards(JwtAuthGuard)
   @ApiOperation({ summary: "Mettre à jour le statut d'une commande" })
   updateStatus(
     @Param('id') id: string,

@@ -17,10 +17,22 @@ export default function ClientMessages() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const getImageUrl = (path: string) => {
-    if (!path) return "https://i.pravatar.cc/100?u=shop";
-    if (path.startsWith('http')) return path;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-    return `${apiUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+    if (!path || String(path).trim() === '' || path === 'null') return "https://i.pravatar.cc/100?u=shop";
+    
+    // Si c'est déjà une URL complète ou du Base64, on ne touche à rien
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    
+    // Si le chemin contient déjà 'uploads/', on s'assure juste du slash initial
+    if (path.includes('uploads/')) {
+       const cleanPath = path.startsWith('/') ? path : `/${path}`;
+       return `${apiUrl}${cleanPath}`;
+    }
+    
+    // Sinon, on part du principe que c'est un fichier dans uploads
+    const cleanPath = path.startsWith('/') ? path : `/${path}`;
+    return `${apiUrl}/uploads${cleanPath}`;
   };
 
   useEffect(() => {
@@ -240,6 +252,15 @@ export default function ClientMessages() {
                         <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-reveal`}>
                            <div className="flex flex-col max-w-[65%]">
                               <div className={`p-5 rounded-[32px] shadow-sm ${isMe ? 'bg-[#1a2e22] text-white rounded-tr-none' : 'bg-white text-[#1a2e22] rounded-tl-none border border-[#1a2e22]/5'}`}>
+                                 {m.image && (
+                                   <div className="relative w-full aspect-[4/3] mb-3 rounded-2xl overflow-hidden border border-[#1a2e22]/5 shadow-inner cursor-pointer">
+                                     <img 
+                                       src={getImageUrl(m.image)} 
+                                       alt="Envoyé" 
+                                       className="object-cover w-full h-full hover:scale-105 transition-transform duration-500" 
+                                     />
+                                   </div>
+                                 )}
                                  <p className="text-sm font-medium leading-relaxed">{m.text}</p>
                               </div>
                               <div className={`flex items-center gap-2 mt-2 px-2 text-[9px] font-black uppercase opacity-30 ${isMe ? 'justify-end' : 'justify-start'}`}>
