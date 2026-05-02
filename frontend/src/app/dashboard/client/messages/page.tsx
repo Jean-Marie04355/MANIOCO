@@ -1,13 +1,16 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { Send, ArrowLeft, Store, MessageSquare, Loader2, CheckCheck, Phone, Video, MoreVertical, Search, ShieldCheck } from 'lucide-react';
+import { useSearchParams } from 'next/navigation';
+import { Send, ArrowLeft, Store, MessageSquare, Loader2, CheckCheck, Phone, Video, MoreVertical, Search, ShieldCheck, Image as ImageIcon } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { io } from 'socket.io-client';
 
 export default function ClientMessages() {
   const { user } = useAuth();
+  const searchParams = useSearchParams();
+  const targetSellerId = searchParams.get('sellerId');
   const [conversations, setConversations] = useState<any[]>([]);
   const [activeConv, setActiveConv] = useState<any>(null);
   const [messages, setMessages] = useState<any[]>([]);
@@ -15,6 +18,7 @@ export default function ClientMessages() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const getImageUrl = (path: string) => {
     if (!path || String(path).trim() === '' || path === 'null') return "https://i.pravatar.cc/100?u=shop";
@@ -38,9 +42,29 @@ export default function ClientMessages() {
   useEffect(() => {
     const fetchConversations = async () => {
       try {
+        let initialConvId = null;
+        
+        // If we have a target seller, initialize that conversation first
+        if (targetSellerId) {
+           try {
+              const initRes = await api.post('/chat/conversations/init', { storeId: targetSellerId });
+              initialConvId = initRes.data.id;
+           } catch (e) {
+              console.error("Erreur initiation conversation", e);
+           }
+        }
+
         const res = await api.get('/chat/conversations');
         setConversations(res.data);
-        if (res.data.length > 0) {
+        
+        if (initialConvId) {
+           const found = res.data.find((c: any) => c.id === initialConvId);
+           if (found) {
+              setActiveConv(found);
+           } else if (res.data.length > 0) {
+              setActiveConv(res.data[0]);
+           }
+        } else if (res.data.length > 0) {
           setActiveConv(res.data[0]);
         }
       } catch (error) {
@@ -50,7 +74,7 @@ export default function ClientMessages() {
       }
     };
     fetchConversations();
-  }, []);
+  }, [targetSellerId]);
 
   useEffect(() => {
     if (activeConv) {
@@ -128,6 +152,35 @@ export default function ClientMessages() {
     } finally {
       setIsSending(false);
       setTimeout(scrollToBottom, 50);
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeConv || isSending) return;
+
+    setIsSending(true);
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const uploadRes = await api.post('/files/upload', formData);
+      const imageUrl = uploadRes.data.url;
+
+      await api.post('/chat/messages', {
+        conversationId: activeConv.id,
+        text: '',
+        image: imageUrl
+      });
+
+      const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
+      setMessages(res.data);
+      setTimeout(scrollToBottom, 50);
+    } catch (error) {
+      console.error("Erreur envoi image", error);
+      alert("Erreur lors de l'envoi de l'image");
+    } finally {
+      setIsSending(false);
     }
   };
 
@@ -273,21 +326,33 @@ export default function ClientMessages() {
                     })}
                 </div>
 
-                {/* Message Input Area */}
                 <div className="p-8 bg-white/50 backdrop-blur-md border-t border-[#1a2e22]/5 relative z-10">
-                   <div className="max-w-4xl mx-auto flex gap-6 bg-white p-3 rounded-[40px] shadow-2xl border border-[#1a2e22]/5">
+                   <div className="max-w-4xl mx-auto flex gap-6 bg-white p-3 rounded-[40px] shadow-2xl border border-[#1a2e22]/5 items-center">
+                      <input 
+                         type="file" 
+                         className="hidden" 
+                         ref={fileInputRef} 
+                         accept="image/*"
+                         onChange={handleImageUpload}
+                      />
+                      <button 
+                         onClick={() => fileInputRef.current?.click()}
+                         className="w-12 h-12 rounded-full flex items-center justify-center text-[#1a2e22]/30 hover:bg-[#1a2e22]/5 hover:text-[#1a2e22] transition-all ml-2"
+                      >
+                         <ImageIcon size={22} />
+                      </button>
                       <input 
                          type="text" 
                          value={inputText}
                          onChange={(e) => setInputText(e.target.value)}
                          onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                          placeholder="Écrivez votre message à l'artisan..." 
-                         className="flex-1 bg-transparent border-none px-6 py-4 text-sm font-bold outline-none placeholder:text-[#1a2e22]/20"
+                         className="flex-1 bg-transparent border-none px-2 py-4 text-sm font-bold outline-none placeholder:text-[#1a2e22]/20"
                       />
                       <button 
                          onClick={handleSend}
                          disabled={isSending || !inputText.trim()}
-                         className="w-14 h-14 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50"
+                         className="w-14 h-14 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 mr-1"
                       >
                          {isSending ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className="rotate-12" />}
                       </button>

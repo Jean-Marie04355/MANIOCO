@@ -57,6 +57,12 @@ export class Order {
   }[];
 
   @Column({ nullable: true })
+  shippingAddress: string;
+
+  @Column({ nullable: true })
+  shippingPhone: string;
+
+  @Column({ nullable: true })
   cancellationReason: string;
 
   @CreateDateColumn()

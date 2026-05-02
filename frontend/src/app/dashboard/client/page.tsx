@@ -1,7 +1,7 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
-import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -51,6 +51,13 @@ export default function ClientDashboardV3() {
    const [searchQuery, setSearchQuery] = useState('');
    const [visibleCount, setVisibleCount] = useState(8);
 
+   const [notifications, setNotifications] = useState<any[]>([]);
+   const [unreadCount, setUnreadCount] = useState(0);
+   const [unreadMessages, setUnreadMessages] = useState(0);
+   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+   const notificationsRef = useRef<HTMLDivElement>(null);
+   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
+
    // Bibliothèque de liens internet réels pour la démo
     const getRealInternetLink = (product: Pick<Product, 'name' | 'image'>) => {
        const dbPath = product.image;
@@ -96,7 +103,89 @@ export default function ClientDashboardV3() {
       };
 
       fetchDynamicData();
+
+      // Notifications and counts logic
+      const fetchNotifications = async () => {
+         try {
+            setIsNotificationLoading(true);
+            const res = await api.get('/notifications');
+            setNotifications(res.data);
+         } catch (error) {
+            console.error('Erreur lors de la récupération des notifications', error);
+         } finally {
+            setIsNotificationLoading(false);
+         }
+      };
+
+      const fetchCounts = async () => {
+         try {
+            const [notifRes, chatRes] = await Promise.all([
+               api.get('/notifications/unread-count'),
+               api.get('/chat/unread-count')
+            ]);
+            setUnreadCount(notifRes.data);
+            setUnreadMessages(chatRes.data);
+         } catch (e) {}
+      };
+
+      if (user) {
+         fetchNotifications();
+         fetchCounts();
+         const interval = setInterval(() => {
+            fetchNotifications();
+            fetchCounts();
+         }, 60000);
+         return () => {
+            clearInterval(interval);
+            window.removeEventListener('scroll', handleScroll);
+         };
+      }
+
       return () => window.removeEventListener('scroll', handleScroll);
+   }, [user]);
+
+   const markAllAsRead = async () => {
+      try {
+         await api.patch('/notifications/read-all');
+         setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+         setUnreadCount(0);
+      } catch (error) {
+         console.error('Erreur lors du marquage des notifications', error);
+      }
+   };
+
+   const markAsRead = async (id: string) => {
+      try {
+         await api.patch(`/notifications/${id}/read`);
+         setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+         setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch (error) {
+         console.error('Erreur lors du marquage de la notification', error);
+      }
+   };
+
+   const timeAgo = (date: string) => {
+      const now = new Date();
+      const past = new Date(date);
+      const diffInMs = now.getTime() - past.getTime();
+      const diffInMins = Math.floor(diffInMs / 60000);
+      const diffInHours = Math.floor(diffInMins / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      if (diffInMins < 1) return 'À l\'instant';
+      if (diffInMins < 60) return `Il y a ${diffInMins} min`;
+      if (diffInHours < 24) return `Il y a ${diffInHours}h`;
+      return `Il y a ${diffInDays}j`;
+   };
+
+   useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+         if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+            setIsNotificationsOpen(false);
+         }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
    }, []);
 
    const filteredProducts = products.filter(p => {
@@ -141,6 +230,76 @@ export default function ClientDashboardV3() {
                            className="bg-[#1a2e22]/5 border-none rounded-full py-3.5 pl-12 pr-8 text-[11px] font-black uppercase tracking-widest focus:ring-2 focus:ring-[#c5a059] outline-none w-48 transition-all focus:w-80"
                         />
                      </div>
+
+                     {/* Messages */}
+                     <Link href="/dashboard/client/messages" className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all">
+                        <MessageSquare size={22} className="group-hover:scale-110 transition-transform" />
+                        {unreadMessages > 0 && (
+                           <>
+                              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full animate-ping opacity-75"></span>
+                              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-white animate-pulse">
+                                 {unreadMessages}
+                              </span>
+                           </>
+                        )}
+                     </Link>
+
+                     {/* Notifications */}
+                     <div className="relative" ref={notificationsRef}>
+                        <div
+                           onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                           className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
+                        >
+                           <Bell size={22} className="group-hover:scale-110 transition-transform" />
+                           {unreadCount > 0 && (
+                              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-white animate-bounce">
+                                 {unreadCount > 9 ? '9+' : unreadCount}
+                              </span>
+                           )}
+                        </div>
+
+                        {isNotificationsOpen && (
+                           <div className="absolute right-0 mt-4 w-80 bg-white rounded-[2rem] shadow-2xl border border-[#1a2e22]/5 py-6 z-[300] animate-reveal overflow-hidden">
+                              <div className="px-8 pb-4 border-b border-[#1a2e22]/5 flex justify-between items-center">
+                                 <h3 className="text-xs font-black text-[#1a2e22] uppercase tracking-widest">Notifications</h3>
+                                 {unreadCount > 0 && (
+                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full text-[#c5a059] bg-[#c5a059]/10">{unreadCount} NOUVELLES</span>
+                                 )}
+                              </div>
+                              <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                                 {isNotificationLoading && notifications.length === 0 ? (
+                                    <div className="px-8 py-8 text-center text-[#1a2e22]/40 text-[10px] font-black uppercase tracking-widest">Chargement...</div>
+                                 ) : notifications.length === 0 ? (
+                                    <div className="px-8 py-8 text-center text-[#1a2e22]/40 text-[10px] font-black uppercase tracking-widest">Aucune notification</div>
+                                 ) : (
+                                    notifications.map((notif) => (
+                                       <div 
+                                          key={notif.id} 
+                                          onClick={() => markAsRead(notif.id)}
+                                          className={`px-8 py-5 hover:bg-[#1a2e22]/5 transition-colors cursor-pointer border-b border-[#1a2e22]/5 last:border-0 ${!notif.isRead ? 'bg-[#c5a059]/5' : ''}`}
+                                       >
+                                          <div className="flex justify-between items-start mb-1">
+                                             <p className={`text-[11px] font-black uppercase tracking-tight ${!notif.isRead ? 'text-[#1a2e22]' : 'text-[#1a2e22]/40'}`}>{notif.title}</p>
+                                             <span className="text-[9px] font-black text-[#c5a059]">{timeAgo(notif.createdAt)}</span>
+                                          </div>
+                                          <p className={`text-[12px] font-medium leading-relaxed ${!notif.isRead ? 'text-[#1a2e22]/70' : 'text-[#1a2e22]/30'}`}>{notif.message}</p>
+                                       </div>
+                                    ))
+                                 )}
+                              </div>
+                              <div className="px-8 pt-4 text-center">
+                                 <button 
+                                    onClick={markAllAsRead}
+                                    disabled={unreadCount === 0}
+                                    className="text-[10px] font-black text-[#1a2e22]/40 uppercase tracking-[0.2em] transition-colors disabled:opacity-30 hover:text-[#c5a059]"
+                                 >
+                                    Tout marquer comme lu
+                                 </button>
+                              </div>
+                           </div>
+                        )}
+                     </div>
+
                      <div
                         onClick={() => setIsCartOpen(true)}
                         className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
@@ -483,7 +642,7 @@ type AfrigariAgroCardProps = {
 function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, price, img, badge }: AfrigariAgroCardProps) {
    return (
       <div className="block group animate-reveal">
-         <div className="relative aspect-[4/5] rounded-[70px] overflow-hidden mb-12 shadow-2xl group-hover:-translate-y-4 transition-all duration-1000 ring-1 ring-[#1a2e22]/5 border-[10px] border-white bg-white">
+         <div className="relative aspect-square rounded-[40px] overflow-hidden mb-8 shadow-2xl group-hover:-translate-y-4 transition-all duration-1000 ring-1 ring-[#1a2e22]/5 border-[8px] border-white bg-white">
              <img src={img} alt={name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[4s] block" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
             {badge && <span className="absolute top-10 left-10 bg-[#c5a059] text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl border border-white/20 z-20">{badge}</span>}
@@ -498,7 +657,7 @@ function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, p
             </button>
             
             <Link 
-               href="/dashboard/client/messages"
+               href={storeId ? `/dashboard/client/messages?sellerId=${storeId}` : "/dashboard/client/messages"}
                className="absolute bottom-10 left-10 w-16 h-16 bg-white text-[#1a2e22] rounded-full flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transition-all translate-y-6 group-hover:translate-y-0 hover:text-[#c5a059] z-30 duration-700 delay-75"
             >
                <MessageSquare size={24} />
@@ -510,7 +669,7 @@ function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, p
                <p className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.4em]">{unit}</p>
             </div>
             <Link href={storeId ? `/dashboard/client/shops/${storeId}` : '#'}>
-               <h4 className="text-[28px] font-black mb-4 tracking-[-0.03em] text-[#1a2e22] group-hover:text-[#c5a059] transition-colors uppercase leading-none truncate cursor-pointer">{name}</h4>
+               <h4 className="text-[20px] font-black mb-4 tracking-[-0.03em] text-[#1a2e22] group-hover:text-[#c5a059] transition-colors uppercase leading-none truncate cursor-pointer">{name}</h4>
             </Link>
             <div className="flex items-center gap-4 text-[11px] font-bold text-[#1a2e22]/30 uppercase tracking-[0.1em] mb-8 border-b border-[#1a2e22]/5 pb-8">
                <Store size={14} />
@@ -520,7 +679,7 @@ function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, p
                <span className="text-2xl font-black text-[#1a2e22] ml-4">{price}</span>
                <div className="flex gap-2">
                   <Link
-                     href="/dashboard/client/messages"
+                     href={storeId ? `/dashboard/client/messages?sellerId=${storeId}` : "/dashboard/client/messages"}
                      className="w-14 h-14 rounded-2xl bg-[#f4f1ea] flex items-center justify-center text-[#1a2e22] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-md"
                   >
                      <MessageSquare size={18} />

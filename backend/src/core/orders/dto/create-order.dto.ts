@@ -72,6 +72,16 @@ export class CreateOrderDto {
   @IsOptional()
   status?: OrderStatus;
 
+  @ApiPropertyOptional({ description: 'Shipping Address' })
+  @IsString()
+  @IsOptional()
+  shippingAddress?: string;
+
+  @ApiPropertyOptional({ description: 'Shipping Phone' })
+  @IsString()
+  @IsOptional()
+  shippingPhone?: string;
+
   @ApiProperty({
     description: 'List of ordered items',
     type: [OrderItemDto],

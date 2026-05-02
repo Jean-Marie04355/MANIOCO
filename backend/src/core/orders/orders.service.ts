@@ -70,12 +70,7 @@ export class OrdersService {
     // 2. Validate products and recalculate the actual total amount
     let validatedTotalAmount = 0;
     const validatedItems: any[] = [];
-    const UNIT_FACTORS: Record<string, number> = {
-      Sac: 50,
-      'Demi-sac': 25,
-      Kg: 1,
-      'Demi-kg': 0.5,
-    };
+
 
     for (const item of createOrderDto.items) {
       const product = await this.productRepository.findOne({
@@ -104,11 +99,23 @@ export class OrdersService {
         );
       }
 
-      // Calculate price based on the unit
-      const factor = UNIT_FACTORS[item.unit] || 1;
-      const unitPrice = Number(product.price);
-      // If price is per kg, then total for unit is price * factor
-      const priceForRequestedUnit = unitPrice * factor;
+      // Calculate price based on the unit conversion
+      const UNIT_FACTORS: Record<string, number> = {
+        'Sac': 50,
+        'Demi-sac': 25,
+        'Kg': 1,
+        'Demi-kg': 0.5,
+      };
+
+      // Determine the price for 1 Kg based on the product's default unit
+      const productReferenceUnit = product.unit || 'Kg';
+      const referenceFactor = UNIT_FACTORS[productReferenceUnit] || 1;
+      const basePricePerKg = Number(product.price) / referenceFactor;
+
+      // Calculate price for the unit requested by the customer
+      const requestedFactor = UNIT_FACTORS[item.unit] || 1;
+      const priceForRequestedUnit = basePricePerKg * requestedFactor;
+      
       const itemTotalCost = priceForRequestedUnit * requestedQuantity;
       validatedTotalAmount += itemTotalCost;
 
@@ -116,7 +123,7 @@ export class OrdersService {
         ...item,
         productName: product.name,
         productImage: product.image,
-        price: unitPrice,
+        price: priceForRequestedUnit,
         unit: item.unit,
       });
     }
@@ -134,6 +141,8 @@ export class OrdersService {
       commissionRate: DEFAULT_COMMISSION_RATE,
       commissionAmount: commissionAmount,
       items: validatedItems,
+      shippingAddress: createOrderDto.shippingAddress,
+      shippingPhone: createOrderDto.shippingPhone,
     };
 
     const order = await this.orderRepository.create(orderData);

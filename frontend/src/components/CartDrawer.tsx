@@ -4,14 +4,25 @@ import { useCart } from '@/features/cart/CartContext';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boolean, onClose: () => void, onSuccess?: () => void }) {
-  const { items, removeFromCart, updateQuantity, totalPrice, totalItems, toggleSelection, clearSelected } = useCart();
+  const { items, removeFromCart, updateQuantity, updateUnit, totalPrice, totalItems, toggleSelection, clearSelected } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [shippingPhone, setShippingPhone] = useState(user?.phoneNumber || '');
+  const [shippingAddress, setShippingAddress] = useState('');
+  const [saveInfo, setSaveInfo] = useState(true);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+  useEffect(() => {
+    if (user?.phoneNumber) setShippingPhone(user.phoneNumber);
+    const savedAddress = localStorage.getItem('afrigari_shipping_address');
+    if (savedAddress) setShippingAddress(savedAddress);
+    const savedPhone = localStorage.getItem('afrigari_shipping_phone');
+    if (savedPhone && !user?.phoneNumber) setShippingPhone(savedPhone);
+  }, [user]);
 
   const getImageUrl = (path?: string) => {
     if (!path) return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=100";
@@ -62,8 +73,28 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
 
     const allowedUnits = new Set(['Sac', 'Demi-sac', 'Kg', 'Demi-kg']);
 
+    if (!shippingPhone || shippingPhone.length < 8) {
+      alert("Veuillez renseigner un numéro de téléphone valide.");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
+      // Save info if requested
+      if (saveInfo) {
+        localStorage.setItem('afrigari_shipping_address', shippingAddress);
+        localStorage.setItem('afrigari_shipping_phone', shippingPhone);
+        
+        // Update user profile if phone changed
+        if (user?.id && shippingPhone !== user.phoneNumber) {
+          try {
+            await api.patch(`/users/${user.id}`, { phoneNumber: shippingPhone });
+          } catch (e) {
+            console.warn("Échec de la mise à jour du profil utilisateur", e);
+          }
+        }
+      }
+
       const storesMap: Record<string, any[]> = {};
       selectedItems.forEach(item => {
         if (!item.storeId) return;
@@ -82,7 +113,9 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
             quantity: item.quantity,
             price: item.price,
             unit: allowedUnits.has(item.unit || '') ? item.unit : 'Kg'
-          }))
+          })),
+          shippingAddress,
+          shippingPhone
         };
         return api.post('/orders', orderData);
       });
@@ -156,7 +189,19 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
                     <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1">{item.name}</h4>
-                    <p className="text-[10px] font-bold text-afrigari-gold uppercase tracking-widest">{item.unit || 'Unité'}</p>
+                    <select 
+                      value={item.unit || 'Kg'} 
+                      onChange={(e) => updateUnit(item.id, e.target.value)}
+                      className="text-[10px] font-black text-afrigari-gold uppercase tracking-widest bg-transparent border-none focus:ring-0 cursor-pointer p-0"
+                    >
+                      <option value="Kg">Kg</option>
+                      <option value="Sac">Sac</option>
+                      <option value="Demi-sac">Demi-sac</option>
+                      <option value="Demi-kg">Demi-kg</option>
+                    </select>
+                    <span className="text-[9px] font-black text-forest-green/30 ml-2 uppercase tracking-widest">
+                       {item.price.toLocaleString()} FCFA / {item.unit || 'Kg'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center bg-forest-green/5 rounded-lg px-2">
@@ -177,6 +222,42 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
 
         {items.length > 0 && (
           <div className="p-8 bg-organic-cream border-t border-forest-green/5 space-y-6">
+            <div className="space-y-4 bg-white p-6 rounded-3xl border border-forest-green/5 shadow-sm">
+               <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-forest-green/40 mb-2">Informations de Livraison</h3>
+               <div className="space-y-3">
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-forest-green/30 ml-2">Téléphone</label>
+                    <input 
+                      type="tel" 
+                      placeholder="Ex: +229 00 00 00 00"
+                      value={shippingPhone}
+                      onChange={(e) => setShippingPhone(e.target.value)}
+                      className="w-full bg-forest-green/5 border-none rounded-xl py-3 px-4 text-xs font-bold focus:ring-1 focus:ring-afrigari-gold outline-none transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] font-black uppercase tracking-widest text-forest-green/30 ml-2">Adresse / Ville</label>
+                    <input 
+                      type="text" 
+                      placeholder="Ex: Cotonou, Haie Vive"
+                      value={shippingAddress}
+                      onChange={(e) => setShippingAddress(e.target.value)}
+                      className="w-full bg-forest-green/5 border-none rounded-xl py-3 px-4 text-xs font-bold focus:ring-1 focus:ring-afrigari-gold outline-none transition-all"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 pt-2">
+                    <input 
+                      type="checkbox" 
+                      id="save-info"
+                      checked={saveInfo}
+                      onChange={(e) => setSaveInfo(e.target.checked)}
+                      className="w-4 h-4 rounded border-forest-green/20 text-afrigari-gold focus:ring-afrigari-gold cursor-pointer"
+                    />
+                    <label htmlFor="save-info" className="text-[10px] font-bold text-forest-green/50 cursor-pointer">Enregistrer pour mes prochaines commandes</label>
+                  </div>
+               </div>
+            </div>
+
             <div className="flex justify-between items-center font-black">
               <div>
                 <span className="text-xs uppercase tracking-[0.2em] text-forest-green/40">Total sélectionné</span>
