@@ -1,5 +1,6 @@
 "use client";
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
+import { useAuth } from '../auth/AuthContext';
 
 interface CartItem {
   id: string;
@@ -31,22 +32,35 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export function CartProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
   const [items, setItems] = useState<CartItem[]>([]);
+  
+  // Create a unique storage key for each user
+  const storageKey = useMemo(() => {
+    return user?.id ? `afrigari_cart_${user.id}` : 'afrigari_cart_guest';
+  }, [user?.id]);
 
+  // Load cart when storage key changes
   useEffect(() => {
-    const savedCart = localStorage.getItem('afrigari_cart');
+    const savedCart = localStorage.getItem(storageKey);
     if (savedCart) {
       try {
         setItems(JSON.parse(savedCart));
       } catch (e) {
         console.error("Erreur chargement panier", e);
+        setItems([]);
       }
+    } else {
+      setItems([]);
     }
-  }, []);
+  }, [storageKey]);
 
+  // Save cart whenever items change
   useEffect(() => {
-    localStorage.setItem('afrigari_cart', JSON.stringify(items));
-  }, [items]);
+    if (items.length > 0 || localStorage.getItem(storageKey)) {
+      localStorage.setItem(storageKey, JSON.stringify(items));
+    }
+  }, [items, storageKey]);
 
   const addToCart = (product: any) => {
     setItems(prev => {
