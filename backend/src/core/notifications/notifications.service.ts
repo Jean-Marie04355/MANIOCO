@@ -2,16 +2,27 @@ import { Injectable, Inject } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Notification } from './notification.entity';
 import { CreateNotificationDto } from './dto/create-notification.dto';
+import { RealtimeGateway } from '../../libs/realtime/realtime.gateway';
 
 @Injectable()
 export class NotificationsService {
   constructor(
     @Inject('NOTIFICATION_REPOSITORY')
     private readonly repo: IBaseRepository<Notification>,
+    private readonly realtimeGateway: RealtimeGateway,
   ) {}
 
   async create(createDto: CreateNotificationDto) {
-    return this.repo.create(createDto);
+    const notification = await this.repo.create(createDto);
+    
+    // Emit real-time event via WebSocket
+    if (this.realtimeGateway.server && createDto.userId) {
+      this.realtimeGateway.server
+        .to(`user_${createDto.userId}`)
+        .emit('new_notification', notification);
+    }
+    
+    return notification;
   }
 
   async findAllByUser(userId: string) {

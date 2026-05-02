@@ -62,11 +62,7 @@ export default function ClientMessages() {
            const found = res.data.find((c: any) => c.id === initialConvId);
            if (found) {
               setActiveConv(found);
-           } else if (res.data.length > 0) {
-              setActiveConv(res.data[0]);
            }
-        } else if (res.data.length > 0) {
-          setActiveConv(res.data[0]);
         }
       } catch (error) {
         console.error("Erreur chargement conversations", error);
@@ -203,8 +199,12 @@ export default function ClientMessages() {
            <h2 className="font-black text-2xl tracking-tighter uppercase italic">Afrigari <span className="text-[#c5a059]">Chat</span></h2>
         </div>
         <div className="flex items-center gap-4">
-           <div className="w-10 h-10 rounded-full bg-[#1a2e22]/5 flex items-center justify-center font-black text-xs">
-              {user?.name?.[0] || 'U'}
+           <div className="w-10 h-10 rounded-full bg-[#1a2e22]/5 flex items-center justify-center font-black text-xs overflow-hidden border border-[#1a2e22]/10 shadow-sm">
+              {user?.profilePhoto ? (
+                 <img src={getImageUrl(user.profilePhoto)} alt="Profil" className="w-full h-full object-cover" />
+              ) : (
+                 <span>{user?.name?.[0] || 'U'}</span>
+              )}
            </div>
         </div>
       </nav>
@@ -273,17 +273,26 @@ export default function ClientMessages() {
                 {/* Chat Header Area */}
                 <div className="p-6 bg-white/50 backdrop-blur-md border-b border-[#1a2e22]/5 flex items-center justify-between z-10">
                    <div className="flex items-center gap-5">
-                      <div className="relative">
-                         <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg">
-                            <img src={getImageUrl(activeConv.store?.profilePhoto)} className="w-full h-full object-cover" />
+                      <button 
+                         onClick={() => setActiveConv(null)} 
+                         className="p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all text-[#1a2e22]/40 hover:text-[#1a2e22]"
+                         title="Retour à la liste"
+                      >
+                         <ArrowLeft size={22} />
+                      </button>
+                      <div className="flex items-center gap-4">
+                         <div className="relative">
+                            <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg">
+                               <img src={getImageUrl(activeConv.store?.profilePhoto)} className="w-full h-full object-cover" />
+                            </div>
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-4 border-white rounded-full"></div>
                          </div>
-                         <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-4 border-white rounded-full"></div>
-                      </div>
-                      <div>
-                         <h4 className="text-lg font-black uppercase tracking-tight">{activeConv.store?.name || activeConv.store?.owner?.name || 'Artisan Afrigari'}</h4>
-                         <div className="flex items-center gap-2 text-[9px] font-black text-[#c5a059] uppercase tracking-widest mt-1">
-                            <ShieldCheck size={12} />
-                            <span>Vendeur Certifié Afrigari</span>
+                         <div>
+                            <h4 className="text-lg font-black uppercase tracking-tight">{activeConv.store?.name || activeConv.store?.owner?.name || 'Artisan Afrigari'}</h4>
+                            <div className="flex items-center gap-2 text-[9px] font-black text-[#c5a059] uppercase tracking-widest mt-1">
+                               <ShieldCheck size={12} />
+                               <span>Vendeur Certifié Afrigari</span>
+                            </div>
                          </div>
                       </div>
                    </div>

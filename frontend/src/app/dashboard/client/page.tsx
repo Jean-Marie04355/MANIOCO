@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
-import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell } from 'lucide-react';
+import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell, Settings } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
@@ -56,6 +56,7 @@ export default function ClientDashboardV3() {
    const [unreadMessages, setUnreadMessages] = useState(0);
    const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
    const notificationsRef = useRef<HTMLDivElement>(null);
+   const profileRef = useRef<HTMLDivElement>(null);
    const [isNotificationLoading, setIsNotificationLoading] = useState(false);
 
    // Bibliothèque de liens internet réels pour la démo
@@ -120,11 +121,11 @@ export default function ClientDashboardV3() {
       const fetchCounts = async () => {
          try {
             const [notifRes, chatRes] = await Promise.all([
-               api.get('/notifications/unread-count'),
+               api.get('/notifications/unread/count'),
                api.get('/chat/unread-count')
             ]);
-            setUnreadCount(notifRes.data);
-            setUnreadMessages(chatRes.data);
+            setUnreadCount(typeof notifRes.data === 'object' ? notifRes.data.count : notifRes.data);
+            setUnreadMessages(typeof chatRes.data === 'object' ? chatRes.data.count : chatRes.data);
          } catch (e) {}
       };
 
@@ -182,6 +183,9 @@ export default function ClientDashboardV3() {
       const handleClickOutside = (event: MouseEvent) => {
          if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
             setIsNotificationsOpen(false);
+         }
+         if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+            setIsProfileOpen(false);
          }
       };
       document.addEventListener('mousedown', handleClickOutside);
@@ -312,13 +316,57 @@ export default function ClientDashboardV3() {
                         )}
                      </div>
                   </div>
-                  <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-12 h-12 rounded-full border-2 border-white shadow-2xl hover:scale-110 transition-all overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
-                     {user?.profilePhoto ? (
-                        <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover" />
-                     ) : (
-                        <span>{user?.name?.[0] || 'U'}</span>
+                  <div className="relative" ref={profileRef}>
+                     <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-12 h-12 rounded-full border-2 border-white shadow-2xl hover:scale-110 transition-all overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
+                        {user?.profilePhoto ? (
+                           <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover" />
+                        ) : (
+                           <span>{user?.name?.[0] || 'U'}</span>
+                        )}
+                     </button>
+
+                     {/* Profile Dropdown moved here for better Ref management */}
+                     {isProfileOpen && (
+                        <div className="absolute top-20 right-0 w-72 bg-white shadow-2xl rounded-[40px] p-6 z-[300] border border-white animate-reveal">
+                           <div className="flex flex-col items-center mb-6">
+                              <div className="w-16 h-16 rounded-full border-4 border-[#c5a059]/20 p-1 mb-3 overflow-hidden bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-xl font-black uppercase">
+                                 {user?.profilePhoto ? (
+                                    <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover rounded-full" />
+                                 ) : (
+                                    <span>{user?.name?.[0] || 'U'}</span>
+                                 )}
+                              </div>
+                              <h4 className="font-black text-xl text-[#1a2e22] text-center tracking-tight">{user?.name || 'Utilisateur'}</h4>
+                              <p className="text-[9px] font-black text-[#c5a059] uppercase tracking-[0.4em] mt-1">{user?.role || 'Client Privilège'}</p>
+                           </div>
+                           <div className="space-y-1">
+                              <Link href="/dashboard/client/messages" className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#1a2e22]/5 transition-all group">
+                                 <div className="flex items-center gap-4">
+                                    <MessageSquare size={18} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Conversations</span>
+                                 </div>
+                              </Link>
+                              <Link href="/dashboard/client/orders" className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#1a2e22]/5 transition-all group">
+                                 <div className="flex items-center gap-4">
+                                    <Clock size={18} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Commandes</span>
+                                 </div>
+                              </Link>
+                              <Link href="/dashboard/client/settings" className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#1a2e22]/5 transition-all group">
+                                 <div className="flex items-center gap-4">
+                                    <Settings size={18} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Paramètres</span>
+                                 </div>
+                              </Link>
+                              <div className="h-px bg-[#1a2e22]/5 my-4 mx-4"></div>
+                              <button onClick={() => logout()} className="w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-red-50 text-red-500 transition-all font-black text-[10px] uppercase tracking-widest">
+                                 <LogOut size={18} />
+                                 <span>Déconnexion</span>
+                              </button>
+                           </div>
+                        </div>
                      )}
-                  </button>
+                  </div>
                </div>
             </div>
          </nav>
@@ -548,40 +596,7 @@ export default function ClientDashboardV3() {
          </main>
 
          {/* Profile Dropdown */}
-         {isProfileOpen && (
-            <div className="fixed top-28 right-12 w-80 bg-white shadow-2xl rounded-[48px] p-10 z-[300] border border-white animate-reveal">
-               <div className="flex flex-col items-center mb-10">
-                  <div className="w-24 h-24 rounded-full border-4 border-[#c5a059]/20 p-1.5 mb-6 overflow-hidden bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-3xl font-black uppercase">
-                     {user?.profilePhoto ? (
-                         <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover rounded-full" />
-                     ) : (
-                        <span>{user?.name?.[0] || 'U'}</span>
-                     )}
-                  </div>
-                  <h4 className="font-black text-2xl text-[#1a2e22] text-center tracking-tight">{user?.name || 'Utilisateur'}</h4>
-                  <p className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.5em] mt-2">{user?.role || 'Client Privilège'}</p>
-               </div>
-               <div className="space-y-3">
-                  <Link href="/dashboard/client/messages" className="w-full flex items-center justify-between p-5 rounded-3xl hover:bg-[#1a2e22]/5 transition-all group">
-                     <div className="flex items-center gap-5">
-                        <MessageSquare size={22} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Conversations</span>
-                     </div>
-                  </Link>
-                  <Link href="/dashboard/client/orders" className="w-full flex items-center justify-between p-5 rounded-3xl hover:bg-[#1a2e22]/5 transition-all group">
-                     <div className="flex items-center gap-5">
-                        <Clock size={22} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Mes Commandes</span>
-                     </div>
-                  </Link>
-                  <div className="h-px bg-[#1a2e22]/5 my-6 mx-4"></div>
-                  <button onClick={() => logout()} className="w-full flex items-center gap-5 p-5 rounded-3xl hover:bg-red-50 text-red-500 transition-all font-black text-[11px] uppercase tracking-widest">
-                     <LogOut size={22} />
-                     <span>Déconnexion</span>
-                  </button>
-               </div>
-            </div>
-         )}
+
 
          <CartDrawer
             isOpen={isCartOpen}
@@ -649,19 +664,7 @@ function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, p
 
             <Link href={storeId ? `/dashboard/client/shops/${storeId}` : '#'} className="absolute inset-0 z-10"></Link>
 
-            <button
-               onClick={(e) => { e.preventDefault(); addToCart(product); }}
-               className="absolute bottom-10 right-10 w-16 h-16 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transition-all translate-y-6 group-hover:translate-y-0 hover:bg-[#c5a059] hover:text-white z-30 duration-700"
-            >
-               <Plus size={28} className="group-hover:rotate-90 transition-transform" />
-            </button>
-            
-            <Link 
-               href={storeId ? `/dashboard/client/messages?sellerId=${storeId}` : "/dashboard/client/messages"}
-               className="absolute bottom-10 left-10 w-16 h-16 bg-white text-[#1a2e22] rounded-full flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transition-all translate-y-6 group-hover:translate-y-0 hover:text-[#c5a059] z-30 duration-700 delay-75"
-            >
-               <MessageSquare size={24} />
-            </Link>
+
          </div>
          <div className="px-6">
             <div className="flex items-center gap-3 mb-3">
@@ -671,24 +674,24 @@ function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, p
             <Link href={storeId ? `/dashboard/client/shops/${storeId}` : '#'}>
                <h4 className="text-[20px] font-black mb-4 tracking-[-0.03em] text-[#1a2e22] group-hover:text-[#c5a059] transition-colors uppercase leading-none truncate cursor-pointer">{name}</h4>
             </Link>
-            <div className="flex items-center gap-4 text-[11px] font-bold text-[#1a2e22]/30 uppercase tracking-[0.1em] mb-8 border-b border-[#1a2e22]/5 pb-8">
-               <Store size={14} />
+            <div className="flex items-center gap-4 text-[10px] font-bold text-[#1a2e22]/30 uppercase tracking-[0.1em] mb-4">
+               <Store size={12} />
                <span>{producer}</span>
             </div>
-            <div className="flex justify-between items-center bg-white p-3 rounded-[32px] border border-[#1a2e22]/5 group-hover:border-[#c5a059]/30 transition-all shadow-sm">
-               <span className="text-2xl font-black text-[#1a2e22] ml-4">{price}</span>
+            <div className="flex justify-between items-center pt-2">
+               <span className="text-xl font-black text-[#1a2e22]">{price}</span>
                <div className="flex gap-2">
                   <Link
                      href={storeId ? `/dashboard/client/messages?sellerId=${storeId}` : "/dashboard/client/messages"}
-                     className="w-14 h-14 rounded-2xl bg-[#f4f1ea] flex items-center justify-center text-[#1a2e22] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-md"
+                     className="w-10 h-10 rounded-full bg-[#f4f1ea] flex items-center justify-center text-[#1a2e22] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-sm"
                   >
-                     <MessageSquare size={18} />
+                     <MessageSquare size={16} />
                   </Link>
                   <div
                      onClick={(e) => { e.preventDefault(); addToCart(product); }}
-                     className="w-14 h-14 rounded-2xl bg-[#1a2e22] flex items-center justify-center text-[#c5a059] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-xl"
+                     className="w-10 h-10 rounded-full bg-[#1a2e22] text-[#c5a059] flex items-center justify-center cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-md"
                   >
-                     <ShoppingCart size={20} />
+                     <ShoppingCart size={16} />
                   </div>
                </div>
             </div>

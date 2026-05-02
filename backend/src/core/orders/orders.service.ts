@@ -269,6 +269,20 @@ export class OrdersService {
       cancellationReason: reason || 'Non spécifiée'
     });
     await this.restoreStock(id);
+
+    // Notify the customer about the cancellation
+    try {
+      await this.notificationsService.create({
+        userId: order.customerId,
+        type: NotificationType.ORDER,
+        title: 'Commande annulée',
+        message: `Votre commande #${order.id.split('-')[0]} a été annulée. Motif : ${reason || 'Non spécifié'}.`,
+        metadata: JSON.stringify({ orderId: order.id, status: OrderStatus.CANCELLED }),
+      });
+    } catch (e) {
+      this.logger.error(`Failed to notify customer of cancellation for order ${id}`);
+    }
+
     return this.orderRepository.findOne({ where: { id } } as any);
   }
 
@@ -392,6 +406,24 @@ export class OrdersService {
       await this.orderRepository.update(id, { status });
       this.logger.log(`Order ${id} status updated successfully to ${status}`);
       
+      // Notify the customer about the status update
+      try {
+        let statusLabel = status.toLowerCase();
+        if (status === OrderStatus.PAID) statusLabel = 'confirmée';
+        if (status === OrderStatus.SHIPPED) statusLabel = 'expédiée';
+        if (status === OrderStatus.DELIVERED) statusLabel = 'livrée';
+
+        await this.notificationsService.create({
+          userId: order.customerId,
+          type: NotificationType.ORDER,
+          title: 'Mise à jour de commande',
+          message: `Votre commande #${order.id.split('-')[0]} est désormais ${statusLabel}.`,
+          metadata: JSON.stringify({ orderId: order.id, status }),
+        });
+      } catch (notifError) {
+        this.logger.error(`Failed to notify customer for order ${id}: ${notifError.message}`);
+      }
+
       // Reload order to return updated version
       return this.findOne(id, user);
     } catch (error) {
@@ -412,7 +444,29 @@ export class OrdersService {
     id: string,
     status: OrderStatus,
   ): Promise<Order | null> {
+    const order = await this.orderRepository.findOne({ where: { id } } as any);
+    if (!order) return null;
+
     await this.orderRepository.update(id, { status });
+    
+    // Notify the customer (Internal system update)
+    try {
+      let statusLabel = status.toLowerCase();
+      if (status === OrderStatus.PAID) statusLabel = 'payée';
+      if (status === OrderStatus.SHIPPED) statusLabel = 'expédiée';
+      if (status === OrderStatus.DELIVERED) statusLabel = 'livrée';
+
+      await this.notificationsService.create({
+        userId: order.customerId,
+        type: NotificationType.ORDER,
+        title: 'Mise à jour de commande',
+        message: `Votre commande #${order.id.split('-')[0]} est passée au statut : ${statusLabel}.`,
+        metadata: JSON.stringify({ orderId: order.id, status }),
+      });
+    } catch (e) {
+      this.logger.error(`Failed to send internal status notification for order ${id}`);
+    }
+
     return this.orderRepository.findOne({ where: { id } } as any);
   }
 
