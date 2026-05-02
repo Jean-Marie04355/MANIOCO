@@ -23,20 +23,21 @@ export default function ClientMessages() {
   const getImageUrl = (path: string) => {
     if (!path || String(path).trim() === '' || path === 'null') return "https://i.pravatar.cc/100?u=shop";
     
-    // Si c'est déjà une URL complète ou du Base64, on ne touche à rien
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
     
     // Si le chemin contient déjà 'uploads/', on s'assure juste du slash initial
-    if (path.includes('uploads/')) {
-       const cleanPath = path.startsWith('/') ? path : `/${path}`;
-       return `${apiUrl}${cleanPath}`;
+    let finalPath = path;
+    if (!path.includes('uploads/')) {
+       finalPath = `/uploads${path.startsWith('/') ? '' : '/'}${path}`;
+    } else {
+       finalPath = path.startsWith('/') ? path : `/${path}`;
     }
     
-    // Sinon, on part du principe que c'est un fichier dans uploads
-    const cleanPath = path.startsWith('/') ? path : `/${path}`;
-    return `${apiUrl}/uploads${cleanPath}`;
+    const finalUrl = `${apiUrl}${finalPath}`;
+    console.log("Rendering image URL:", finalUrl);
+    return finalUrl;
   };
 
   useEffect(() => {
@@ -165,7 +166,7 @@ export default function ClientMessages() {
 
     try {
       const uploadRes = await api.post('/files/upload', formData);
-      const imageUrl = uploadRes.data.url;
+      const imageUrl = uploadRes.data.path;
 
       await api.post('/chat/messages', {
         conversationId: activeConv.id,
@@ -306,11 +307,11 @@ export default function ClientMessages() {
                            <div className="flex flex-col max-w-[65%]">
                               <div className={`p-5 rounded-[32px] shadow-sm ${isMe ? 'bg-[#1a2e22] text-white rounded-tr-none' : 'bg-white text-[#1a2e22] rounded-tl-none border border-[#1a2e22]/5'}`}>
                                  {m.image && (
-                                   <div className="relative w-full aspect-[4/3] mb-3 rounded-2xl overflow-hidden border border-[#1a2e22]/5 shadow-inner cursor-pointer">
+                                   <div className="relative w-full max-w-[280px] aspect-square mb-3 rounded-2xl overflow-hidden border border-[#1a2e22]/10 shadow-sm cursor-pointer">
                                      <img 
                                        src={getImageUrl(m.image)} 
                                        alt="Envoyé" 
-                                       className="object-cover w-full h-full hover:scale-105 transition-transform duration-500" 
+                                       className="object-cover w-full h-full hover:scale-110 transition-transform duration-700" 
                                      />
                                    </div>
                                  )}

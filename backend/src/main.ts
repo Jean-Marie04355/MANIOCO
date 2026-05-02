@@ -12,7 +12,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Security and Body Parsing
-  app.use(helmet());
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+    }),
+  );
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
   app.useGlobalPipes(new ValidationPipe());
