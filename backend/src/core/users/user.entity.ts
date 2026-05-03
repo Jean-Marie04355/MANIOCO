@@ -71,6 +71,12 @@ export class User {
   @Column({ type: 'text', nullable: true })
   kycRejectionReasons: string; // JSON: { dob: '...', nationality: '...', ... }
 
+  @Column({ nullable: true })
+  resetPasswordToken: string;
+
+  @Column({ nullable: true })
+  resetPasswordExpires: Date;
+
   @CreateDateColumn()
   createdAt: Date;
 

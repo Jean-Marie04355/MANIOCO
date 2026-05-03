@@ -65,9 +65,9 @@ export class ProductsService {
 
   async findAll(storeId?: string) {
     if (storeId) {
-      return this.repo.find({ where: { storeId } } as object);
+      return this.repo.find({ where: { storeId }, relations: ['store'] } as any);
     }
-    return this.repo.find();
+    return this.repo.find({ relations: ['store'] } as any);
   }
 
   async findOne(id: string) {

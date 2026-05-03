@@ -2,6 +2,7 @@
 import { Gem, ArrowRight, Mail, Lock, User, Leaf, Globe, Sparkles, ShieldCheck, CheckCircle2, Circle } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import { RoleBtn } from '@/features/auth/components/RoleBtn';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -192,6 +193,11 @@ export default function AuthPage() {
                   >
                     {isLoading ? "Connexion..." : "Se Connecter"}
                   </button>
+                  <div className="flex justify-end mt-4">
+                    <Link href="/auth/forgot-password" className="text-[11px] font-black text-forest-green/60 hover:text-afrigari-gold transition-colors uppercase tracking-widest">
+                       Mot de passe oublié ?
+                    </Link>
+                  </div>
                </form>
             </div>
          </div>

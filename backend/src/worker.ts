@@ -4,6 +4,7 @@ import { emailService } from './libs/email/email.service';
 import {
   getOtpTemplate,
   getOrderConfirmationTemplate,
+  getResetPasswordTemplate,
 } from './libs/email/templates';
 
 export async function handleWorkerJob(job: Job) {
@@ -24,6 +25,24 @@ export async function handleWorkerJob(job: Job) {
       return { ok: true, emailSent: true };
     } catch (error) {
       log(`[worker] Failed to send OTP email to ${email}: ${error.message}`);
+      throw error;
+    }
+  }
+
+  if (job.name === 'send-reset-password-email') {
+    const { email, resetLink } = job.data;
+    log(`[worker] Processing send-reset-password-email for ${email}`);
+
+    try {
+      await emailService.sendEmail({
+        to: email,
+        subject: 'Réinitialisation de votre mot de passe Afrigari',
+        html: getResetPasswordTemplate(resetLink),
+      });
+      log(`[worker] Reset password email sent successfully to ${email}`);
+      return { ok: true, emailSent: true };
+    } catch (error) {
+      log(`[worker] Failed to send reset password email to ${email}: ${error.message}`);
       throw error;
     }
   }

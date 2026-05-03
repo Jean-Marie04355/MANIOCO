@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
-import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell, Settings } from 'lucide-react';
+import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell, Settings, MapPin } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
@@ -17,6 +17,7 @@ interface ProductStore {
    id?: string | number;
    name?: string;
    profilePhoto?: string;
+   city?: string;
 }
 
 interface ProductCategory {
@@ -48,6 +49,7 @@ export default function ClientDashboardV3() {
    const [categories, setCategories] = useState<Category[]>([]);
    const [isLoading, setIsLoading] = useState(true);
    const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+   const [activeCity, setActiveCity] = useState<string | null>(null);
    const [searchQuery, setSearchQuery] = useState('');
    const [visibleCount, setVisibleCount] = useState(8);
 
@@ -194,11 +196,14 @@ export default function ClientDashboardV3() {
 
    const filteredProducts = products.filter(p => {
       const matchesCategory = activeCategoryId ? p.categoryId === activeCategoryId : true;
+      const matchesCity = activeCity ? p.store?.city === activeCity : true;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
          p.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
          p.store?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesCity && matchesSearch;
    });
+
+   const uniqueCities = Array.from(new Set(products.map(p => p.store?.city).filter(Boolean))) as string[];
 
    return (
       <div className="bg-[#fcfbf7] min-h-screen text-[#1a2e22] selection:bg-[#c5a059] selection:text-white font-sans overflow-x-hidden">
@@ -452,16 +457,50 @@ export default function ClientDashboardV3() {
 
             {/* Products Grid */}
             <section id="arrivages" className="mb-60 scroll-mt-40">
-               <div className="flex flex-col md:flex-row justify-between items-center mb-24 gap-8">
+               <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
                   <h3 className="text-4xl font-black tracking-tight text-[#1a2e22] uppercase">
-                     {activeCategoryId ? `Produits : ${categories.find(c => c.id === activeCategoryId)?.name}` : 'Le Catalogue Complet'}
+                     {activeCity ? `Boutiques à ${activeCity}` : activeCategoryId ? `Produits : ${categories.find(c => c.id === activeCategoryId)?.name}` : 'Le Catalogue Complet'}
                   </h3>
-                  {activeCategoryId && (
-                     <button onClick={() => setActiveCategoryId(null)} className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 flex items-center gap-2">
-                        <X size={14} /> Réinitialiser le filtre
-                     </button>
-                  )}
+                  <div className="flex items-center gap-3">
+                     {activeCategoryId && (
+                        <button onClick={() => setActiveCategoryId(null)} className="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-600 flex items-center gap-2 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50 transition-all">
+                           <X size={12} /> Catégorie
+                        </button>
+                     )}
+                     {activeCity && (
+                        <button onClick={() => setActiveCity(null)} className="text-[10px] font-black uppercase tracking-widest text-[#c5a059] hover:text-[#1a2e22] flex items-center gap-2 border border-[#c5a059]/30 px-4 py-2 rounded-xl hover:bg-[#c5a059]/5 transition-all">
+                           <X size={12} /> {activeCity}
+                        </button>
+                     )}
+                  </div>
                </div>
+
+               {/* Location Filter */}
+               {uniqueCities.length > 0 && (
+                  <div className="mb-16 p-6 bg-white rounded-3xl border border-[#1a2e22]/5 shadow-sm">
+                     <p className="text-[9px] font-black text-[#c5a059] uppercase tracking-[0.4em] mb-5 flex items-center gap-2">
+                        <MapPin size={12} />
+                        Filtrer par Emplacement
+                     </p>
+                     <div className="flex flex-wrap gap-2">
+                        <button
+                           onClick={() => setActiveCity(null)}
+                           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${!activeCity ? 'bg-[#1a2e22] text-[#c5a059] shadow-lg' : 'bg-[#1a2e22]/5 text-[#1a2e22]/50 hover:bg-[#1a2e22]/10'}`}
+                        >
+                           <MapPin size={11} /> Toutes les villes
+                        </button>
+                        {uniqueCities.map(city => (
+                           <button
+                              key={city}
+                              onClick={() => setActiveCity(city)}
+                              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${activeCity === city ? 'bg-[#c5a059] text-white shadow-lg scale-105' : 'bg-[#1a2e22]/5 text-[#1a2e22]/50 hover:bg-[#c5a059]/10 hover:text-[#c5a059]'}`}
+                           >
+                              <MapPin size={11} /> {city}
+                           </button>
+                        ))}
+                     </div>
+                  </div>
+               )}
 
                {isLoading ? (
                   <div className="py-40 flex justify-center w-full">
