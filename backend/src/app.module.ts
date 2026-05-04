@@ -24,6 +24,8 @@ import { AuditModule } from './core/audit/audit.module';
 import { ChatModule } from './core/chat/chat.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { SupportModule } from './core/support/support.module';
+import { ReportsModule } from './core/reports/reports.module';
+
 
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -55,6 +57,7 @@ import { join } from 'path';
     ChatModule,
     NotificationsModule,
     SupportModule,
+    ReportsModule,
   ],
 
   controllers: [AppController, InfraController],

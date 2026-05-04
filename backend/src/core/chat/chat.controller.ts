@@ -11,6 +11,9 @@ import {
 } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../common/enum/role.enum';
 import { CurrentUser } from '../../common/decorators/user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
@@ -108,5 +111,16 @@ export class ChatController {
     @CurrentUser() user: AuthenticatedUser,
   ) {
     return this.chatService.deleteMessage(id, user);
+  }
+
+  @Get('admin/conversation')
+  @UseGuards(RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Récupérer une conversation entre un client et une boutique (Admin)' })
+  async getAdminConversation(
+    @Query('customerId') customerId: string,
+    @Query('storeId') storeId: string,
+  ) {
+    return this.chatService.getConversationByParticipants(customerId, storeId);
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, ChevronLeft, Clock, CheckCircle2, Truck, Package, Search, Loader2 } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, Clock, CheckCircle2, Truck, Package, Search, Loader2, AlertOctagon, X, Send } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 
@@ -10,6 +10,38 @@ export default function ClientOrders() {
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [scrolled, setScrolled] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedOrderToReport, setSelectedOrderToReport] = useState<any>(null);
+  const [reportReason, setReportReason] = useState('ARNAQUE');
+  const [reportDescription, setReportDescription] = useState('');
+  const [isSubmittingReport, setIsSubmittingReport] = useState(false);
+
+  const handleOpenReport = (order: any) => {
+    setSelectedOrderToReport(order);
+    setIsReportModalOpen(true);
+  };
+
+  const handleSubmitReport = async () => {
+    if (!reportDescription.trim()) return;
+    setIsSubmittingReport(true);
+    try {
+      await api.post('/reports', { 
+        orderId: selectedOrderToReport.id, 
+        sellerId: selectedOrderToReport.store?.ownerId || selectedOrderToReport.sellerId,
+        storeId: selectedOrderToReport.storeId,
+        reason: reportReason, 
+        description: reportDescription 
+      });
+      setIsReportModalOpen(false);
+      setReportDescription('');
+      alert("Signalement envoyé avec succès. Notre équipe va l'examiner.");
+    } catch (error) {
+      console.error(error);
+      alert("Erreur lors de l'envoi du signalement.");
+    } finally {
+      setIsSubmittingReport(false);
+    }
+  };
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
@@ -147,7 +179,14 @@ export default function ClientOrders() {
                            
                         <div className="text-right shrink-0">
                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Payé</p>
-                           <p className="text-2xl font-black text-forest-green tracking-tighter">{Number(order.totalAmount).toLocaleString()} FCFA</p>
+                           <p className="text-2xl font-black text-forest-green tracking-tighter mb-4">{Number(order.totalAmount).toLocaleString()} FCFA</p>
+                           <button 
+                              onClick={() => handleOpenReport(order)}
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300 transition-colors text-[10px] font-black uppercase tracking-widest"
+                           >
+                              <AlertOctagon size={14} />
+                              Signaler un problème avec ce vendeur
+                           </button>
                         </div>
                      </div>
                   </div>
@@ -155,6 +194,72 @@ export default function ClientOrders() {
             </div>
          )}
       </main>
+
+      {/* Modal de Signalement */}
+      {isReportModalOpen && selectedOrderToReport && (
+        <div className="fixed inset-0 z-[500] bg-forest-green/40 backdrop-blur-sm flex items-center justify-center p-4 md:p-8 animate-reveal">
+          <div className="bg-white rounded-[40px] p-8 md:p-12 w-full max-w-lg shadow-2xl relative border border-forest-green/10">
+            <button 
+              onClick={() => setIsReportModalOpen(false)}
+              className="absolute top-8 right-8 w-10 h-10 bg-forest-green/5 text-forest-green rounded-full flex items-center justify-center hover:bg-forest-green/10 transition-colors"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mb-6 shadow-sm border border-red-100">
+              <AlertOctagon size={32} />
+            </div>
+            
+            <h3 className="text-2xl font-black text-forest-green uppercase tracking-tight mb-2">
+              Signaler le vendeur <span className="text-afrigari-gold italic">{selectedOrderToReport.store?.name || selectedOrderToReport.seller?.name || selectedOrderToReport.sellerName || "lié à cette commande"}</span>
+            </h3>
+            <p className="text-xs font-bold text-forest-green/60 uppercase tracking-widest mb-8">
+              Commande #{selectedOrderToReport.id.substring(0, 8).toUpperCase()}
+            </p>
+
+            <div className="space-y-6">
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-forest-green/60 mb-2">Motif du signalement</label>
+                <div className="relative">
+                   <select 
+                     value={reportReason}
+                     onChange={(e) => setReportReason(e.target.value)}
+                     className="w-full bg-forest-green/5 border-none rounded-2xl p-4 pr-10 text-forest-green font-bold focus:ring-2 focus:ring-afrigari-gold outline-none appearance-none"
+                   >
+                     <option value="ARNAQUE">Arnaque / Fraude</option>
+                     <option value="CONTREFAÇON">Produit non conforme / Contrefaçon</option>
+                     <option value="OFFENSANT">Comportement inapproprié / Harcèlement</option>
+                     <option value="RETARD">Retard abusif / Non livré</option>
+                     <option value="AUTRE">Autre problème</option>
+                   </select>
+                   <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-forest-green/40">
+                      ▼
+                   </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-forest-green/60 mb-2">Description du problème</label>
+                <textarea 
+                  value={reportDescription}
+                  onChange={(e) => setReportDescription(e.target.value)}
+                  placeholder="Expliquez en détail ce qui s'est passé avec ce vendeur..."
+                  className="w-full bg-forest-green/5 border-none rounded-2xl p-4 text-forest-green placeholder:text-forest-green/30 min-h-[120px] resize-none focus:ring-2 focus:ring-afrigari-gold outline-none text-sm font-medium"
+                ></textarea>
+              </div>
+
+              <button 
+                onClick={handleSubmitReport}
+                disabled={isSubmittingReport || !reportDescription.trim()}
+                className="w-full flex items-center justify-center gap-3 bg-red-500 text-white p-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-red-500/20"
+              >
+                {isSubmittingReport ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} />}
+                Envoyer le signalement
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

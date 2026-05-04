@@ -1,4 +1,5 @@
 @echo off
-echo Lancement de Mailpit...
-"C:\Users\PC\Downloads\mailpit-windows-amd64\mailpit.exe"
+echo Lancement de Mailpit (Serveur Email) sur le port SMTP 1026...
+set MP_SMTP_BIND_ADDR=0.0.0.0:1026
+mailpit-win\mailpit.exe
 pause

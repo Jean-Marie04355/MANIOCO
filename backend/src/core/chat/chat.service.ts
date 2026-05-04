@@ -271,4 +271,17 @@ export class ChatService {
     }
     await this.messageRepo.delete(messageId);
   }
+
+  async getConversationByParticipants(customerId: string, storeId: string): Promise<Conversation> {
+    const conversation = await this.conversationRepo.findOne({
+      where: { customerId, storeId },
+      relations: ['customer', 'store', 'store.owner']
+    } as any);
+    
+    if (!conversation) {
+      throw new NotFoundException('Conversation introuvable entre ces participants');
+    }
+    
+    return conversation;
+  }
 }
