@@ -273,7 +273,7 @@ export default function StoreSettings() {
                    </div>
                    <ChevronRight className="text-slate-300 group-hover:text-orange-500 transition-colors" />
                 </Link>
-                <Link href={`/dashboard/client/shops/${storeId}`} target="_blank" className="bg-white p-6 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-500 transition-all">
+                <Link href={`/shops/${storeId}`} target="_blank" className="bg-white p-6 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-500 transition-all">
                    <div className="flex items-center gap-4">
                       <div className="w-12 h-12 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
                          <ExternalLink size={20} />

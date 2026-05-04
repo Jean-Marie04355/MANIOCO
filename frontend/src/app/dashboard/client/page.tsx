@@ -2,6 +2,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell, Settings, MapPin } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -37,8 +38,9 @@ interface Product {
 }
 
 export default function ClientDashboardV3() {
-   const { user, logout } = useAuth();
+   const { user, logout, isLoading: isAuthLoading } = useAuth();
    const { addToCart, totalItems } = useCart();
+   const router = useRouter();
    const [scrolled, setScrolled] = useState(false);
    const [isProfileOpen, setIsProfileOpen] = useState(false);
    const [isExploreOpen, setIsExploreOpen] = useState(false);
@@ -85,6 +87,23 @@ export default function ClientDashboardV3() {
        const cleanPath = dbPath.startsWith('/') ? dbPath : `/${dbPath}`;
        return `${apiUrl}/uploads${cleanPath}`;
     };
+
+   // Garde de rôle : bloquer l'accès aux non-clients
+   useEffect(() => {
+      if (isAuthLoading) return;
+      if (!user) {
+        router.push('/auth/login');
+        return;
+      }
+      if (user.role === 'vendeur') {
+        router.push('/dashboard/seller');
+        return;
+      }
+      if (user.role === 'super_admin' || user.role === 'admin') {
+        router.push('/dashboard/super-admin');
+        return;
+      }
+   }, [user, isAuthLoading, router]);
 
    useEffect(() => {
       const handleScroll = () => setScrolled(window.scrollY > 50);

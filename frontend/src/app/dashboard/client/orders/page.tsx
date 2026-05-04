@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, ChevronLeft, Clock, CheckCircle2, Truck, Package, Search, Loader2 } from 'lucide-react';
+import { ShoppingBag, ChevronLeft, Clock, CheckCircle2, Truck, Package, Search, Loader2, Store } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 
@@ -104,15 +104,21 @@ export default function ClientOrders() {
          ) : (
             <div className="space-y-6">
                {orders.map((order) => (
-                  <div key={order.id} className="bg-white rounded-[40px] p-8 shadow-xl border border-forest-green/5 hover:border-forest-green/20 transition-all group animate-reveal">
-                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 pb-8 border-b border-forest-green/5">
-                        <div className="flex items-center gap-6">
-                           <div className="w-16 h-16 rounded-3xl bg-forest-green/5 flex items-center justify-center text-forest-green">
-                              <Package size={24} />
+                  <div key={order.id} className="bg-white rounded-[32px] p-6 shadow-xl border border-forest-green/5 hover:border-forest-green/20 transition-all group animate-reveal">
+                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-4 border-b border-forest-green/5">
+                        <div className="flex items-center gap-4">
+                           <div className="w-12 h-12 rounded-2xl bg-forest-green/5 flex items-center justify-center text-forest-green">
+                              <Package size={20} />
                            </div>
                            <div>
                               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Commande #{order.id.substring(0, 8).toUpperCase()}</p>
                               <p className="text-sm font-black italic">{new Date(order.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                              {order.store?.name && (
+                                 <div className="flex items-center gap-1.5 mt-1">
+                                    <Store size={12} className="text-afrigari-gold" />
+                                    <p className="text-[10px] font-black uppercase text-afrigari-gold tracking-wider">{order.store.name}</p>
+                                 </div>
+                              )}
                            </div>
                         </div>
                         
@@ -122,16 +128,29 @@ export default function ClientOrders() {
                         </div>
                      </div>
 
-                     <div className="flex flex-col md:flex-row justify-between items-end gap-8">
-                        <div className="flex flex-col gap-4">
-                           <div className="flex -space-x-4">
+                     {/* Motif d'annulation */}
+                     {order.status === 'CANCELLED' && order.cancellationReason && (
+                        <div className="mb-4 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-start gap-3">
+                           <div className="w-6 h-6 rounded-lg bg-red-100 flex items-center justify-center text-red-500 shrink-0 mt-0.5">
+                              <ShoppingBag size={14} />
+                           </div>
+                           <div>
+                              <p className="text-[10px] font-black text-red-400 uppercase tracking-widest mb-1">Motif d'annulation</p>
+                              <p className="text-sm font-bold text-red-600">{order.cancellationReason}</p>
+                           </div>
+                        </div>
+                     )}
+
+                     <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+                        <div className="flex flex-col gap-3">
+                           <div className="flex -space-x-3">
                               {order.items?.map((item: any, i: number) => (
-                                 <div key={i} className="w-12 h-12 rounded-2xl border-4 border-white overflow-hidden shadow-lg" title={item.productName}>
+                                 <div key={i} className="w-10 h-10 rounded-xl border-[3px] border-white overflow-hidden shadow-sm" title={item.productName}>
                                     <img src={item.productImage || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=100"} className="w-full h-full object-cover" />
                                  </div>
                               ))}
                               {order.items?.length > 3 && (
-                                 <div className="w-12 h-12 rounded-2xl border-4 border-white bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-lg">
+                                 <div className="w-10 h-10 rounded-xl border-[3px] border-white bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-400 shadow-sm">
                                     +{order.items.length - 3}
                                  </div>
                               )}
