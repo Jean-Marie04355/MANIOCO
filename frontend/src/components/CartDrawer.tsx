@@ -4,14 +4,16 @@ import { useCart } from '@/features/cart/CartContext';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boolean, onClose: () => void, onSuccess?: () => void }) {
-  const { items, removeFromCart, updateQuantity, totalPrice, totalItems, toggleSelection, clearSelected } = useCart();
+  const { items, removeFromCart, updateQuantity, updateUnit, totalPrice, totalItems, toggleSelection, clearSelected } = useCart();
   const { user } = useAuth();
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+
 
   const getImageUrl = (path?: string) => {
     if (!path) return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=100";
@@ -62,8 +64,12 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
 
     const allowedUnits = new Set(['Sac', 'Demi-sac', 'Kg', 'Demi-kg']);
 
+
+
     setIsSubmitting(true);
     try {
+
+
       const storesMap: Record<string, any[]> = {};
       selectedItems.forEach(item => {
         if (!item.storeId) return;
@@ -156,7 +162,19 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
                     <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1">{item.name}</h4>
-                    <p className="text-[10px] font-bold text-afrigari-gold uppercase tracking-widest">{item.unit || 'Unité'}</p>
+                    <select 
+                      value={item.unit || 'Kg'} 
+                      onChange={(e) => updateUnit(item.id, e.target.value)}
+                      className="text-[10px] font-black text-afrigari-gold uppercase tracking-widest bg-transparent border-none focus:ring-0 cursor-pointer p-0"
+                    >
+                      <option value="Kg">Kg</option>
+                      <option value="Sac">Sac</option>
+                      <option value="Demi-sac">Demi-sac</option>
+                      <option value="Demi-kg">Demi-kg</option>
+                    </select>
+                    <span className="text-[9px] font-black text-forest-green/30 ml-2 uppercase tracking-widest">
+                       {item.price.toLocaleString()} FCFA / {item.unit || 'Kg'}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center bg-forest-green/5 rounded-lg px-2">
@@ -177,6 +195,8 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
 
         {items.length > 0 && (
           <div className="p-8 bg-organic-cream border-t border-forest-green/5 space-y-6">
+
+
             <div className="flex justify-between items-center font-black">
               <div>
                 <span className="text-xs uppercase tracking-[0.2em] text-forest-green/40">Total sélectionné</span>

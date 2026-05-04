@@ -60,6 +60,8 @@ export class PaymentsService {
 
       this.logger.log(`Using payment callback URL: ${callbackUrl}`);
 
+      const customer = await this.userRepository.findOne({ id: order.customerId });
+
       // Delegate to external provider
       const paymentResponse = await this.paymentProvider.createTransaction({
         amount,
@@ -67,6 +69,12 @@ export class PaymentsService {
         callbackUrl,
         sellerPayoutAccountId,
         orderId: order.id,
+        customer: customer ? {
+          firstname: customer.name.split(' ')[0],
+          lastname: customer.name.split(' ').slice(1).join(' ') || 'Client',
+          email: customer.email,
+          phoneNumber: customer.phoneNumber
+        } : undefined
       });
 
       // Update with external reference

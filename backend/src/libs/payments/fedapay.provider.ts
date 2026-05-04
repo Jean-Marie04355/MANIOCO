@@ -31,6 +31,12 @@ export class FedaPayProvider implements IPaymentProvider {
     callbackUrl: string;
     sellerPayoutAccountId?: string;
     orderId: string;
+    customer?: {
+      firstname?: string;
+      lastname?: string;
+      email?: string;
+      phoneNumber?: string;
+    };
   }): Promise<PaymentResponse> {
     this.logger.log(
       `Initiating FedaPay transaction for order #${params.orderId}`,
@@ -63,6 +69,15 @@ export class FedaPayProvider implements IPaymentProvider {
               }
             : undefined,
           include: 'payouts',
+          customer: params.customer ? {
+            firstname: (params.customer.firstname || (params.customer.email ? params.customer.email.split('@')[0] : 'Client')) as string,
+            lastname: (params.customer.lastname || 'Afrigari') as string,
+            email: params.customer.email as string,
+            phone_number: params.customer.phoneNumber ? {
+              number: params.customer.phoneNumber.replace(/\D/g, '').replace(/^229/, ''),
+              country: 'BJ'
+            } : undefined
+          } : undefined
         }),
       });
 

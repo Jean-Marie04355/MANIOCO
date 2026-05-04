@@ -16,6 +16,12 @@ export interface IPaymentProvider {
     callbackUrl: string;
     sellerPayoutAccountId?: string;
     orderId: string;
+    customer?: {
+      firstname?: string;
+      lastname?: string;
+      email?: string;
+      phoneNumber?: string;
+    };
   }): Promise<PaymentResponse>;
 
   verifyNotification(

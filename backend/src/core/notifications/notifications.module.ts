@@ -1,8 +1,9 @@
 import 'dotenv/config';
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
+import { RealtimeModule } from '../../libs/realtime/realtime.module';
 
 import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
@@ -23,6 +24,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
           { name: MongoNotification.name, schema: NotificationSchema },
         ])
       : TypeOrmModule.forFeature([Notification]),
+    forwardRef(() => RealtimeModule),
   ],
   controllers: [NotificationsController],
   providers: [

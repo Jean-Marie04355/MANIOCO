@@ -41,6 +41,10 @@ export class UsersService {
     return this.userRepository.findOne({ email } as object);
   }
 
+  async findByResetToken(token: string): Promise<User | null> {
+    return this.userRepository.findOne({ resetPasswordToken: token } as object);
+  }
+
   async findAll(): Promise<any[]> {
     const users = await this.userRepository.find();
 

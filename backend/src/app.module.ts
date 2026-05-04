@@ -34,10 +34,11 @@ import { join } from 'path';
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ServeStaticModule.forRoot({
-      rootPath: join(__dirname, '..', 'uploads'),
+      rootPath: join(process.cwd(), 'uploads'),
       serveRoot: '/uploads',
     }),
     DatabaseModule.register(),
+    PaymentsInfraModule,
     RolesModule,
     StorageModule,
     CacheModule,
@@ -52,7 +53,6 @@ import { join } from 'path';
     PaymentsModule,
     RealtimeModule,
     QueuesModule,
-    PaymentsInfraModule,
     AuditModule,
     ChatModule,
     NotificationsModule,

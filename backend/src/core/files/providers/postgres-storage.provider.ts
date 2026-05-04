@@ -5,6 +5,7 @@ import { IFileStorage } from '../interfaces/file-storage.interface';
 import { FileEntity } from '../entities/file.entity';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
 import { S3StorageService } from '../../../libs/storage/s3-storage.service';
+import * as fs from 'node:fs';
 
 @Injectable()
 export class PostgresStorageProvider implements IFileStorage {
@@ -27,8 +28,38 @@ export class PostgresStorageProvider implements IFileStorage {
     };
   }
 
-  async upload(file: Express.Multer.File): Promise<string> {
-    return this.s3Service.uploadFile(file);
+  async upload(file: any): Promise<string> {
+    try {
+      // Si S3 est configuré et fonctionnel, on l'utilise, sinon on passe en local
+      if (process.env.STORAGE_TYPE === 's3') {
+        try {
+          return await this.s3Service.uploadFile(file);
+        } catch (s3Error) {
+          console.warn("Échec upload S3, repli sur le stockage local:", s3Error.message);
+        }
+      }
+      
+      const uploadsDir = 'uploads';
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const filename = `${Date.now()}-${file.originalname || 'upload.jpg'}`;
+      const filePath = `${uploadsDir}/${filename}`;
+      
+      if (file.buffer) {
+        fs.writeFileSync(filePath, file.buffer);
+      } else if (file.path) {
+        // Si Multer a déjà sauvegardé sur le disque dans un dossier temporaire
+        fs.copyFileSync(file.path, filePath);
+      } else {
+        throw new Error("Aucun contenu de fichier trouvé (buffer ou path manquant)");
+      }
+      
+      return `/uploads/${filename}`;
+    } catch (error) {
+      throw new Error(`Failed to upload file: ${error.message}`);
+    }
   }
 
   async findAll(): Promise<FileResponse[]> {

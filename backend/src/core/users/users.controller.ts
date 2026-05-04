@@ -224,7 +224,6 @@ export class UsersController {
   @ApiResponse({ status: 200, description: 'User updated' })
   @ApiParam({ name: 'id', type: String })
   @UseGuards(JwtAuthGuard, PermissionsGuard)
-  @Permissions(Permission.USERS_MANAGE)
   @Patch(':id')
   async update(
     @Param('id') id: string,

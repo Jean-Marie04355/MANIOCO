@@ -1,7 +1,8 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
-import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell, Settings, MapPin } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -17,6 +18,7 @@ interface ProductStore {
    id?: string | number;
    name?: string;
    profilePhoto?: string;
+   city?: string;
 }
 
 interface ProductCategory {
@@ -36,8 +38,9 @@ interface Product {
 }
 
 export default function ClientDashboardV3() {
-   const { user, logout } = useAuth();
+   const { user, logout, isLoading: isAuthLoading } = useAuth();
    const { addToCart, totalItems } = useCart();
+   const router = useRouter();
    const [scrolled, setScrolled] = useState(false);
    const [isProfileOpen, setIsProfileOpen] = useState(false);
    const [isExploreOpen, setIsExploreOpen] = useState(false);
@@ -48,8 +51,17 @@ export default function ClientDashboardV3() {
    const [categories, setCategories] = useState<Category[]>([]);
    const [isLoading, setIsLoading] = useState(true);
    const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+   const [activeCity, setActiveCity] = useState<string | null>(null);
    const [searchQuery, setSearchQuery] = useState('');
    const [visibleCount, setVisibleCount] = useState(8);
+
+   const [notifications, setNotifications] = useState<any[]>([]);
+   const [unreadCount, setUnreadCount] = useState(0);
+   const [unreadMessages, setUnreadMessages] = useState(0);
+   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+   const notificationsRef = useRef<HTMLDivElement>(null);
+   const profileRef = useRef<HTMLDivElement>(null);
+   const [isNotificationLoading, setIsNotificationLoading] = useState(false);
 
    // Bibliothèque de liens internet réels pour la démo
     const getRealInternetLink = (product: Pick<Product, 'name' | 'image'>) => {
@@ -76,6 +88,23 @@ export default function ClientDashboardV3() {
        return `${apiUrl}/uploads${cleanPath}`;
     };
 
+   // Garde de rôle : bloquer l'accès aux non-clients
+   useEffect(() => {
+      if (isAuthLoading) return;
+      if (!user) {
+        router.push('/auth/login');
+        return;
+      }
+      if (user.role === 'vendeur') {
+        router.push('/dashboard/seller');
+        return;
+      }
+      if (user.role === 'super_admin' || user.role === 'admin') {
+        router.push('/dashboard/super-admin');
+        return;
+      }
+   }, [user, isAuthLoading, router]);
+
    useEffect(() => {
       const handleScroll = () => setScrolled(window.scrollY > 50);
       window.addEventListener('scroll', handleScroll);
@@ -96,16 +125,104 @@ export default function ClientDashboardV3() {
       };
 
       fetchDynamicData();
+
+      // Notifications and counts logic
+      const fetchNotifications = async () => {
+         try {
+            setIsNotificationLoading(true);
+            const res = await api.get('/notifications');
+            setNotifications(res.data);
+         } catch (error) {
+            console.error('Erreur lors de la récupération des notifications', error);
+         } finally {
+            setIsNotificationLoading(false);
+         }
+      };
+
+      const fetchCounts = async () => {
+         try {
+            const [notifRes, chatRes] = await Promise.all([
+               api.get('/notifications/unread/count'),
+               api.get('/chat/unread-count')
+            ]);
+            setUnreadCount(typeof notifRes.data === 'object' ? notifRes.data.count : notifRes.data);
+            setUnreadMessages(typeof chatRes.data === 'object' ? chatRes.data.count : chatRes.data);
+         } catch (e) {}
+      };
+
+      if (user) {
+         fetchNotifications();
+         fetchCounts();
+         const interval = setInterval(() => {
+            fetchNotifications();
+            fetchCounts();
+         }, 60000);
+         return () => {
+            clearInterval(interval);
+            window.removeEventListener('scroll', handleScroll);
+         };
+      }
+
       return () => window.removeEventListener('scroll', handleScroll);
+   }, [user]);
+
+   const markAllAsRead = async () => {
+      try {
+         await api.patch('/notifications/read-all');
+         setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+         setUnreadCount(0);
+      } catch (error) {
+         console.error('Erreur lors du marquage des notifications', error);
+      }
+   };
+
+   const markAsRead = async (id: string) => {
+      try {
+         await api.patch(`/notifications/${id}/read`);
+         setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+         setUnreadCount(prev => Math.max(0, prev - 1));
+      } catch (error) {
+         console.error('Erreur lors du marquage de la notification', error);
+      }
+   };
+
+   const timeAgo = (date: string) => {
+      const now = new Date();
+      const past = new Date(date);
+      const diffInMs = now.getTime() - past.getTime();
+      const diffInMins = Math.floor(diffInMs / 60000);
+      const diffInHours = Math.floor(diffInMins / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      if (diffInMins < 1) return 'À l\'instant';
+      if (diffInMins < 60) return `Il y a ${diffInMins} min`;
+      if (diffInHours < 24) return `Il y a ${diffInHours}h`;
+      return `Il y a ${diffInDays}j`;
+   };
+
+   useEffect(() => {
+      const handleClickOutside = (event: MouseEvent) => {
+         if (notificationsRef.current && !notificationsRef.current.contains(event.target as Node)) {
+            setIsNotificationsOpen(false);
+         }
+         if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+            setIsProfileOpen(false);
+         }
+      };
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
    }, []);
 
    const filteredProducts = products.filter(p => {
       const matchesCategory = activeCategoryId ? p.categoryId === activeCategoryId : true;
+      const matchesCity = activeCity ? p.store?.city === activeCity : true;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
          p.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
          p.store?.name?.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesCategory && matchesSearch;
+      return matchesCategory && matchesCity && matchesSearch;
    });
+
+   const uniqueCities = Array.from(new Set(products.map(p => p.store?.city).filter(Boolean))) as string[];
 
    return (
       <div className="bg-[#fcfbf7] min-h-screen text-[#1a2e22] selection:bg-[#c5a059] selection:text-white font-sans overflow-x-hidden">
@@ -141,6 +258,76 @@ export default function ClientDashboardV3() {
                            className="bg-[#1a2e22]/5 border-none rounded-full py-3.5 pl-12 pr-8 text-[11px] font-black uppercase tracking-widest focus:ring-2 focus:ring-[#c5a059] outline-none w-48 transition-all focus:w-80"
                         />
                      </div>
+
+                     {/* Messages */}
+                     <Link href="/dashboard/client/messages" className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all">
+                        <MessageSquare size={22} className="group-hover:scale-110 transition-transform" />
+                        {unreadMessages > 0 && (
+                           <>
+                              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full animate-ping opacity-75"></span>
+                              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-white animate-pulse">
+                                 {unreadMessages}
+                              </span>
+                           </>
+                        )}
+                     </Link>
+
+                     {/* Notifications */}
+                     <div className="relative" ref={notificationsRef}>
+                        <div
+                           onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                           className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
+                        >
+                           <Bell size={22} className="group-hover:scale-110 transition-transform" />
+                           {unreadCount > 0 && (
+                              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-white animate-bounce">
+                                 {unreadCount > 9 ? '9+' : unreadCount}
+                              </span>
+                           )}
+                        </div>
+
+                        {isNotificationsOpen && (
+                           <div className="absolute right-0 mt-4 w-80 bg-white rounded-[2rem] shadow-2xl border border-[#1a2e22]/5 py-6 z-[300] animate-reveal overflow-hidden">
+                              <div className="px-8 pb-4 border-b border-[#1a2e22]/5 flex justify-between items-center">
+                                 <h3 className="text-xs font-black text-[#1a2e22] uppercase tracking-widest">Notifications</h3>
+                                 {unreadCount > 0 && (
+                                    <span className="text-[10px] font-black px-2 py-0.5 rounded-full text-[#c5a059] bg-[#c5a059]/10">{unreadCount} NOUVELLES</span>
+                                 )}
+                              </div>
+                              <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
+                                 {isNotificationLoading && notifications.length === 0 ? (
+                                    <div className="px-8 py-8 text-center text-[#1a2e22]/40 text-[10px] font-black uppercase tracking-widest">Chargement...</div>
+                                 ) : notifications.length === 0 ? (
+                                    <div className="px-8 py-8 text-center text-[#1a2e22]/40 text-[10px] font-black uppercase tracking-widest">Aucune notification</div>
+                                 ) : (
+                                    notifications.map((notif) => (
+                                       <div 
+                                          key={notif.id} 
+                                          onClick={() => markAsRead(notif.id)}
+                                          className={`px-8 py-5 hover:bg-[#1a2e22]/5 transition-colors cursor-pointer border-b border-[#1a2e22]/5 last:border-0 ${!notif.isRead ? 'bg-[#c5a059]/5' : ''}`}
+                                       >
+                                          <div className="flex justify-between items-start mb-1">
+                                             <p className={`text-[11px] font-black uppercase tracking-tight ${!notif.isRead ? 'text-[#1a2e22]' : 'text-[#1a2e22]/40'}`}>{notif.title}</p>
+                                             <span className="text-[9px] font-black text-[#c5a059]">{timeAgo(notif.createdAt)}</span>
+                                          </div>
+                                          <p className={`text-[12px] font-medium leading-relaxed ${!notif.isRead ? 'text-[#1a2e22]/70' : 'text-[#1a2e22]/30'}`}>{notif.message}</p>
+                                       </div>
+                                    ))
+                                 )}
+                              </div>
+                              <div className="px-8 pt-4 text-center">
+                                 <button 
+                                    onClick={markAllAsRead}
+                                    disabled={unreadCount === 0}
+                                    className="text-[10px] font-black text-[#1a2e22]/40 uppercase tracking-[0.2em] transition-colors disabled:opacity-30 hover:text-[#c5a059]"
+                                 >
+                                    Tout marquer comme lu
+                                 </button>
+                              </div>
+                           </div>
+                        )}
+                     </div>
+
                      <div
                         onClick={() => setIsCartOpen(true)}
                         className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
@@ -153,13 +340,57 @@ export default function ClientDashboardV3() {
                         )}
                      </div>
                   </div>
-                  <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-12 h-12 rounded-full border-2 border-white shadow-2xl hover:scale-110 transition-all overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
-                     {user?.profilePhoto ? (
-                        <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover" />
-                     ) : (
-                        <span>{user?.name?.[0] || 'U'}</span>
+                  <div className="relative" ref={profileRef}>
+                     <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-12 h-12 rounded-full border-2 border-white shadow-2xl hover:scale-110 transition-all overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
+                        {user?.profilePhoto ? (
+                           <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover" />
+                        ) : (
+                           <span>{user?.name?.[0] || 'U'}</span>
+                        )}
+                     </button>
+
+                     {/* Profile Dropdown moved here for better Ref management */}
+                     {isProfileOpen && (
+                        <div className="absolute top-20 right-0 w-72 bg-white shadow-2xl rounded-[40px] p-6 z-[300] border border-white animate-reveal">
+                           <div className="flex flex-col items-center mb-6">
+                              <div className="w-16 h-16 rounded-full border-4 border-[#c5a059]/20 p-1 mb-3 overflow-hidden bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-xl font-black uppercase">
+                                 {user?.profilePhoto ? (
+                                    <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover rounded-full" />
+                                 ) : (
+                                    <span>{user?.name?.[0] || 'U'}</span>
+                                 )}
+                              </div>
+                              <h4 className="font-black text-xl text-[#1a2e22] text-center tracking-tight">{user?.name || 'Utilisateur'}</h4>
+                              <p className="text-[9px] font-black text-[#c5a059] uppercase tracking-[0.4em] mt-1">{user?.role || 'Client Privilège'}</p>
+                           </div>
+                           <div className="space-y-1">
+                              <Link href="/dashboard/client/messages" className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#1a2e22]/5 transition-all group">
+                                 <div className="flex items-center gap-4">
+                                    <MessageSquare size={18} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Conversations</span>
+                                 </div>
+                              </Link>
+                              <Link href="/dashboard/client/orders" className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#1a2e22]/5 transition-all group">
+                                 <div className="flex items-center gap-4">
+                                    <Clock size={18} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Commandes</span>
+                                 </div>
+                              </Link>
+                              <Link href="/dashboard/client/settings" className="w-full flex items-center justify-between p-3.5 rounded-2xl hover:bg-[#1a2e22]/5 transition-all group">
+                                 <div className="flex items-center gap-4">
+                                    <Settings size={18} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Paramètres</span>
+                                 </div>
+                              </Link>
+                              <div className="h-px bg-[#1a2e22]/5 my-4 mx-4"></div>
+                              <button onClick={() => logout()} className="w-full flex items-center gap-4 p-3.5 rounded-2xl hover:bg-red-50 text-red-500 transition-all font-black text-[10px] uppercase tracking-widest">
+                                 <LogOut size={18} />
+                                 <span>Déconnexion</span>
+                              </button>
+                           </div>
+                        </div>
                      )}
-                  </button>
+                  </div>
                </div>
             </div>
          </nav>
@@ -245,16 +476,50 @@ export default function ClientDashboardV3() {
 
             {/* Products Grid */}
             <section id="arrivages" className="mb-60 scroll-mt-40">
-               <div className="flex flex-col md:flex-row justify-between items-center mb-24 gap-8">
+               <div className="flex flex-col md:flex-row justify-between items-start mb-12 gap-8">
                   <h3 className="text-4xl font-black tracking-tight text-[#1a2e22] uppercase">
-                     {activeCategoryId ? `Produits : ${categories.find(c => c.id === activeCategoryId)?.name}` : 'Le Catalogue Complet'}
+                     {activeCity ? `Boutiques à ${activeCity}` : activeCategoryId ? `Produits : ${categories.find(c => c.id === activeCategoryId)?.name}` : 'Le Catalogue Complet'}
                   </h3>
-                  {activeCategoryId && (
-                     <button onClick={() => setActiveCategoryId(null)} className="text-[10px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 flex items-center gap-2">
-                        <X size={14} /> Réinitialiser le filtre
-                     </button>
-                  )}
+                  <div className="flex items-center gap-3">
+                     {activeCategoryId && (
+                        <button onClick={() => setActiveCategoryId(null)} className="text-[10px] font-black uppercase tracking-widest text-red-400 hover:text-red-600 flex items-center gap-2 border border-red-200 px-4 py-2 rounded-xl hover:bg-red-50 transition-all">
+                           <X size={12} /> Catégorie
+                        </button>
+                     )}
+                     {activeCity && (
+                        <button onClick={() => setActiveCity(null)} className="text-[10px] font-black uppercase tracking-widest text-[#c5a059] hover:text-[#1a2e22] flex items-center gap-2 border border-[#c5a059]/30 px-4 py-2 rounded-xl hover:bg-[#c5a059]/5 transition-all">
+                           <X size={12} /> {activeCity}
+                        </button>
+                     )}
+                  </div>
                </div>
+
+               {/* Location Filter */}
+               {uniqueCities.length > 0 && (
+                  <div className="mb-16 p-6 bg-white rounded-3xl border border-[#1a2e22]/5 shadow-sm">
+                     <p className="text-[9px] font-black text-[#c5a059] uppercase tracking-[0.4em] mb-5 flex items-center gap-2">
+                        <MapPin size={12} />
+                        Filtrer par Emplacement
+                     </p>
+                     <div className="flex flex-wrap gap-2">
+                        <button
+                           onClick={() => setActiveCity(null)}
+                           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${!activeCity ? 'bg-[#1a2e22] text-[#c5a059] shadow-lg' : 'bg-[#1a2e22]/5 text-[#1a2e22]/50 hover:bg-[#1a2e22]/10'}`}
+                        >
+                           <MapPin size={11} /> Toutes les villes
+                        </button>
+                        {uniqueCities.map(city => (
+                           <button
+                              key={city}
+                              onClick={() => setActiveCity(city)}
+                              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${activeCity === city ? 'bg-[#c5a059] text-white shadow-lg scale-105' : 'bg-[#1a2e22]/5 text-[#1a2e22]/50 hover:bg-[#c5a059]/10 hover:text-[#c5a059]'}`}
+                           >
+                              <MapPin size={11} /> {city}
+                           </button>
+                        ))}
+                     </div>
+                  </div>
+               )}
 
                {isLoading ? (
                   <div className="py-40 flex justify-center w-full">
@@ -389,40 +654,7 @@ export default function ClientDashboardV3() {
          </main>
 
          {/* Profile Dropdown */}
-         {isProfileOpen && (
-            <div className="fixed top-28 right-12 w-80 bg-white shadow-2xl rounded-[48px] p-10 z-[300] border border-white animate-reveal">
-               <div className="flex flex-col items-center mb-10">
-                  <div className="w-24 h-24 rounded-full border-4 border-[#c5a059]/20 p-1.5 mb-6 overflow-hidden bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-3xl font-black uppercase">
-                     {user?.profilePhoto ? (
-                         <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover rounded-full" />
-                     ) : (
-                        <span>{user?.name?.[0] || 'U'}</span>
-                     )}
-                  </div>
-                  <h4 className="font-black text-2xl text-[#1a2e22] text-center tracking-tight">{user?.name || 'Utilisateur'}</h4>
-                  <p className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.5em] mt-2">{user?.role || 'Client Privilège'}</p>
-               </div>
-               <div className="space-y-3">
-                  <Link href="/dashboard/client/messages" className="w-full flex items-center justify-between p-5 rounded-3xl hover:bg-[#1a2e22]/5 transition-all group">
-                     <div className="flex items-center gap-5">
-                        <MessageSquare size={22} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Conversations</span>
-                     </div>
-                  </Link>
-                  <Link href="/dashboard/client/orders" className="w-full flex items-center justify-between p-5 rounded-3xl hover:bg-[#1a2e22]/5 transition-all group">
-                     <div className="flex items-center gap-5">
-                        <Clock size={22} className="text-[#1a2e22]/40 group-hover:text-[#1a2e22]" />
-                        <span className="text-[11px] font-black uppercase tracking-widest text-[#1a2e22]/60 group-hover:text-[#1a2e22]">Mes Commandes</span>
-                     </div>
-                  </Link>
-                  <div className="h-px bg-[#1a2e22]/5 my-6 mx-4"></div>
-                  <button onClick={() => logout()} className="w-full flex items-center gap-5 p-5 rounded-3xl hover:bg-red-50 text-red-500 transition-all font-black text-[11px] uppercase tracking-widest">
-                     <LogOut size={22} />
-                     <span>Déconnexion</span>
-                  </button>
-               </div>
-            </div>
-         )}
+
 
          <CartDrawer
             isOpen={isCartOpen}
@@ -483,26 +715,14 @@ type AfrigariAgroCardProps = {
 function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, price, img, badge }: AfrigariAgroCardProps) {
    return (
       <div className="block group animate-reveal">
-         <div className="relative aspect-[4/5] rounded-[70px] overflow-hidden mb-12 shadow-2xl group-hover:-translate-y-4 transition-all duration-1000 ring-1 ring-[#1a2e22]/5 border-[10px] border-white bg-white">
+         <div className="relative aspect-square rounded-[40px] overflow-hidden mb-8 shadow-2xl group-hover:-translate-y-4 transition-all duration-1000 ring-1 ring-[#1a2e22]/5 border-[8px] border-white bg-white">
              <img src={img} alt={name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[4s] block" />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
             {badge && <span className="absolute top-10 left-10 bg-[#c5a059] text-white px-6 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl border border-white/20 z-20">{badge}</span>}
 
             <Link href={storeId ? `/dashboard/client/shops/${storeId}` : '#'} className="absolute inset-0 z-10"></Link>
 
-            <button
-               onClick={(e) => { e.preventDefault(); addToCart(product); }}
-               className="absolute bottom-10 right-10 w-16 h-16 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transition-all translate-y-6 group-hover:translate-y-0 hover:bg-[#c5a059] hover:text-white z-30 duration-700"
-            >
-               <Plus size={28} className="group-hover:rotate-90 transition-transform" />
-            </button>
-            
-            <Link 
-               href="/dashboard/client/messages"
-               className="absolute bottom-10 left-10 w-16 h-16 bg-white text-[#1a2e22] rounded-full flex items-center justify-center shadow-2xl opacity-0 group-hover:opacity-100 transition-all translate-y-6 group-hover:translate-y-0 hover:text-[#c5a059] z-30 duration-700 delay-75"
-            >
-               <MessageSquare size={24} />
-            </Link>
+
          </div>
          <div className="px-6">
             <div className="flex items-center gap-3 mb-3">
@@ -510,26 +730,26 @@ function AfrigariAgroCard({ product, addToCart, storeId, name, unit, producer, p
                <p className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.4em]">{unit}</p>
             </div>
             <Link href={storeId ? `/dashboard/client/shops/${storeId}` : '#'}>
-               <h4 className="text-[28px] font-black mb-4 tracking-[-0.03em] text-[#1a2e22] group-hover:text-[#c5a059] transition-colors uppercase leading-none truncate cursor-pointer">{name}</h4>
+               <h4 className="text-[20px] font-black mb-4 tracking-[-0.03em] text-[#1a2e22] group-hover:text-[#c5a059] transition-colors uppercase leading-none truncate cursor-pointer">{name}</h4>
             </Link>
-            <div className="flex items-center gap-4 text-[11px] font-bold text-[#1a2e22]/30 uppercase tracking-[0.1em] mb-8 border-b border-[#1a2e22]/5 pb-8">
-               <Store size={14} />
+            <div className="flex items-center gap-4 text-[10px] font-bold text-[#1a2e22]/30 uppercase tracking-[0.1em] mb-4">
+               <Store size={12} />
                <span>{producer}</span>
             </div>
-            <div className="flex justify-between items-center bg-white p-3 rounded-[32px] border border-[#1a2e22]/5 group-hover:border-[#c5a059]/30 transition-all shadow-sm">
-               <span className="text-2xl font-black text-[#1a2e22] ml-4">{price}</span>
+            <div className="flex justify-between items-center pt-2">
+               <span className="text-xl font-black text-[#1a2e22]">{price}</span>
                <div className="flex gap-2">
                   <Link
-                     href="/dashboard/client/messages"
-                     className="w-14 h-14 rounded-2xl bg-[#f4f1ea] flex items-center justify-center text-[#1a2e22] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-md"
+                     href={storeId ? `/dashboard/client/messages?sellerId=${storeId}` : "/dashboard/client/messages"}
+                     className="w-10 h-10 rounded-full bg-[#f4f1ea] flex items-center justify-center text-[#1a2e22] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-sm"
                   >
-                     <MessageSquare size={18} />
+                     <MessageSquare size={16} />
                   </Link>
                   <div
                      onClick={(e) => { e.preventDefault(); addToCart(product); }}
-                     className="w-14 h-14 rounded-2xl bg-[#1a2e22] flex items-center justify-center text-[#c5a059] cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-xl"
+                     className="w-10 h-10 rounded-full bg-[#1a2e22] text-[#c5a059] flex items-center justify-center cursor-pointer hover:bg-[#c5a059] hover:text-white transition-all shadow-md"
                   >
-                     <ShoppingCart size={20} />
+                     <ShoppingCart size={16} />
                   </div>
                </div>
             </div>

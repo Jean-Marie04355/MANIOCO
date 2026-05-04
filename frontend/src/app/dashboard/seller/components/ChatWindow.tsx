@@ -59,6 +59,13 @@ export default function ChatWindow() {
 
   const currentUserId = user?.id || (user as any)?.userId;
 
+  const getImageUrl = (path: string) => {
+    if (!path || String(path).trim() === '' || path === 'null') return "https://i.pravatar.cc/100?u=shop";
+    if (path.startsWith('http') || path.startsWith('data:')) return path;
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    return `${apiUrl}${path.startsWith('/') ? '' : '/'}${path}`;
+  };
+
   const searchParams = useSearchParams();
   const contactId = searchParams.get('contact');
 
@@ -246,7 +253,7 @@ export default function ChatWindow() {
     const textToSend = replyTo
       ? `↩ ${replyTo.text?.substring(0, 40)}${(replyTo.text?.length || 0) > 40 ? '…' : ''}\n${inputText}`
       : inputText;
-    const imgToSend = imagePreview;
+    const imgToSend = selectedFile ? imagePreview : null; // This will be the path after upload logic is integrated below
     
     const tempMsg: Message = {
       id: `temp-${Date.now()}`,
@@ -264,14 +271,25 @@ export default function ChatWindow() {
 
     setIsSending(true);
     try {
+      let uploadedPath = null;
+      if (selectedFile) {
+        const formData = new FormData();
+        formData.append('file', selectedFile);
+        const uploadRes = await api.post('/files/upload', formData);
+        uploadedPath = uploadRes.data.path;
+      }
+
       const isNewConv = activeConv.id.startsWith('new-');
       const res = await api.post('/chat/messages', {
         conversationId: isNewConv ? null : activeConv.id,
         customerId: isNewConv ? activeConv.customerId : null,
         text: textToSend,
-        image: imgToSend
+        image: uploadedPath || undefined
       });
 
+      setSelectedFile(null);
+      setImagePreview(null);
+      
       if (isNewConv) {
          const convsRes = await api.get('/chat/conversations');
          setConversations(convsRes.data);
@@ -302,6 +320,7 @@ export default function ChatWindow() {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => setImagePreview(reader.result as string);
       reader.readAsDataURL(file);
@@ -512,18 +531,18 @@ export default function ChatWindow() {
                       ${m.senderId === currentUserId
                         ? 'bg-orange-500 text-white rounded-tr-none'
                         : 'bg-white text-slate-700 rounded-tl-none shadow-sm'}
-                      ${m.image ? 'w-full max-w-[320px]' : 'max-w-[70%]'}
+                      ${m.image ? 'w-full max-w-[240px]' : 'max-w-[70%]'}
                     `}
                     onContextMenu={(e) => openContextMenu(e, m)}
                     onTouchStart={(e) => handleLongPressStart(e, m)}
                     onTouchEnd={handleLongPressEnd}
                     onTouchMove={handleLongPressEnd}
                   >
-                    {m.image && (
-                      <div className="relative w-full aspect-[4/3] mb-3 rounded-2xl overflow-hidden border border-white/20 shadow-inner cursor-pointer">
-                        <img src={m.image} alt="Envoyé" className="object-cover w-full h-full hover:scale-105 transition-transform duration-500" />
-                      </div>
-                    )}
+                      {m.image && (
+                        <div className="relative w-full aspect-square mb-3 rounded-2xl overflow-hidden border border-white/20 shadow-sm cursor-pointer">
+                          <img src={getImageUrl(m.image)} alt="Envoyé" className="object-cover w-full h-full hover:scale-110 transition-transform duration-700" />
+                        </div>
+                      )}
                     {m.text && (
                       <p className="text-sm font-medium leading-relaxed px-2 whitespace-pre-line">{m.text}</p>
                     )}

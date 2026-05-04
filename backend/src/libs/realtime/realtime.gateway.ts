@@ -60,6 +60,7 @@ export class RealtimeGateway
     
     if (body.conversationId !== 'global') {
       await client.join(`conversation_${body.conversationId}`);
+      this.logger.log(`User ${client.user?.userId} joined room conversation_${body.conversationId}`);
     }
     
     return { event: 'joined', data: { conversationId: body.conversationId } };

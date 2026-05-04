@@ -31,8 +31,29 @@ export class JsonStorageProvider implements IFileStorage {
     fs.writeFileSync('data/files.json', JSON.stringify(data, null, 2));
   }
 
-  async upload(file: Express.Multer.File): Promise<string> {
-    return this.s3Service.uploadFile(file);
+  async upload(file: any): Promise<string> {
+    try {
+      const uploadsDir = 'uploads';
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const filename = `${Date.now()}-${file.originalname || 'upload.jpg'}`;
+      const filePath = `${uploadsDir}/${filename}`;
+      
+      if (file.buffer) {
+        fs.writeFileSync(filePath, file.buffer);
+      } else if (file.path) {
+        fs.copyFileSync(file.path, filePath);
+      } else {
+        throw new Error("Aucun contenu de fichier trouvé");
+      }
+      
+      return `/uploads/${filename}`;
+    } catch (error) {
+      this.logger.error(`Local upload error: ${error.message}`);
+      throw new Error(`Failed to upload file locally: ${error.message}`);
+    }
   }
 
   async findAll(): Promise<FileResponse[]> {

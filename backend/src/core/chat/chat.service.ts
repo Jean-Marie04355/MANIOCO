@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   forwardRef,
+  Logger,
 } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Conversation, Message } from './entities/chat.entity';
@@ -16,6 +17,8 @@ import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ChatService {
+  private readonly logger = new Logger(ChatService.name);
+
   constructor(
     @Inject('CONVERSATION_REPOSITORY')
     private readonly conversationRepo: IBaseRepository<Conversation>,
@@ -78,12 +81,14 @@ export class ChatService {
         throw new NotFoundException('Conversation introuvable');
       }
 
+      this.logger.log(`Saving message: text="${text}", image="${image}"`);
       const message = await this.messageRepo.create({
         conversationId: finalConversationId,
         senderId,
-        text,
+        text: text || '',
         image,
       } as object as Partial<Message>);
+      this.logger.log(`Message saved with ID: ${message.id}`);
 
       // Update conversation last message
       await this.conversationRepo.update(finalConversationId, {
@@ -128,12 +133,15 @@ export class ChatService {
         relations: ['store', 'customer']
       } as any);
 
+      const sanitizedConv = { ...(fullConv || conversation || {}) } as any;
+      if (sanitizedConv.messages) delete sanitizedConv.messages;
+
       const normalizedMsg = {
         ...(messageWithRelations || message),
         senderId: message?.senderId && typeof message.senderId === 'object' 
           ? (message.senderId as any).id 
           : (message?.senderId || senderId),
-        conversation: fullConv || conversation || {}
+        conversation: sanitizedConv
       };
 
       // Broadcast message via WebSocket

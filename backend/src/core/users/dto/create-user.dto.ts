@@ -37,4 +37,8 @@ export class CreateUserDto {
   @ApiProperty({ description: 'URL de la photo de profil', required: false })
   @IsOptional()
   profilePhoto?: string;
+
+  @ApiProperty({ description: 'Numéro de téléphone', required: false })
+  @IsOptional()
+  phoneNumber?: string;
 }

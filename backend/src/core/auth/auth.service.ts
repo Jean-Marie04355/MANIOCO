@@ -1,11 +1,11 @@
 import * as crypto from 'node:crypto';
-import { Injectable, UnauthorizedException, Inject } from '@nestjs/common';
+import { Injectable, UnauthorizedException, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
 import { UsersService } from '../users/users.service';
 import { IQueueService } from '../../common/interfaces/queue.interface';
-import { comparePassword } from '../../common/helpers/hash.helper';
+import { comparePassword, hashPassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
 import { User } from '../users/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -191,9 +191,65 @@ export class AuthService {
     };
   }
 
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      // Pour des raisons de sécurité, on ne dit pas si l'email existe ou non
+      return { message: 'If this email is registered, you will receive a reset link shortly.' };
+    }
+
+    const resetPasswordToken = crypto.randomBytes(32).toString('hex');
+    const resetPasswordExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await this.usersService.update(user.id, {
+      resetPasswordToken,
+      resetPasswordExpires,
+    } as Partial<User>);
+
+    // Put reset email job into the queue
+    const queueName = this.configService.get('QUEUE_NAME') || 'default';
+    const rawFrontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+    const frontendUrl = rawFrontendUrl.split(',')[0].trim();
+    const resetLink = `${frontendUrl}/auth/reset-password?token=${resetPasswordToken}`;
+
+    await this.queueService.addJob(queueName, 'send-reset-password-email', {
+      email: user.email,
+      resetLink,
+    });
+
+    return { message: 'If this email is registered, you will receive a reset link shortly.' };
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const user = await this.usersService.findByResetToken(token);
+    
+    if (!user || !user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
+      throw new BadRequestException('Invalid or expired reset token.');
+    }
+
+    await this.usersService.update(user.id, {
+      password: newPassword, // UsersService.update va s'occuper de le hasher
+      resetPasswordToken: null,
+      resetPasswordExpires: null,
+    } as Partial<User>);
+
+    // Notify user of password change
+    this.notificationsService
+      .create({
+        userId: user.id,
+        type: NotificationType.SECURITY,
+        title: 'Mot de passe modifié',
+        message: `Le mot de passe de votre compte Afrigari a été réinitialisé avec succès.`,
+      })
+      .catch(() => {});
+
+    return { message: 'Your password has been successfully reset.' };
+  }
+
   async me(user: AuthenticatedUser) {
     // On charge l'utilisateur complet depuis la BDD pour inclure le champ 'name'
     const fullUser = await this.usersService.findOne(user.userId);
+    if (!fullUser) throw new NotFoundException('User not found');
     return {
       id: fullUser.id,
       name: fullUser.name,
