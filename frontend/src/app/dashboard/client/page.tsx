@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
-import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell, Settings, MapPin } from 'lucide-react';
+import { ShoppingCart, Search, Plus, ArrowRight, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, Leaf, TrendingUp, Bell, Settings, MapPin, ChevronDown } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -62,6 +62,8 @@ export default function ClientDashboardV3() {
    const notificationsRef = useRef<HTMLDivElement>(null);
    const profileRef = useRef<HTMLDivElement>(null);
    const [isNotificationLoading, setIsNotificationLoading] = useState(false);
+   const [isCityFilterOpen, setIsCityFilterOpen] = useState(false);
+   const cityFilterRef = useRef<HTMLDivElement>(null);
 
    // Bibliothèque de liens internet réels pour la démo
     const getRealInternetLink = (product: Pick<Product, 'name' | 'image'>) => {
@@ -207,6 +209,9 @@ export default function ClientDashboardV3() {
          }
          if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
             setIsProfileOpen(false);
+         }
+         if (cityFilterRef.current && !cityFilterRef.current.contains(event.target as Node)) {
+            setIsCityFilterOpen(false);
          }
       };
       document.addEventListener('mousedown', handleClickOutside);
@@ -496,28 +501,60 @@ export default function ClientDashboardV3() {
 
                {/* Location Filter */}
                {uniqueCities.length > 0 && (
-                  <div className="mb-16 p-6 bg-white rounded-3xl border border-[#1a2e22]/5 shadow-sm">
-                     <p className="text-[9px] font-black text-[#c5a059] uppercase tracking-[0.4em] mb-5 flex items-center gap-2">
-                        <MapPin size={12} />
-                        Filtrer par Emplacement
-                     </p>
-                     <div className="flex flex-wrap gap-2">
-                        <button
-                           onClick={() => setActiveCity(null)}
-                           className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${!activeCity ? 'bg-[#1a2e22] text-[#c5a059] shadow-lg' : 'bg-[#1a2e22]/5 text-[#1a2e22]/50 hover:bg-[#1a2e22]/10'}`}
+                  <div className="mb-16 relative" ref={cityFilterRef}>
+                     <div className="flex items-center gap-4">
+                        <button 
+                           onClick={() => setIsCityFilterOpen(!isCityFilterOpen)}
+                           className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[11px] font-black uppercase tracking-[0.2em] transition-all border shadow-sm ${
+                              isCityFilterOpen || activeCity 
+                              ? 'bg-[#1a2e22] text-white border-[#1a2e22]' 
+                              : 'bg-white text-[#1a2e22] border-[#1a2e22]/10 hover:border-[#c5a059]'
+                           }`}
                         >
-                           <MapPin size={11} /> Toutes les villes
+                           <MapPin size={16} className={activeCity ? 'text-[#c5a059]' : ''} />
+                           {activeCity ? `Ville : ${activeCity}` : 'Filtrer par Emplacement'}
+                           <ChevronDown size={14} className={`ml-2 transition-transform duration-500 ${isCityFilterOpen ? 'rotate-180' : ''}`} />
                         </button>
-                        {uniqueCities.map(city => (
-                           <button
-                              key={city}
-                              onClick={() => setActiveCity(city)}
-                              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all duration-300 ${activeCity === city ? 'bg-[#c5a059] text-white shadow-lg scale-105' : 'bg-[#1a2e22]/5 text-[#1a2e22]/50 hover:bg-[#c5a059]/10 hover:text-[#c5a059]'}`}
+                        
+                        {activeCity && (
+                           <button 
+                              onClick={() => setActiveCity(null)}
+                              className="text-[9px] font-black uppercase tracking-widest text-red-500 hover:text-red-600 transition-colors"
                            >
-                              <MapPin size={11} /> {city}
+                              Effacer
                            </button>
-                        ))}
+                        )}
                      </div>
+
+                     {/* Dropdown Menu */}
+                     {isCityFilterOpen && (
+                        <div className="absolute top-full left-0 mt-4 w-72 bg-white rounded-[2rem] shadow-[0_30px_60px_rgba(26,46,34,0.15)] border border-[#1a2e22]/5 p-4 z-[100] animate-reveal">
+                           <div className="space-y-1">
+                              <button
+                                 onClick={() => { setActiveCity(null); setIsCityFilterOpen(false); }}
+                                 className={`w-full flex items-center gap-4 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${!activeCity ? 'bg-[#1a2e22] text-[#c5a059]' : 'hover:bg-[#1a2e22]/5 text-[#1a2e22]/60'}`}
+                              >
+                                 <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${!activeCity ? 'bg-[#c5a059]/10' : 'bg-slate-100'}`}>
+                                    <MapPin size={12} />
+                                 </div>
+                                 Toutes les villes
+                              </button>
+                              
+                              {uniqueCities.map(city => (
+                                 <button
+                                    key={city}
+                                    onClick={() => { setActiveCity(city); setIsCityFilterOpen(false); }}
+                                    className={`w-full flex items-center gap-4 p-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${activeCity === city ? 'bg-[#c5a059] text-white shadow-md' : 'hover:bg-[#c5a059]/10 text-[#1a2e22]/60 hover:text-[#c5a059]'}`}
+                                 >
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${activeCity === city ? 'bg-white/20' : 'bg-slate-100 text-[#1a2e22]/20'}`}>
+                                       <MapPin size={12} />
+                                    </div>
+                                    {city}
+                                 </button>
+                              ))}
+                           </div>
+                        </div>
+                     )}
                   </div>
                )}
 

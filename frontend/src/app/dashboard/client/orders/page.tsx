@@ -201,10 +201,10 @@ export default function ClientOrders() {
                            <p className="text-2xl font-black text-forest-green tracking-tighter mb-4">{Number(order.totalAmount).toLocaleString()} FCFA</p>
                            <button 
                               onClick={() => handleOpenReport(order)}
-                              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-200 text-red-500 hover:bg-red-50 hover:border-red-300 transition-colors text-[10px] font-black uppercase tracking-widest"
+                              title="Signaler un problème avec ce vendeur"
+                              className="w-10 h-10 flex items-center justify-center rounded-full border border-red-100 text-red-400 hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition-all shadow-sm group/report ml-auto"
                            >
-                              <AlertOctagon size={14} />
-                              Signaler un problème avec ce vendeur
+                              <AlertOctagon size={18} className="group-hover/report:scale-110 transition-transform" />
                            </button>
                         </div>
                      </div>
