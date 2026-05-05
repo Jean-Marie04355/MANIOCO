@@ -8,3 +8,22 @@ dist/
 *.log
 *.sqlite
 *.bat
+
+# Binaires et executables
+*.exe
+*.pdb
+*.zip
+*.tar.gz
+mailpit
+mailpit-win/
+redis/
+minio/
+
+# Fichiers temporaires et debug
+test-error.js
+*.tmp
+.tmp/
+git_files.txt
+git_msg.txt
+nucleitargets.txt
+coverage/

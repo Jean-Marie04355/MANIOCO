@@ -13,7 +13,7 @@ export default function ShopsExplorer() {
   const [searchQuery, setSearchQuery] = useState('');
 
   const getRealInternetLink = (dbPath: string, name: string = "") => {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
     if (!dbPath) {
       if (name.toLowerCase().includes('gari')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";

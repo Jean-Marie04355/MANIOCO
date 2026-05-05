@@ -32,7 +32,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return;
     }
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     const newSocket = io(`${apiUrl}/realtime`, {
       auth: { token },
       transports: ['websocket'],
@@ -41,7 +41,7 @@ export const SocketProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     newSocket.on('connect', () => {
       console.log('Connected to WebSocket server');
       setIsConnected(true);
-      
+
       // Rejoindre sa propre room pour les notifications privées
       newSocket.emit('join_conversation', { conversationId: 'global' });
     });

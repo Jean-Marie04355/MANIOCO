@@ -26,7 +26,7 @@ export default function ClientMessages() {
     
     if (path.startsWith('http') || path.startsWith('data:')) return path;
     
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     
     // Si le chemin contient déjà 'uploads/', on s'assure juste du slash initial
     let finalPath = path;

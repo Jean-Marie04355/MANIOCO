@@ -70,7 +70,7 @@ export default function HomeView() {
 
     const getRealInternetLink = (product: Pick<Product, 'name' | 'image'>) => {
        const dbPath = product.image;
-       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
  
        if (!dbPath || String(dbPath).trim() === '' || dbPath === 'null') {
           return "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&q=80&w=800";
@@ -633,7 +633,7 @@ export default function HomeView() {
                         <Link href={`/shops/${store.id}`} key={store.id} className="group">
                            <div className="relative h-96 rounded-[40px] overflow-hidden shadow-2xl border-4 border-white mb-6 group-hover:-translate-y-3 transition-all duration-700">
                               <img 
-                                 src={store.profilePhoto ? (store.profilePhoto.startsWith('http') ? store.profilePhoto : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/uploads${store.profilePhoto.startsWith('/') ? '' : '/'}${store.profilePhoto}`) : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800"} 
+                                 src={store.profilePhoto ? (store.profilePhoto.startsWith('http') ? store.profilePhoto : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/uploads${store.profilePhoto.startsWith('/') ? '' : '/'}${store.profilePhoto}`) : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=800"} 
                                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s]" 
                                  alt={store.name} 
                               />

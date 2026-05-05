@@ -49,6 +49,7 @@ export class S3StorageService implements IStorageService {
     try {
       const { CreateBucketCommand, HeadBucketCommand } =
         await import('@aws-sdk/client-s3');
+      // Create bucket if it doesn't exist
       try {
         await this.s3Client.send(
           new HeadBucketCommand({ Bucket: this.bucketName }),
@@ -59,9 +60,11 @@ export class S3StorageService implements IStorageService {
           new CreateBucketCommand({ Bucket: this.bucketName }),
         );
         this.logger.log(`Bucket ${this.bucketName} created successfully.`);
+        // Small delay to allow Minio/S3 to propagate bucket creation
+        await new Promise((resolve) => setTimeout(resolve, 1000));
       }
 
-      // Always ensure public read policy is applied
+      // Ensure public read policy is applied (optional step, don't crash if it fails)
       try {
         const policy = {
           Version: '2012-10-17',
@@ -84,9 +87,10 @@ export class S3StorageService implements IStorageService {
         this.logger.log(
           `Public access policy ensured for bucket ${this.bucketName}.`,
         );
-      } catch (error) {
-        this.logger.error(
-          `Could not set bucket policy: ${(error as Error).message}`,
+      } catch (policyError) {
+        // Only log as warning, as some providers (like AWS) might block this via IAM/Account settings
+        this.logger.warn(
+          `Bucket policy could not be set automatically: ${(policyError as Error).message}. You may need to set it manually in your S3 console.`,
         );
       }
     } catch (error) {

@@ -62,7 +62,7 @@ export default function ChatWindow() {
   const getImageUrl = (path: string) => {
     if (!path || String(path).trim() === '' || path === 'null') return "https://i.pravatar.cc/100?u=shop";
     if (path.startsWith('http') || path.startsWith('data:')) return path;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
     return `${apiUrl}${path.startsWith('/') ? '' : '/'}${path}`;
   };
 
