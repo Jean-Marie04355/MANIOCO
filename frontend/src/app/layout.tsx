@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import { CartProvider } from "@/features/cart/CartContext";
+import { SocketProvider } from "@/features/realtime/SocketContext";
 
 export const metadata: Metadata = {
   title: "Afrigari - Marché d'Excellence Africaine",
@@ -21,9 +22,11 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider>
-          <CartProvider>
-            {children}
-          </CartProvider>
+          <SocketProvider>
+            <CartProvider>
+              {children}
+            </CartProvider>
+          </SocketProvider>
         </AuthProvider>
       </body>
     </html>

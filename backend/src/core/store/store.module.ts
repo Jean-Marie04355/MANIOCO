@@ -15,6 +15,7 @@ import { IBaseRepository } from '../../common/interfaces/base-repository.interfa
 import { UsersModule } from '../users/users.module'; // ← IMPORTANT for USER_REPOSITORY
 import { LocationModule } from '../location/location.module';
 import { RolesModule } from '../roles/roles.module';
+import { CacheModule } from '../../libs/cache/cache.module';
 
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
@@ -28,6 +29,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       : TypeOrmModule.forFeature([Store]),
     UsersModule,
     LocationModule,
+    CacheModule,
   ],
   controllers: [StoreController],
   providers: [

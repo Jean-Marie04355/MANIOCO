@@ -16,6 +16,8 @@ import { SqlRepository } from '../../libs/sql-database/repository';
 import { ProductCategoriesModule } from '../product-categories/product-categories.module';
 import { RolesModule } from '../roles/roles.module';
 import { StoreModule } from '../store/store.module';
+import { CacheModule } from '../../libs/cache/cache.module';
+import { RealtimeModule } from '../../libs/realtime/realtime.module';
 
 const dbType = process.env.DB_TYPE?.toLowerCase();
 
@@ -29,6 +31,8 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
       : TypeOrmModule.forFeature([Product]),
     ProductCategoriesModule,
     StoreModule,
+    CacheModule,
+    RealtimeModule,
   ],
   controllers: [ProductsController],
   providers: [

@@ -19,6 +19,7 @@ import { Store } from '../store/store.entity';
 import { Product } from '../products/product.entity';
 import { Order } from '../orders/order.entity';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { CacheModule } from '../../libs/cache/cache.module';
 
 // dbType calculated via env (NestJS handles loading the .env via ConfigModule globally)
 const dbType = process.env.DB_TYPE?.toLowerCase();
@@ -32,6 +33,7 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
           { name: MongoUser.name, schema: UserSchema },
         ])
       : TypeOrmModule.forFeature([User, Store, Product, Order]),
+    CacheModule,
   ],
   controllers: [UsersController],
   providers: [

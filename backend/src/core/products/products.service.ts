@@ -12,6 +12,10 @@ import { StoreService } from '../store/store.service';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
 import { UserRole } from '../../common/enum/role.enum';
 import { S3StorageService } from '../../libs/storage/s3-storage.service';
+import { CacheService } from '../../libs/cache/cache.service';
+import { RealtimeGateway } from '../../libs/realtime/realtime.gateway';
+
+const PRODUCTS_CACHE_KEY = 'all_products';
 
 @Injectable()
 export class ProductsService {
@@ -20,6 +24,8 @@ export class ProductsService {
     private readonly repo: IBaseRepository<Product>,
     private readonly storeService: StoreService,
     private readonly storageService: S3StorageService,
+    private readonly cache: CacheService,
+    private readonly realtimeGateway: RealtimeGateway,
   ) {}
 
   async create(createProductDto: CreateProductDto, user: AuthenticatedUser) {
@@ -59,6 +65,8 @@ export class ProductsService {
     }
 
     const product = await this.repo.create(createProductDto);
+    await this.cache.del(PRODUCTS_CACHE_KEY);
+    this.broadcastUpdate();
     // On recharge le produit avec ses relations (eager loading) pour le frontend
     return this.findOne(product.id);
   }
@@ -67,7 +75,14 @@ export class ProductsService {
     if (storeId) {
       return this.repo.find({ where: { storeId }, relations: ['store'] } as any);
     }
-    return this.repo.find({ relations: ['store'] } as any);
+    
+    // Check Cache
+    const cached = await this.cache.get<Product[]>(PRODUCTS_CACHE_KEY);
+    if (cached) return cached;
+
+    const products = await this.repo.find({ relations: ['store'] } as any);
+    await this.cache.set(PRODUCTS_CACHE_KEY, products, { ttlSeconds: 3600 }); // 1 hour cache
+    return products;
   }
 
   async findOne(id: string) {
@@ -129,6 +144,8 @@ export class ProductsService {
     Object.assign(product, updateProductDto);
 
     await this.repo.save(product);
+    await this.cache.del(PRODUCTS_CACHE_KEY);
+    this.broadcastUpdate();
     return this.findOne(id);
   }
 
@@ -149,6 +166,14 @@ export class ProductsService {
         throw new ForbiddenException('Boutique non trouvée ou accès refusé');
       }
     }
+    await this.cache.del(PRODUCTS_CACHE_KEY);
+    this.broadcastUpdate();
     return this.repo.softDelete(id);
+  }
+
+  private broadcastUpdate() {
+    if (this.realtimeGateway.server) {
+      this.realtimeGateway.server.emit('catalog_updated', { type: 'product' });
+    }
   }
 }

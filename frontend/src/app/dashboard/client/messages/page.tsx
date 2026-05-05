@@ -5,10 +5,11 @@ import { useSearchParams } from 'next/navigation';
 import { Send, ArrowLeft, Store, MessageSquare, Loader2, CheckCheck, Phone, Video, MoreVertical, Search, ShieldCheck, Image as ImageIcon } from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
-import { io } from 'socket.io-client';
+import { useSocket } from '@/features/realtime/SocketContext';
 
 export default function ClientMessages() {
   const { user } = useAuth();
+  const { socket } = useSocket();
   const searchParams = useSearchParams();
   const targetSellerId = searchParams.get('sellerId');
   const [conversations, setConversations] = useState<any[]>([]);
@@ -74,7 +75,7 @@ export default function ClientMessages() {
   }, [targetSellerId]);
 
   useEffect(() => {
-    if (activeConv) {
+    if (activeConv && socket) {
       const fetchMessages = async () => {
         try {
           const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
@@ -86,26 +87,26 @@ export default function ClientMessages() {
       };
       fetchMessages();
 
-      const socketUrl = process.env.NEXT_PUBLIC_API_URL?.replace('/api', '') || 'http://localhost:3001';
-      const socket = io(`${socketUrl}/realtime`, {
-        auth: { token: localStorage.getItem('accessToken') }
-      });
-
       socket.emit('join_conversation', { conversationId: activeConv.id });
 
-      socket.on('new_message', (msg: any) => {
+      const handleNewMessage = (msg: any) => {
+        // Ne pas ajouter si c'est un message d'une autre conversation (le socket global reçoit tout)
+        if (String(msg.conversationId) !== String(activeConv.id)) return;
+        
         setMessages(prev => {
           if (prev.some(m => m.id === msg.id)) return prev;
           return [...prev, msg];
         });
         setTimeout(scrollToBottom, 100);
-      });
+      };
+
+      socket.on('new_message', handleNewMessage);
 
       return () => {
-        socket.disconnect();
+        socket.off('new_message', handleNewMessage);
       };
     }
-  }, [activeConv?.id]);
+  }, [activeConv?.id, socket]);
 
   const scrollToBottom = () => {
     if (scrollRef.current) {

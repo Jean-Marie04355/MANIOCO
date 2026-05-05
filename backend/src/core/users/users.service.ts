@@ -20,6 +20,10 @@ import { Store } from '../store/store.entity';
 import { Product } from '../products/product.entity';
 import { Order } from '../orders/order.entity';
 import { S3StorageService } from '../../libs/storage/s3-storage.service';
+import { CacheService } from '../../libs/cache/cache.service';
+
+const USER_CACHE_KEY = 'user_profile_';
+const USER_EMAIL_CACHE_KEY = 'user_email_';
 
 @Injectable()
 export class UsersService {
@@ -35,10 +39,19 @@ export class UsersService {
     private readonly auditService: AuditService,
     private readonly storageService: S3StorageService,
     private readonly notificationsService: NotificationsService,
+    private readonly cache: CacheService,
   ) {}
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.userRepository.findOne({ email } as object);
+    const cacheKey = `${USER_EMAIL_CACHE_KEY}${email}`;
+    const cached = await this.cache.get<User>(cacheKey);
+    if (cached) return cached;
+
+    const user = await this.userRepository.findOne({ email } as object);
+    if (user) {
+      await this.cache.set(cacheKey, user, { ttlSeconds: 3600 });
+    }
+    return user;
   }
 
   async findByResetToken(token: string): Promise<User | null> {
@@ -99,6 +112,7 @@ export class UsersService {
       user.suspensionUntil = null;
       user.suspensionReason = null;
       await this.userRepository.save(user); // Force la sauvegarde de l'entité propre
+      await this.clearUserCache(id, user.email);
     }
     return { message: 'User fully restored and unsuspended' };
   }
@@ -169,6 +183,10 @@ export class UsersService {
   }
 
   async findOne(id: string) {
+    const cacheKey = `${USER_CACHE_KEY}${id}`;
+    const cached = await this.cache.get<User>(cacheKey);
+    if (cached) return cached;
+
     const user = await this.userRepository.findOne({
       id,
       withDeleted: true,
@@ -176,6 +194,8 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
+    
+    await this.cache.set(cacheKey, user, { ttlSeconds: 3600 });
     return user;
   }
 
@@ -188,12 +208,17 @@ export class UsersService {
       await this.storeRepo.delete(store.id);
     }
 
-    return this.userRepository.delete(id);
+    const user = await this.findOne(id);
+    const result = await this.userRepository.delete(id);
+    await this.clearUserCache(id, user.email);
+    return result;
   }
 
   async remove(id: string) {
-    await this.findOne(id);
-    return this.userRepository.softDelete(id);
+    const user = await this.findOne(id);
+    const result = await this.userRepository.softDelete(id);
+    await this.clearUserCache(id, user.email);
+    return result;
   }
 
   async update(id: string, updateUserDto: UpdateUserDto = {}) {
@@ -228,7 +253,10 @@ export class UsersService {
       }
     }
 
-    return this.userRepository.update(id, updateUserDto || {});
+    const result = await this.userRepository.update(id, updateUserDto || {});
+    const user = await this.findOne(id);
+    await this.clearUserCache(id, user.email);
+    return result;
   }
 
   async submitKyc(id: string, kycData: any) {
@@ -256,6 +284,7 @@ export class UsersService {
     }
 
     await this.userRepository.update(id, updatedFields);
+    await this.clearUserCache(id, user.email);
 
     // Notify admins of the new KYC submission
     await this.notifyAdminsOfKycSubmission(user);
@@ -299,6 +328,7 @@ export class UsersService {
     };
 
     await this.userRepository.update(id, updateData);
+    await this.clearUserCache(id, user.email);
 
     // Notify the user
     const title =
@@ -316,5 +346,10 @@ export class UsersService {
     });
 
     return this.findOne(id);
+  }
+
+  private async clearUserCache(id: string, email: string) {
+    await this.cache.del(`${USER_CACHE_KEY}${id}`);
+    await this.cache.del(`${USER_EMAIL_CACHE_KEY}${email}`);
   }
 }

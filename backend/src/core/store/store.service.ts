@@ -11,6 +11,12 @@ import { Store } from './store.entity';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Types } from 'mongoose';
 import { LocationService } from '../../core/location/location.service';
+import { CacheService } from '../../libs/cache/cache.service';
+
+const STORES_CACHE_KEY = 'all_stores';
+const STORE_DETAIL_CACHE_KEY = 'store_detail_';
+const STORE_OWNER_CACHE_KEY = 'store_owner_';
+const STORES_CITIES_CACHE_KEY = 'store_cities';
 
 import { User } from '../users/user.entity';
 
@@ -26,6 +32,7 @@ export class StoreService {
     private readonly userRepository: IBaseRepository<User>,
     private readonly configService: ConfigService,
     private readonly locationService: LocationService,
+    private readonly cache: CacheService,
   ) {}
 
   async create(createStoreDto: CreateStoreDto) {
@@ -57,10 +64,13 @@ export class StoreService {
         'Only users with role "vendeur" or "admin" can create a store.',
       );
     }
-    return this.storeRepository.create({
-  ...createStoreDto,
-  ownerId: owner.id, 
-});
+    const store = await this.storeRepository.create({
+      ...createStoreDto,
+      ownerId: owner.id, 
+    });
+    await this.cache.del(STORES_CACHE_KEY);
+    await this.cache.del(STORES_CITIES_CACHE_KEY);
+    return store;
   }
 
   private mapToPublic(store: Store) {
@@ -80,13 +90,33 @@ export class StoreService {
   }
 
   async findAll(city?: string) {
-    let stores;
-    if (city) {
-      stores = await this.storeRepository.find({ where: { city } } as object);
+    let stores: Store[];
+    
+    // Check Cache for ALL stores
+    const cached = await this.cache.get<Store[]>(STORES_CACHE_KEY);
+    if (cached) {
+      stores = cached;
     } else {
       stores = await this.storeRepository.find();
+      await this.cache.set(STORES_CACHE_KEY, stores, { ttlSeconds: 3600 });
     }
+
+    if (city) {
+      stores = stores.filter(s => s.city === city);
+    }
+    
     return stores.map((s) => this.mapToPublic(s));
+  }
+
+  async findUniqueCities(): Promise<string[]> {
+    const cached = await this.cache.get<string[]>(STORES_CITIES_CACHE_KEY);
+    if (cached) return cached;
+
+    const stores = await this.storeRepository.find();
+    const cities = Array.from(new Set(stores.map(s => s.city).filter(Boolean))) as string[];
+    
+    await this.cache.set(STORES_CITIES_CACHE_KEY, cities, { ttlSeconds: 3600 * 24 }); // Cache for 24h
+    return cities;
   }
 
   async findNearby(lat: number, lng: number, radiusKm: number = 10) {
@@ -139,27 +169,49 @@ export class StoreService {
   }
 
   async findOne(id: string) {
+    const cacheKey = `${STORE_DETAIL_CACHE_KEY}${id}`;
+    const cached = await this.cache.get<Store>(cacheKey);
+    if (cached) return cached;
+
     const store = await this.storeRepository.findOne({ id } as object);
     if (!store) throw new NotFoundException(`Store with ID ${id} not found`);
+    
+    await this.cache.set(cacheKey, store, { ttlSeconds: 3600 });
     return store;
   }
 
   async update(id: string, updateStoreDto: Partial<CreateStoreDto>) {
     await this.findOne(id);
-    return this.storeRepository.update(id, updateStoreDto);
+    const result = await this.storeRepository.update(id, updateStoreDto);
+    await this.cache.del(STORES_CACHE_KEY);
+    await this.cache.del(STORES_CITIES_CACHE_KEY);
+    await this.cache.del(`${STORE_DETAIL_CACHE_KEY}${id}`);
+    return result;
   }
 
   async remove(id: string) {
     await this.findOne(id);
-    return this.storeRepository.delete(id);
+    const store = await this.findOne(id);
+    const result = await this.storeRepository.delete(id);
+    await this.cache.del(STORES_CACHE_KEY);
+    await this.cache.del(STORES_CITIES_CACHE_KEY);
+    await this.cache.del(`${STORE_DETAIL_CACHE_KEY}${id}`);
+    await this.cache.del(`${STORE_OWNER_CACHE_KEY}${store.ownerId}`);
+    return result;
   }
 
   async findByOwnerId(ownerId: string) {
+    const cacheKey = `${STORE_OWNER_CACHE_KEY}${ownerId}`;
+    const cached = await this.cache.get<Store>(cacheKey);
+    if (cached) return cached;
+
     const store = await this.storeRepository.findOne({ ownerId } as object);
     if (!store)
       throw new NotFoundException(
         `Store for user with ID ${ownerId} not found.`,
       );
+    
+    await this.cache.set(cacheKey, store, { ttlSeconds: 3600 });
     return store;
   }
 }
