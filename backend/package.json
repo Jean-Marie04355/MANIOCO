@@ -45,6 +45,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.15.1",
     "express-basic-auth": "^1.2.1",
+    "fast-xml-parser": "^5.7.3",
     "helmet": "^8.1.0",
     "ioredis": "^5.7.0",
     "lodash": "^4.18.1",
@@ -62,7 +63,8 @@
     "sqlite3": "^6.0.1",
     "swagger-ui-express": "^5.0.1",
     "tar": "^7.5.13",
-    "typeorm": "^0.3.28"
+    "typeorm": "^0.3.28",
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
