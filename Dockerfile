@@ -39,7 +39,7 @@ FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY backend/nest-cli.json backend/package.json backend/sonar-project.properties backend/tsconfig.build.json backend/tsconfig.json ./
+COPY backend/nest-cli.json backend/package.json backend/tsconfig.build.json backend/tsconfig.json ./
 COPY backend/src ./src
 # Build the app (NestJS)
 RUN ls -la && \
