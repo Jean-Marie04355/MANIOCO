@@ -39,7 +39,7 @@ FROM base AS builder
 WORKDIR /app
 
 COPY --from=deps /app/node_modules ./node_modules
-COPY nest-cli.json package.json sonar-project.properties tsconfig.build.json tsconfig.json ./
+COPY nest-cli.json package.json tsconfig.build.json tsconfig.json ./
 COPY src ./src
 
 # Build the app (NestJS, NextJS, or plain TS app)
