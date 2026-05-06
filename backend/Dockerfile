@@ -41,7 +41,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY nest-cli.json package.json sonar-project.properties tsconfig.build.json tsconfig.json ./
 COPY src ./src
-COPY data ./data
 
 # Build the app (NestJS, NextJS, or plain TS app)
 RUN ls -la && \
@@ -63,7 +62,8 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-RUN chown -R nestjs:nodejs data
+# Create necessary directories for runtime
+RUN mkdir -p data uploads && chown -R nestjs:nodejs data uploads
 
 USER nestjs
 

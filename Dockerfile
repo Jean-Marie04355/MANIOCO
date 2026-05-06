@@ -41,9 +41,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY backend/nest-cli.json backend/package.json backend/sonar-project.properties backend/tsconfig.build.json backend/tsconfig.json ./
 COPY backend/src ./src
-# Check if data directory exists in backend before copying
-COPY backend/data* ./data/
-
 # Build the app (NestJS)
 RUN ls -la && \
     npm run build && \
@@ -64,8 +61,8 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
-# Ensure data directory permissions are correct
-RUN chown -R nestjs:nodejs /app/data || true
+# Create necessary directories for runtime
+RUN mkdir -p data uploads && chown -R nestjs:nodejs data uploads
 
 USER nestjs
 
