@@ -45,7 +45,7 @@ COPY backend/src ./src
 RUN ls -la && \
     npm run build && \
     # Remove dev dependencies
-    npm prune --production --legacy-peer-deps && \
+    npm prune --omit=dev --legacy-peer-deps && \
     rm -rf /root/.npm
 
 
@@ -56,6 +56,8 @@ FROM base AS runner
 WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
+
+RUN apk add --no-cache wget
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
