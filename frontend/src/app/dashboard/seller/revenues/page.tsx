@@ -126,7 +126,7 @@ export default function SellerRevenues() {
       <Sidebar mode="seller" />
       
       <main className="flex-1 ml-64">
-        <TopNav title="Historique des Revenus" isAdmin={true} />
+        <TopNav title="Historique des Revenus" isAdmin={false} />
         
         <div className="p-8 max-w-6xl mx-auto space-y-8">
           

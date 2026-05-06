@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { Send, ArrowLeft, Store, MessageSquare, Loader2, CheckCheck, Phone, Video, MoreVertical, Search, ShieldCheck, Image as ImageIcon } from 'lucide-react';
@@ -7,7 +7,7 @@ import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useSocket } from '@/features/realtime/SocketContext';
 
-export default function ClientMessages() {
+function ClientMessagesContent() {
   const { user } = useAuth();
   const { socket } = useSocket();
   const searchParams = useSearchParams();
@@ -382,5 +382,17 @@ export default function ClientMessages() {
         </main>
       </div>
     </div>
+  );
+}
+
+export default function ClientMessages() {
+  return (
+    <Suspense fallback={
+      <div className="bg-[#fcfbf7] h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin text-[#c5a059]" size={40} />
+      </div>
+    }>
+      <ClientMessagesContent />
+    </Suspense>
   );
 }

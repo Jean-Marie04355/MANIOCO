@@ -101,7 +101,7 @@ export default function SellerSupport() {
       <Sidebar mode="seller" />
       
       <main className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
-        <TopNav title="Aide & Support" isAdmin={true} />
+        <TopNav title="Aide & Support" isAdmin={false} />
         
         <div className="flex-1 p-8 overflow-y-auto custom-scrollbar">
           <div className="max-w-6xl mx-auto space-y-8">

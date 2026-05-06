@@ -1,7 +1,7 @@
 "use client";
 import Sidebar from '../../components/Sidebar';
 import {
-  Shield, Locks, User, CheckCircle2, XCircle, RefreshCcw,
+  Shield, User, CheckCircle2, XCircle, RefreshCcw,
   Lock, Settings, Users, ShoppingBag, Eye, Zap,
   BarChart3, MessageSquare, CreditCard, Box, Globe, ChevronRight,
   Fingerprint, Cpu, Network, Activity, HardDrive, Terminal, Sparkles

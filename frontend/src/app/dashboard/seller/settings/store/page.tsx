@@ -154,7 +154,7 @@ export default function StoreSettings() {
       <Sidebar mode="seller" />
       
       <main className="flex-1 ml-64">
-        <TopNav title="Gestion Boutique" isAdmin={true} />
+        <TopNav title="Gestion Boutique" isAdmin={false} />
         
         <div className="p-8 max-w-5xl mx-auto">
           

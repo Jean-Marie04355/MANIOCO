@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CheckCircle2, Loader2, ShoppingBag } from 'lucide-react';
 import api from '@/lib/axios';
 
-export default function PaymentCallbackPage() {
+function PaymentCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get('orderId');
@@ -62,5 +62,17 @@ export default function PaymentCallbackPage() {
         </button>
       </div>
     </div>
+  );
+}
+
+export default function PaymentCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-organic-cream flex items-center justify-center">
+        <Loader2 className="animate-spin text-forest-green" size={40} />
+      </div>
+    }>
+      <PaymentCallbackContent />
+    </Suspense>
   );
 }

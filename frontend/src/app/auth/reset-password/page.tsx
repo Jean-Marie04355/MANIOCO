@@ -1,12 +1,12 @@
 "use client";
 import { Lock, ArrowLeft, Leaf, Sparkles, ShieldCheck } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
 import api from '@/lib/axios';
 
-export default function ResetPasswordPage() {
+function ResetPasswordContent() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
           <p className="text-[#2d4635]/60 text-xs font-bold mb-8 tracking-widest leading-relaxed">
             Le jeton de réinitialisation est manquant ou invalide.
           </p>
-          <Link href="/auth/forgot-password" size={18} className="bg-[#2d4635] text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#c5a059] transition-all">
+          <Link href="/auth/forgot-password" className="bg-[#2d4635] text-white px-8 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-[#c5a059] transition-all">
             Demander un nouveau lien
           </Link>
         </div>
@@ -125,5 +125,20 @@ export default function ResetPasswordPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#fcfbf7] flex items-center justify-center p-4">
+        <div className="animate-pulse flex flex-col items-center">
+          <Leaf size={40} className="text-green-600/20 mb-4" />
+          <p className="text-[10px] font-black uppercase tracking-widest text-[#2d4635]/20 italic">Initialisation...</p>
+        </div>
+      </div>
+    }>
+      <ResetPasswordContent />
+    </Suspense>
   );
 }

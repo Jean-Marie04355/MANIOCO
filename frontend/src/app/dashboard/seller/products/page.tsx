@@ -101,7 +101,7 @@ export default function SellerProducts() {
       <Sidebar mode="seller" />
       
       <main className="flex-1 ml-64">
-        <TopNav title="Mes Produits" isAdmin={true} />
+        <TopNav title="Mes Produits" isAdmin={false} />
         
         <div className="p-8">
           {!hasStore ? (

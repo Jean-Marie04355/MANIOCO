@@ -168,7 +168,7 @@ export default function AccountSettings() {
       <Sidebar mode="seller" />
       
       <main className="flex-1 ml-64">
-        <TopNav title="Paramètres Compte" isAdmin={true} />
+        <TopNav title="Paramètres Compte" isAdmin={false} />
         
         <div className="p-8 max-w-4xl mx-auto">
           

@@ -29,6 +29,7 @@ interface Ticket {
         phone?: string;
     };
     messages: Message[];
+    createdAt: string;
 }
 
 export default function AdminTicketDetail() {

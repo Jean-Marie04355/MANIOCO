@@ -94,7 +94,7 @@ export default function TicketDetail() {
             <Sidebar mode="seller" />
 
             <main className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
-                <TopNav title="Détails du Ticket" />
+                <TopNav title="Détails du Ticket" isAdmin={false} />
 
                 <div className="flex-1 flex items-center justify-center p-12 overflow-hidden">
                     {/* Main Ticket Card */}

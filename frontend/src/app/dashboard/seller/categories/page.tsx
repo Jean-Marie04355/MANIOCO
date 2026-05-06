@@ -132,7 +132,7 @@ export default function SellerCategories() {
       )}
       
       <main className="flex-1 ml-64">
-        <TopNav title="Mes Catégories" isAdmin={true} />
+        <TopNav title="Mes Catégories" isAdmin={false} />
         
         <div className="p-8">
           {!hasStore ? (

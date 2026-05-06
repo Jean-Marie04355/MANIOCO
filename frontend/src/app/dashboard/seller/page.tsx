@@ -138,7 +138,7 @@ export default function SellerDashboard() {
       <Sidebar mode="seller" />
       
       <main className="flex-1 ml-64">
-        <TopNav title="Gestion Boutique" isAdmin={true} />
+        <TopNav title="Gestion Boutique" isAdmin={false} />
         
         <div className="p-8 space-y-8">
           {/* Seller Stats Grid */}
