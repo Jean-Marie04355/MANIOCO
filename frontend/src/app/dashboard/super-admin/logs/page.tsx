@@ -28,7 +28,7 @@ export default function LuxuryLogsPage() {
                 const data = res.data;
                 setLogs(data);
             }
-        } catch (err) { console.error(err); }
+        } catch (err) { console.error("Erreur"); }
         finally {
             setLoading(false);
             if (isRef) setIsRefreshing(false);

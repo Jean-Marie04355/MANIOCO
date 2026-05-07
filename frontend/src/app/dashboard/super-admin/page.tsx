@@ -60,7 +60,7 @@ export default function ProfessionalSuperAdminDashboard() {
 
       const logs = logRes.data;
       setRecentLogs(logs.slice(0, 6));
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Erreur"); }
     finally { setLoading(false); }
   };
 

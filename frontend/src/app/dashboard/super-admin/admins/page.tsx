@@ -39,7 +39,7 @@ export default function StylishAdminsPage() {
           return role.includes('admin');
         }));
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Erreur"); }
     finally { setLoading(false); }
   };
 
@@ -88,7 +88,7 @@ export default function StylishAdminsPage() {
         method
       });
       if (res.status === 200) fetchAdmins();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Erreur"); }
   };
 
   const permanentlyDelete = async (admin: any) => {
@@ -99,7 +99,7 @@ export default function StylishAdminsPage() {
     try {
       const res = await api.delete(`/users/${admin.id}/permanent`);
       if (res.status === 200) fetchAdmins();
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Erreur"); }
   };
 
   const openEdit = (admin: any) => {
