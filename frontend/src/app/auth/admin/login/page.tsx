@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
 import api from '@/lib/axios';
+import { secureRandom } from '@/lib/utils';
 
 export default function AdminLoginPage() {
    const router = useRouter();
@@ -40,12 +41,12 @@ export default function AdminLoginPage() {
       if (!mounted) return [];
       return Array.from({ length: 40 }).map((_, i) => ({
          id: i,
-         size: Math.random() * 20 + 5,
-         x: Math.random() * 100,
-         y: Math.random() * 100,
-         duration: Math.random() * 20 + 15,
-         delay: Math.random() * -30,
-         opacity: Math.random() * 0.15 + 0.05
+         size: secureRandom() * 20 + 5,
+         x: secureRandom() * 100,
+         y: secureRandom() * 100,
+         duration: secureRandom() * 20 + 15,
+         delay: secureRandom() * -30,
+         opacity: secureRandom() * 0.15 + 0.05
       }));
    }, [mounted]);
 
@@ -59,7 +60,7 @@ export default function AdminLoginPage() {
 
             {mounted && particles.map((p) => (
                <div key={p.id} className="absolute animate-drift-slow" style={{ left: `${p.x}%`, top: `${p.y}%`, animationDuration: `${p.duration}s`, animationDelay: `${p.delay}s`, opacity: p.opacity }}>
-                  {Math.random() > 0.5 ? (
+                  {secureRandom() > 0.5 ? (
                      <Leaf size={p.size} className="text-forest-green opacity-40" fill="currentColor" />
                   ) : (
                      <div className="w-1 h-1 bg-afrigari-gold rounded-full"></div>

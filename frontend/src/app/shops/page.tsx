@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
+import { secureRandom } from '@/lib/utils';
 
 export default function PublicShopsPage() {
   const { user } = useAuth();
@@ -45,7 +46,7 @@ export default function PublicShopsPage() {
         const enrichedStores = storesData.map((store: any) => ({
           ...store,
           productsCount: productsData.filter((p: any) => p.storeId === store.id).length,
-          sales: Math.floor(Math.random() * 50) + 1
+          sales: Math.floor(secureRandom() * 50) + 1
         }));
 
         setStores(enrichedStores);

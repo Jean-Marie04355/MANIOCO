@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { RoleBtn } from '@/features/auth/components/RoleBtn';
 import { useAuth } from '@/features/auth/AuthContext';
 import api from '@/lib/axios';
+import { secureRandom } from '@/lib/utils';
 
 export default function AuthPage() {
   const [isSignIn, setIsSignIn] = useState(true);
@@ -116,14 +117,14 @@ export default function AuthPage() {
     if (!mounted) return [];
     return Array.from({ length: 70 }).map((_, i) => ({
       id: i,
-      size: Math.random() * 25 + 5,
-      x: Math.random() * 100, 
-      y: Math.random() * 100, 
-      duration: Math.random() * 15 + 10, 
-      delay: Math.random() * -30, 
-      type: Math.random() > 0.6 ? 'leaf' : 'gold',
-      opacity: Math.random() * 0.2 + 0.1,
-      blur: Math.random() > 0.8 ? 'blur-[2px]' : 'blur-none'
+      size: secureRandom() * 25 + 5,
+      x: secureRandom() * 100, 
+      y: secureRandom() * 100, 
+      duration: secureRandom() * 15 + 10, 
+      delay: secureRandom() * -30, 
+      type: secureRandom() > 0.6 ? 'leaf' : 'gold',
+      opacity: secureRandom() * 0.2 + 0.1,
+      blur: secureRandom() > 0.8 ? 'blur-[2px]' : 'blur-none'
     }));
   }, [mounted]);
 
