@@ -7,6 +7,9 @@ import {
   DeleteObjectsCommand,
   ListObjectsV2Command,
   HeadObjectCommand,
+  HeadBucketCommand,
+  CreateBucketCommand,
+  PutBucketPolicyCommand,
 } from '@aws-sdk/client-s3';
 import { IStorageService } from './interfaces/storage-service.interface';
 
@@ -16,6 +19,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
   private readonly s3Client: S3Client;
   private readonly bucketName: string;
   private readonly endpoint: string;
+
 
   constructor(private readonly configService: ConfigService) {
     this.endpoint = this.configService.get<string>('S3_ENDPOINT');
@@ -31,14 +35,18 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       'S3_SECRET_ACCESS_KEY',
     );
 
+    const region = this.configService.get<string>('S3_REGION', 'us-east-1');
+    this.logger.debug(`Configuring S3 Client - Endpoint: ${this.endpoint}, Region: ${region}`);
+
     this.s3Client = new S3Client({
-      region: this.configService.get<string>('S3_REGION', 'garage'),
+      region,
       endpoint: this.endpoint,
       credentials: {
         accessKeyId,
         secretAccessKey,
       },
       forcePathStyle: true,
+      maxAttempts: 3,
     });
 
   }
@@ -50,9 +58,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
 
   private async ensureBucketExists() {
     try {
-      const { CreateBucketCommand, HeadBucketCommand } =
-        await import('@aws-sdk/client-s3');
-      // Create bucket if it doesn't exist
+      // Check if bucket exists
       try {
         await this.s3Client.send(
           new HeadBucketCommand({ Bucket: this.bucketName }),
@@ -80,7 +86,6 @@ export class S3StorageService implements IStorageService, OnModuleInit {
             },
           ],
         };
-        const { PutBucketPolicyCommand } = await import('@aws-sdk/client-s3');
         await this.s3Client.send(
           new PutBucketPolicyCommand({
             Bucket: this.bucketName,
@@ -91,7 +96,6 @@ export class S3StorageService implements IStorageService, OnModuleInit {
           `Public access policy ensured for bucket ${this.bucketName}.`,
         );
       } catch (policyError) {
-        // Only log as warning, as some providers (like AWS) might block this via IAM/Account settings
         this.logger.warn(
           `Bucket policy could not be set automatically: ${(policyError as Error).message}. You may need to set it manually in your S3 console.`,
         );
@@ -134,20 +138,23 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       }
 
       // Upload
+      this.logger.debug(`Uploading to S3 - Bucket: ${this.bucketName}, Key: ${name}, Endpoint: ${this.endpoint}`);
       await this.s3Client.send(
         new PutObjectCommand({
           Bucket: this.bucketName,
           Key: name,
           Body: file.buffer,
           ContentType: file.mimetype,
+          ContentLength: file.buffer.length,
         }),
       );
 
       // Return signed URL (valid for 7 days)
       return await this.presignedGetObject(name);
     } catch (error) {
-      const err = error as Error;
-      this.logger.error(`Error uploading to S3: ${err.message}`);
+      const err = error as any;
+      this.logger.error(`Error uploading to S3: ${err.message}`, err.stack);
+      console.error('FULL S3 ERROR:', err);
       throw new HttpException(
         `Error uploading file: ${err.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,

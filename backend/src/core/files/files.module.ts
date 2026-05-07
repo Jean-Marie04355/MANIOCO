@@ -26,7 +26,6 @@ import { S3StorageService } from '../../libs/storage/s3-storage.service';
   ],
   controllers: [FilesController],
   providers: [
-    S3StorageService,
     JsonStorageProvider,
     ...(process.env.DB_TYPE === 'mongodb'
       ? [MongoStorageProvider]
