@@ -26,7 +26,7 @@ export default function SimpleTasksPage() {
         setQueues(data);
         setLastSync(new Date());
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Erreur"); }
     finally { setLoading(false); }
   };
 

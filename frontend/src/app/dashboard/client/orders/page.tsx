@@ -36,7 +36,7 @@ export default function ClientOrders() {
       setReportDescription('');
       alert("Signalement envoyé avec succès. Notre équipe va l'examiner.");
     } catch (error) {
-      console.error(error);
+      console.error("Erreur");
       alert("Erreur lors de l'envoi du signalement.");
     } finally {
       setIsSubmittingReport(false);

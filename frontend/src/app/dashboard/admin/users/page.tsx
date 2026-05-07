@@ -41,7 +41,7 @@ export default function AdminUsersManagement() {
                 setSelectedUser(firstPending || data[0]);
             }
         } catch (err) {
-            console.error(err);
+            console.error("Erreur");
         } finally {
             setLoading(false);
         }
@@ -85,7 +85,7 @@ export default function AdminUsersManagement() {
             }
 
         } catch (err) {
-            console.error(err);
+            console.error("Erreur");
             alert("❌ Une erreur est survenue lors de l'opération.");
         }
     };

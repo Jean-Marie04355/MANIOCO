@@ -110,14 +110,16 @@ export default function AccountSettings() {
     e.preventDefault();
     setPasswordError('');
 
+    let isValid = true;
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordError('Les mots de passe ne correspondent pas.');
-      return;
-    }
-    if (passwordData.newPassword.length < 6) {
+      isValid = false;
+    } else if (passwordData.newPassword.length < 6) {
       setPasswordError('Le mot de passe doit contenir au moins 6 caractères.');
-      return;
+      isValid = false;
     }
+
+    if (!isValid) return;
 
     setIsSavingPassword(true);
     const userId = user?.id || (user as any)?.userId;

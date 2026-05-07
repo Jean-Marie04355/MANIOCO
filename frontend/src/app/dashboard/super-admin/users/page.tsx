@@ -25,7 +25,7 @@ export default function StylishUsersPage() {
                 // On garde tout sauf le super_admin pour la liste générale
                 setUsers(data.filter((u: any) => u.role !== 'super_admin'));
             }
-        } catch (err) { console.error(err); }
+        } catch (err) { console.error("Erreur"); }
         finally { setLoading(false); }
     };
 

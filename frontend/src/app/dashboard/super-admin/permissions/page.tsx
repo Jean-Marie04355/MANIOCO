@@ -74,7 +74,7 @@ export default function LuxuryPermissionsPage() {
         const data = Array.isArray(res.data) ? res.data : [];
         setAdmins(data.filter((u: any) => (u.role === 'admin' || u.role === 'super_admin') && !u.deletedAt));
       }
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Erreur"); }
     finally { setLoading(false); }
   };
 
@@ -88,7 +88,7 @@ export default function LuxuryPermissionsPage() {
     try {
       await api.patch(`/users/${adminId}`, { permissions: newPerms });
       setAdmins(prev => prev.map(a => a.id === adminId ? { ...a, permissions: newPerms } : a));
-    } catch (err) { console.error(err); }
+    } catch (err) { console.error("Erreur"); }
     finally { setTimeout(() => setUpdatingId(null), 500); }
   };
 

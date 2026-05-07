@@ -39,13 +39,12 @@ api.interceptors.response.use(
 
     if (process.env.NODE_ENV !== 'production') {
       console.groupCollapsed('AXIOS ERROR DETAILS');
-      console.log(details);
+      console.log('An error occurred during the API request');
       if (typeof error?.toJSON === 'function') {
+        console.log('Details available in the browser network tab');
         console.log("AXIOS ERROR JSON", error.toJSON());
       }
       console.groupEnd();
-    } else {
-      console.warn('AXIOS ERROR DETAILS:', details);
     }
 
     if (error.response?.status === 401) {
