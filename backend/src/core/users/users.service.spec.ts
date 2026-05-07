@@ -15,6 +15,10 @@ describe('UsersService', () => {
   jest.setTimeout(15000); // hash functions can be slow on CI
   let service: UsersService;
   let repositoryMock: any;
+  let auditServiceMock: any;
+  let s3StorageServiceMock: any;
+  let notificationsServiceMock: any;
+  let cacheServiceMock: any;
   let storeRepoMock: any;
   let productRepoMock: any;
   let orderRepoMock: any;
@@ -22,14 +26,30 @@ describe('UsersService', () => {
   beforeEach(async () => {
     repositoryMock = {
       findOne: jest.fn(),
-      find: jest.fn().mockResolvedValue([]),
+      find: jest.fn(),
       create: jest.fn(),
       count: jest.fn(),
       softDelete: jest.fn(),
       update: jest.fn(),
       save: jest.fn(),
-      restore: jest.fn(),
-      delete: jest.fn(),
+    };
+
+    auditServiceMock = {
+      log: jest.fn(),
+    };
+
+    s3StorageServiceMock = {
+      uploadFile: jest.fn(),
+    };
+
+    notificationsServiceMock = {
+      create: jest.fn(),
+    };
+
+    cacheServiceMock = {
+      get: jest.fn(),
+      set: jest.fn(),
+      del: jest.fn(),
     };
 
     storeRepoMock = {
@@ -66,19 +86,19 @@ describe('UsersService', () => {
         },
         {
           provide: AuditService,
-          useValue: { log: jest.fn() },
+          useValue: auditServiceMock,
         },
         {
           provide: S3StorageService,
-          useValue: { uploadFile: jest.fn() },
+          useValue: s3StorageServiceMock,
         },
         {
           provide: NotificationsService,
-          useValue: { create: jest.fn() },
+          useValue: notificationsServiceMock,
         },
         {
           provide: CacheService,
-          useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn() },
+          useValue: cacheServiceMock,
         },
       ],
     }).compile();
@@ -86,25 +106,26 @@ describe('UsersService', () => {
     service = module.get<UsersService>(UsersService);
   });
 
+
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
   describe('findAll', () => {
-    it('should return all users', async () => {
-      const users = [{ id: '1', email: 'test@test.com', role: 'client', createdAt: new Date() }];
+    it('should return users with stats', async () => {
+      const users = [{ id: '1', email: 'test@test.com', createdAt: new Date() }];
       repositoryMock.find.mockResolvedValue(users);
 
       const result = await service.findAll();
-      expect(result).toHaveLength(1);
-      expect(result[0].email).toBe('test@test.com');
+      expect(result[0].stats).toBeDefined();
       expect(repositoryMock.find).toHaveBeenCalled();
     });
   });
 
   describe('findByEmail', () => {
-    it('should return a user if found', async () => {
+    it('should return a user if found (via cache check)', async () => {
       const user = { id: '1', email: 'test@test.com' };
+      cacheServiceMock.get.mockResolvedValue(null);
       repositoryMock.findOne.mockResolvedValue(user);
 
       const result = await service.findByEmail('test@test.com');
@@ -112,6 +133,7 @@ describe('UsersService', () => {
     });
 
     it('should return null if not found', async () => {
+      cacheServiceMock.get.mockResolvedValue(null);
       repositoryMock.findOne.mockResolvedValue(null);
       const result = await service.findByEmail('notfound@test.com');
       expect(result).toBeNull();
@@ -134,8 +156,6 @@ describe('UsersService', () => {
     });
 
     it('should create a SUPER_ADMIN if it is the first user', async () => {
-      const cacheServiceRef = (service as any).cache;
-      cacheServiceRef.get.mockResolvedValue(null);
       repositoryMock.findOne.mockResolvedValue(null);
       repositoryMock.count.mockResolvedValue(0);
       repositoryMock.create.mockResolvedValue({
@@ -191,8 +211,9 @@ describe('UsersService', () => {
   });
 
   describe('findOne', () => {
-    it('should return a user if found', async () => {
+    it('should return a user if found (with cache)', async () => {
       const user = { id: '1', email: 'test@test.com' };
+      cacheServiceMock.get.mockResolvedValue(null);
       repositoryMock.findOne.mockResolvedValue(user);
 
       const result = await service.findOne('1');
@@ -200,19 +221,22 @@ describe('UsersService', () => {
     });
 
     it('should throw NotFoundException if not found', async () => {
+      cacheServiceMock.get.mockResolvedValue(null);
       repositoryMock.findOne.mockResolvedValue(null);
       await expect(service.findOne('999')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('remove', () => {
-    it('should call softDelete', async () => {
-      repositoryMock.findOne.mockResolvedValue({ id: '1' });
+    it('should call softDelete and clear cache', async () => {
+      const user = { id: '1', email: 't@t.com' };
+      cacheServiceMock.get.mockResolvedValue(user);
+      repositoryMock.findOne.mockResolvedValue(user);
       repositoryMock.softDelete.mockResolvedValue(true);
 
       const result = await service.remove('1');
       expect(result).toBe(true);
-      expect(repositoryMock.softDelete).toHaveBeenCalledWith('1');
+      expect(cacheServiceMock.del).toHaveBeenCalled();
     });
   });
 

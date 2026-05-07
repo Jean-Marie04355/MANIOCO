@@ -18,6 +18,7 @@ describe('OrdersService', () => {
   let orderRepoMock: any;
   let storeRepoMock: any;
   let productRepoMock: any;
+  let userRepoMock: any;
   let paymentsServiceMock: any;
   let storeServiceMock: any;
   let notificationsServiceMock: any;
@@ -25,19 +26,19 @@ describe('OrdersService', () => {
   let chatServiceMock: any;
 
   const adminUser = {
-    id: 'admin-1',
+    id: 'admin-uuid',
     email: 'admin@test.com',
     role: UserRole.ADMIN,
     userId: 'admin-1',
   };
   const vendeurUser = {
-    id: 'vendeur-1',
+    id: 'v-uuid',
     email: 'vendeur@test.com',
     role: UserRole.VENDEUR,
     userId: 'vendeur-1',
   };
   const clientUser = {
-    id: 'client-1',
+    id: 'c-uuid',
     email: 'client@test.com',
     role: UserRole.CLIENT,
     userId: 'client-1',
@@ -57,6 +58,10 @@ describe('OrdersService', () => {
       findOne: jest.fn(),
       update: jest.fn(),
     };
+    userRepoMock = {
+      find: jest.fn(),
+      findOne: jest.fn(),
+    };
     paymentsServiceMock = {
       createTransaction: jest.fn(),
     };
@@ -67,7 +72,7 @@ describe('OrdersService', () => {
       create: jest.fn(),
     };
     supportServiceMock = {
-      countActiveTickets: jest.fn().mockResolvedValue(0),
+      countActiveTickets: jest.fn(),
     };
     chatServiceMock = {
       findOrCreateConversation: jest.fn(),
@@ -79,7 +84,7 @@ describe('OrdersService', () => {
         { provide: 'ORDER_REPOSITORY', useValue: orderRepoMock },
         { provide: 'STORE_REPOSITORY', useValue: storeRepoMock },
         { provide: 'PRODUCT_REPOSITORY', useValue: productRepoMock },
-        { provide: 'USER_REPOSITORY', useValue: { find: jest.fn().mockResolvedValue([]) } },
+        { provide: 'USER_REPOSITORY', useValue: userRepoMock },
         { provide: PaymentsService, useValue: paymentsServiceMock },
         { provide: StoreService, useValue: storeServiceMock },
         { provide: NotificationsService, useValue: notificationsServiceMock },
@@ -90,6 +95,7 @@ describe('OrdersService', () => {
 
     service = module.get<OrdersService>(OrdersService);
   });
+
 
   it('should be defined', () => {
     expect(service).toBeDefined();
@@ -180,12 +186,14 @@ describe('OrdersService', () => {
         url: 'http://payment.url',
       });
 
+      userRepoMock.find.mockResolvedValue([]); // For admin notifications
       const result = await service.create(createOrderDto as any);
 
       expect(result.order).toEqual(order);
       expect(result.paymentUrl).toBe('http://payment.url');
       expect(productRepoMock.update).toHaveBeenCalled();
     });
+
 
     it('should cancel order and restore stock if payment initiation fails', async () => {
       const store = { id: 'store-1', payoutAccountId: 'payout-1' };
@@ -220,6 +228,7 @@ describe('OrdersService', () => {
         cancellationReason: 'Non spécifiée',
       });
     });
+
 
     it('should handle non-Error catch block in create', async () => {
       const store = { id: 'store-1', payoutAccountId: 'payout-1' };
@@ -282,7 +291,7 @@ describe('OrdersService', () => {
 
   describe('cancelOrder', () => {
     it('should update status to CANCELLED and restore stock', async () => {
-      const order = { id: 'order-1', status: OrderStatus.PENDING, customerId: 'c1' };
+      const order = { id: 'order-1', status: OrderStatus.PENDING };
       orderRepoMock.findOne.mockResolvedValue(order);
       jest.spyOn(service, 'restoreStock').mockResolvedValue(undefined);
 
@@ -290,9 +299,10 @@ describe('OrdersService', () => {
 
       expect(orderRepoMock.update).toHaveBeenCalledWith('order-1', {
         status: OrderStatus.CANCELLED,
-        cancellationReason: 'Non spécifiée',
+        cancellationReason: 'Non spécifiée'
       });
       expect(service.restoreStock).toHaveBeenCalledWith('order-1');
+
     });
 
     it('should return immediately if order is already CANCELLED', async () => {
@@ -308,23 +318,33 @@ describe('OrdersService', () => {
   describe('findAll', () => {
     it('admin should see all orders', async () => {
       orderRepoMock.find.mockResolvedValue([]);
-      await service.findAll(adminUser);
-      expect(orderRepoMock.find).toHaveBeenCalled();
+      await service.findAll(adminUser as any);
+      expect(orderRepoMock.find).toHaveBeenCalledWith(expect.objectContaining({
+        relations: expect.arrayContaining(['customer', 'store']),
+        order: { createdAt: 'DESC' }
+      }));
     });
 
     it('vendeur should see only their store orders', async () => {
       storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-1' });
       orderRepoMock.find.mockResolvedValue([]);
-      await service.findAll(vendeurUser);
-      expect(orderRepoMock.find).toHaveBeenCalled();
+      await service.findAll(vendeurUser as any);
+      expect(orderRepoMock.find).toHaveBeenCalledWith(expect.objectContaining({
+        where: { storeId: 'store-1' },
+        order: { createdAt: 'DESC' }
+      }));
     });
 
     it('client should see only their own orders', async () => {
       orderRepoMock.find.mockResolvedValue([]);
-      await service.findAll(clientUser);
-      expect(orderRepoMock.find).toHaveBeenCalled();
+      await service.findAll(clientUser as any);
+      expect(orderRepoMock.find).toHaveBeenCalledWith(expect.objectContaining({
+        where: { customerId: 'client-1' },
+        order: { createdAt: 'DESC' }
+      }));
     });
   });
+
 
   describe('findOne', () => {
     it('should throw if order not found', async () => {
@@ -401,22 +421,24 @@ describe('OrdersService', () => {
   describe('findByCustomer', () => {
     it('admin should see customer orders', async () => {
       orderRepoMock.find.mockResolvedValue([]);
-      await service.findByCustomer('c1', adminUser);
-      expect(orderRepoMock.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { customerId: 'c1' } }),
-      );
+      await service.findByCustomer('c1', adminUser as any);
+      expect(orderRepoMock.find).toHaveBeenCalledWith(expect.objectContaining({ 
+        where: { customerId: 'c1' },
+        order: { createdAt: 'DESC' }
+      }));
     });
 
     it('customer should see their own orders', async () => {
       orderRepoMock.find.mockResolvedValue([]);
-      await service.findByCustomer('client-1', clientUser);
-      expect(orderRepoMock.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { customerId: 'client-1' } }),
-      );
+      await service.findByCustomer('client-1', clientUser as any);
+      expect(orderRepoMock.find).toHaveBeenCalledWith(expect.objectContaining({
+        where: { customerId: 'client-1' },
+        order: { createdAt: 'DESC' }
+      }));
     });
 
     it('should throw ForbiddenException for other customer orders', async () => {
-      await expect(service.findByCustomer('other', clientUser)).rejects.toThrow(
+      await expect(service.findByCustomer('other', clientUser as any)).rejects.toThrow(
         ForbiddenException,
       );
     });
@@ -425,20 +447,20 @@ describe('OrdersService', () => {
   describe('findByStore', () => {
     it('admin should see store orders', async () => {
       orderRepoMock.find.mockResolvedValue([]);
-      await service.findByStore('s1', adminUser);
-      expect(orderRepoMock.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { storeId: 's1' } }),
-      );
+      await service.findByStore('s1', adminUser as any);
+      expect(orderRepoMock.find).toHaveBeenCalledWith({ where: { storeId: 's1' } });
     });
 
     it('vendeur should see their own store orders', async () => {
       storeServiceMock.findByOwnerId.mockResolvedValue({ id: 's1' });
       orderRepoMock.find.mockResolvedValue([]);
-      await service.findByStore('s1', vendeurUser);
-      expect(orderRepoMock.find).toHaveBeenCalledWith(
-        expect.objectContaining({ where: { storeId: 's1' } }),
-      );
+      await service.findByStore('s1', vendeurUser as any);
+      expect(orderRepoMock.find).toHaveBeenCalledWith(expect.objectContaining({ 
+        where: { storeId: 's1' },
+        order: { createdAt: 'DESC' }
+      }));
     });
+
 
     it('should throw ForbiddenException if vendeur accesses other store', async () => {
       storeServiceMock.findByOwnerId.mockResolvedValue({ id: 's1' });
@@ -473,3 +495,4 @@ describe('OrdersService', () => {
     });
   });
 });
+
