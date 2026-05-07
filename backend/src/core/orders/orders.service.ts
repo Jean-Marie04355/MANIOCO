@@ -471,36 +471,41 @@ export class OrdersService {
   }
 
   async getAdminDashboardStats() {
-    const orders = await this.orderRepository.find();
-    const users = await this.userRepository.find();
     const paidStatuses = [
       OrderStatus.PAID,
       OrderStatus.SHIPPED,
       OrderStatus.DELIVERED,
     ];
 
-    const totalSalesCount = orders.filter((o) =>
-      paidStatuses.includes(o.status),
-    ).length;
-    const totalRevenue = orders
-      .filter((o) => paidStatuses.includes(o.status))
-      .reduce((sum, o) => {
-        const amount = Number(o.commissionAmount);
-        // Fallback: if commissionAmount is missing/0 but we have a totalAmount, assume 10%
-        const actualCommission =
-          amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
-        return sum + actualCommission;
-      }, 0);
+    // 1. Total Sales Count (DB Level)
+    const totalSalesCount = await this.orderRepository.count({
+      where: paidStatuses.map(status => ({ status })),
+    } as any);
 
-    const sellersCount = users.filter(
-      (u) => u.role === UserRole.VENDEUR,
-    ).length;
-    const pendingKycCount = users.filter(
-      (u) => u.kycStatus === 'PENDING',
-    ).length;
+    // 2. Total Revenue
+    // Since we don't have a sum() in IBaseRepository, we still load paid orders
+    // but we filter them at the DB level to minimize memory usage.
+    const paidOrders = await this.orderRepository.find({
+      where: paidStatuses.map(status => ({ status })),
+      select: ['totalAmount', 'commissionAmount', 'createdAt'],
+    } as any);
+
+    const totalRevenue = paidOrders.reduce((sum, o) => {
+      const amount = Number(o.commissionAmount);
+      const actualCommission = amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
+      return sum + actualCommission;
+    }, 0);
+
+    // 3. User counts (DB Level)
+    const sellersCount = await this.userRepository.count({ where: { role: UserRole.VENDEUR } } as any);
+    const customersCount = await this.userRepository.count({ where: { role: UserRole.CLIENT } } as any);
+    const totalUsers = await this.userRepository.count();
+    const pendingKycCount = await this.userRepository.count({ where: { kycStatus: 'PENDING' } } as any);
+
+    // 4. Active Tickets
     const activeTicketsCount = await this.supportService.countActiveTickets();
 
-    // Calcul de l'historique des revenus sur les 15 derniers jours
+    // 5. Revenue History (Last 15 days)
     const revenueHistory = [];
     const now = new Date();
     for (let i = 14; i >= 0; i--) {
@@ -508,16 +513,11 @@ export class OrdersService {
       targetDate.setDate(targetDate.getDate() - i);
       const dateStr = targetDate.toISOString().split('T')[0];
 
-      const dayRevenue = orders
-        .filter((o) => {
-          const isPaid = paidStatuses.includes(o.status);
-          const orderDate = new Date(o.createdAt).toISOString().split('T')[0];
-          return isPaid && orderDate === dateStr;
-        })
+      const dayRevenue = paidOrders
+        .filter(o => new Date(o.createdAt).toISOString().split('T')[0] === dateStr)
         .reduce((sum, o) => {
           const amount = Number(o.commissionAmount);
-          const actualCommission =
-            amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
+          const actualCommission = amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
           return sum + actualCommission;
         }, 0);
 
@@ -527,11 +527,11 @@ export class OrdersService {
     return {
       totalRevenue,
       totalSalesCount,
-      customersCount: users.filter((u) => u.role === UserRole.CLIENT).length,
+      customersCount,
       sellersCount,
       pendingKycCount,
       activeTicketsCount,
-      totalUsers: users.length,
+      totalUsers,
       revenueHistory,
     };
   }
