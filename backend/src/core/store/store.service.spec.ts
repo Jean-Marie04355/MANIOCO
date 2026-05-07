@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { StoreService } from './store.service';
 import { ConfigService } from '@nestjs/config';
 import { LocationService } from '../../core/location/location.service';
+import { CacheService } from '../../libs/cache/cache.service';
 import { NotFoundException, ConflictException } from '@nestjs/common';
 
 describe('StoreService', () => {
@@ -10,6 +11,7 @@ describe('StoreService', () => {
   let userRepoMock: any;
   let configServiceMock: any;
   let locationServiceMock: any;
+  let cacheServiceMock: any;
 
   beforeEach(async () => {
     storeRepoMock = {
@@ -29,6 +31,11 @@ describe('StoreService', () => {
       getDistance: jest.fn(),
       calculateDeliveryFee: jest.fn(),
     };
+    cacheServiceMock = {
+      get: jest.fn(),
+      set: jest.fn(),
+      del: jest.fn(),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -37,6 +44,7 @@ describe('StoreService', () => {
         { provide: 'USER_REPOSITORY', useValue: userRepoMock },
         { provide: ConfigService, useValue: configServiceMock },
         { provide: LocationService, useValue: locationServiceMock },
+        { provide: CacheService, useValue: cacheServiceMock },
       ],
     }).compile();
 
@@ -80,9 +88,15 @@ describe('StoreService', () => {
     });
 
     it('should filter stores by city', async () => {
-      storeRepoMock.find.mockResolvedValue([]);
-      await service.findAll('Cotonou');
-      expect(storeRepoMock.find).toHaveBeenCalledWith({ city: 'Cotonou' });
+      const stores = [
+        { id: 's1', city: 'Cotonou', name: 'S1' },
+        { id: 's2', city: 'Abomey', name: 'S2' }
+      ];
+      storeRepoMock.find.mockResolvedValue(stores);
+      const result = await service.findAll('Cotonou');
+      expect(result.length).toBe(1);
+      expect(result[0].name).toBe('S1');
+      expect(storeRepoMock.find).toHaveBeenCalled();
     });
   });
 

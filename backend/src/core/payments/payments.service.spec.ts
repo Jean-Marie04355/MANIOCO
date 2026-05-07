@@ -29,7 +29,7 @@ describe('PaymentsService', () => {
       updateStatus: jest.fn(),
       updateStatusInternal: jest.fn(),
       findOne: jest.fn(),
-      findOneById: jest.fn(),
+      findById: jest.fn(),
       cancelOrder: jest.fn(),
     };
     queueServiceMock = {
@@ -40,7 +40,7 @@ describe('PaymentsService', () => {
         if (key === 'PAYMENT_ENVIRONMENT') return 'sandbox';
         if (key === 'PAYMENT_SECRET_KEY') return 'sk_test_123';
         if (key === 'PLATFORM_COMMISSION_PERCENT') return 10;
-        return defaultValue || null;
+        return defaultValue !== undefined ? defaultValue : null;
       }),
     };
 
@@ -127,7 +127,7 @@ describe('PaymentsService', () => {
         id: 'local-1',
         orderId: 'order-1',
       });
-      ordersServiceMock.findOneById.mockResolvedValue({
+      ordersServiceMock.findById.mockResolvedValue({
         id: 'order-1',
         customerId: 'cust-1',
         totalAmount: 1000,
@@ -155,7 +155,7 @@ describe('PaymentsService', () => {
         id: 'local-1',
         orderId: 'order-1',
       });
-      ordersServiceMock.findOneById.mockResolvedValue({
+      ordersServiceMock.findById.mockResolvedValue({
         id: 'order-1',
         customerId: 'cust-1',
       });
@@ -174,7 +174,7 @@ describe('PaymentsService', () => {
         id: 'local-1',
         orderId: 'order-1',
       });
-      ordersServiceMock.findOneById.mockResolvedValue(null);
+      ordersServiceMock.findById.mockResolvedValue(null);
 
       await service.handleWebhook({});
       expect(userRepoMock.findOne).not.toHaveBeenCalled();

@@ -20,13 +20,24 @@ describe('SqlRepository', () => {
 
   it('should call find', async () => {
     const result = await repository.find({});
-    expect(repoMock.find).toHaveBeenCalledWith({});
+    expect(repoMock.find).toHaveBeenCalledWith({
+      where: {},
+      withDeleted: false
+    });
     expect(result).toEqual([]);
   });
 
   it('should call findOne', async () => {
     await repository.findOne({ id: '1' });
-    expect(repoMock.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
+    expect(repoMock.findOne).toHaveBeenCalledWith({
+      where: { id: '1' },
+      relations: undefined,
+      order: undefined,
+      select: undefined,
+      take: undefined,
+      skip: undefined,
+      withDeleted: false
+    });
   });
 
   it('should call create and save', async () => {
@@ -36,9 +47,10 @@ describe('SqlRepository', () => {
     expect(repoMock.save).toHaveBeenCalled();
   });
 
-  it('should call update', async () => {
+  it('should call update by using findOne and save', async () => {
+    repoMock.findOne.mockResolvedValue({ id: '1', name: 'old' });
     await repository.update('1', { name: 'updated' });
-    expect(repoMock.update).toHaveBeenCalledWith('1', { name: 'updated' });
+    expect(repoMock.save).toHaveBeenCalledWith({ id: '1', name: 'updated' });
   });
 
   it('should call delete', async () => {

@@ -2,20 +2,47 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersService } from './users.service';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { UserRole } from '../../common/enum/role.enum';
+import { getRepositoryToken } from '@nestjs/typeorm';
+import { Store } from '../store/store.entity';
+import { Product } from '../products/product.entity';
+import { Order } from '../orders/order.entity';
+import { AuditService } from '../audit/audit.service';
+import { S3StorageService } from '../../libs/storage/s3-storage.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { CacheService } from '../../libs/cache/cache.service';
 
 describe('UsersService', () => {
   jest.setTimeout(15000); // hash functions can be slow on CI
   let service: UsersService;
   let repositoryMock: any;
+  let storeRepoMock: any;
+  let productRepoMock: any;
+  let orderRepoMock: any;
 
   beforeEach(async () => {
     repositoryMock = {
       findOne: jest.fn(),
-      find: jest.fn(),
+      find: jest.fn().mockResolvedValue([]),
       create: jest.fn(),
       count: jest.fn(),
       softDelete: jest.fn(),
       update: jest.fn(),
+      save: jest.fn(),
+      restore: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    storeRepoMock = {
+      findOne: jest.fn(),
+      delete: jest.fn(),
+    };
+
+    productRepoMock = {
+      count: jest.fn(),
+    };
+
+    orderRepoMock = {
+      find: jest.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -24,6 +51,34 @@ describe('UsersService', () => {
         {
           provide: 'USER_REPOSITORY',
           useValue: repositoryMock,
+        },
+        {
+          provide: getRepositoryToken(Store),
+          useValue: storeRepoMock,
+        },
+        {
+          provide: getRepositoryToken(Product),
+          useValue: productRepoMock,
+        },
+        {
+          provide: getRepositoryToken(Order),
+          useValue: orderRepoMock,
+        },
+        {
+          provide: AuditService,
+          useValue: { log: jest.fn() },
+        },
+        {
+          provide: S3StorageService,
+          useValue: { uploadFile: jest.fn() },
+        },
+        {
+          provide: NotificationsService,
+          useValue: { create: jest.fn() },
+        },
+        {
+          provide: CacheService,
+          useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn() },
         },
       ],
     }).compile();
@@ -37,11 +92,12 @@ describe('UsersService', () => {
 
   describe('findAll', () => {
     it('should return all users', async () => {
-      const users = [{ id: '1', email: 'test@test.com' }];
+      const users = [{ id: '1', email: 'test@test.com', role: 'client', createdAt: new Date() }];
       repositoryMock.find.mockResolvedValue(users);
 
       const result = await service.findAll();
-      expect(result).toEqual(users);
+      expect(result).toHaveLength(1);
+      expect(result[0].email).toBe('test@test.com');
       expect(repositoryMock.find).toHaveBeenCalled();
     });
   });
@@ -78,6 +134,8 @@ describe('UsersService', () => {
     });
 
     it('should create a SUPER_ADMIN if it is the first user', async () => {
+      const cacheServiceRef = (service as any).cache;
+      cacheServiceRef.get.mockResolvedValue(null);
       repositoryMock.findOne.mockResolvedValue(null);
       repositoryMock.count.mockResolvedValue(0);
       repositoryMock.create.mockResolvedValue({

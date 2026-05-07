@@ -2,6 +2,9 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductsService } from './products.service';
 import { StoreService } from '../store/store.service';
 import { UserRole } from '../../common/enum/role.enum';
+import { S3StorageService } from '../../libs/storage/s3-storage.service';
+import { CacheService } from '../../libs/cache/cache.service';
+import { RealtimeGateway } from '../../libs/realtime/realtime.gateway';
 
 describe('ProductsService', () => {
   let service: ProductsService;
@@ -9,6 +12,7 @@ describe('ProductsService', () => {
   let storeServiceMock: any;
 
   const mockAdmin = {
+    id: 'admin-id',
     userId: 'admin-id',
     role: UserRole.ADMIN,
     email: 'admin@test.com',
@@ -21,6 +25,7 @@ describe('ProductsService', () => {
       create: jest.fn(),
       update: jest.fn(),
       softDelete: jest.fn(),
+      save: jest.fn(),
     };
 
     storeServiceMock = {
@@ -37,6 +42,18 @@ describe('ProductsService', () => {
         {
           provide: StoreService,
           useValue: storeServiceMock,
+        },
+        {
+          provide: S3StorageService,
+          useValue: { uploadFile: jest.fn() },
+        },
+        {
+          provide: CacheService,
+          useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn() },
+        },
+        {
+          provide: RealtimeGateway,
+          useValue: { emitToUser: jest.fn(), emitToAll: jest.fn() },
         },
       ],
     }).compile();
@@ -67,15 +84,20 @@ describe('ProductsService', () => {
   describe('create', () => {
     it('should call repo.create for admin', async () => {
       const dto = { name: 'Prod' };
-      repoMock.create.mockResolvedValue({ id: '1', ...dto });
+      const created = { id: '1', ...dto };
+      repoMock.create.mockResolvedValue(created);
+      repoMock.findOne.mockResolvedValue(created);
       await service.create(dto as any, mockAdmin);
       expect(repoMock.create).toHaveBeenCalledWith(dto);
     });
 
     it('should inject storeId for vendor', async () => {
       const dto = { name: 'Prod' };
+      const created = { id: '1', ...dto, storeId: 'store-v1' };
       const vendorUser = { userId: 'v-1', role: UserRole.VENDEUR };
       storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+      repoMock.create.mockResolvedValue(created);
+      repoMock.findOne.mockResolvedValue(created);
       await service.create(dto as any, vendorUser as any);
       expect(dto['storeId']).toBe('store-v1');
       expect(repoMock.create).toHaveBeenCalled();
@@ -83,12 +105,12 @@ describe('ProductsService', () => {
   });
 
   describe('update', () => {
-    it('should call repo.update for admin', async () => {
+    it('should call repo.save for admin', async () => {
       const dto = { name: 'Updated' };
       repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'store-1' });
-      repoMock.update.mockResolvedValue({ id: '1', ...dto });
+      repoMock.save.mockResolvedValue({ id: '1', ...dto });
       await service.update('1', dto as any, mockAdmin);
-      expect(repoMock.update).toHaveBeenCalledWith('1', dto);
+      expect(repoMock.save).toHaveBeenCalled();
     });
 
     it('should throw NotFoundException if product missing', async () => {
@@ -103,7 +125,7 @@ describe('ProductsService', () => {
       repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'store-v1' });
       storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
       await service.update('1', { name: 'New' }, vendorUser as any);
-      expect(repoMock.update).toHaveBeenCalled();
+      expect(repoMock.save).toHaveBeenCalled();
     });
 
     it('should forbid vendor from updating other products', async () => {

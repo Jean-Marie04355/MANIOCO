@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ProductCategoriesService } from './product-categories.service';
 import { StoreService } from '../store/store.service';
 import { UserRole } from '../../common/enum/role.enum';
+import { CacheService } from '../../libs/cache/cache.service';
+import { RealtimeGateway } from '../../libs/realtime/realtime.gateway';
 
 const mockRepo = {
   create: jest.fn(),
@@ -19,6 +21,7 @@ describe('ProductCategoriesService', () => {
   let service: ProductCategoriesService;
 
   const mockAdmin = {
+    id: 'admin-id',
     userId: 'admin-id',
     role: UserRole.ADMIN,
     email: 'admin@test.com',
@@ -35,6 +38,14 @@ describe('ProductCategoriesService', () => {
         {
           provide: StoreService,
           useValue: mockStoreService,
+        },
+        {
+          provide: CacheService,
+          useValue: { get: jest.fn(), set: jest.fn(), del: jest.fn() },
+        },
+        {
+          provide: RealtimeGateway,
+          useValue: { emitToUser: jest.fn(), emitToAll: jest.fn() },
         },
       ],
     }).compile();

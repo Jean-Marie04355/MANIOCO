@@ -41,6 +41,10 @@ export class RolesService {
       throw new NotFoundException(`Role with ID ${id} not found.`);
     }
 
+    if (role.isSystem && data.name && data.name !== role.name) {
+      throw new ForbiddenException('System roles names cannot be changed.');
+    }
+
     return this.roleRepository.update(id, data);
   }
 

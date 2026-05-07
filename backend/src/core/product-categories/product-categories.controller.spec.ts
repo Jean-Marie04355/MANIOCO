@@ -18,6 +18,7 @@ describe('ProductCategoriesController', () => {
   let controller: ProductCategoriesController;
 
   const mockAdmin = {
+    id: 'admin-id',
     userId: 'admin-id',
     role: UserRole.ADMIN,
     email: 'admin@test.com',

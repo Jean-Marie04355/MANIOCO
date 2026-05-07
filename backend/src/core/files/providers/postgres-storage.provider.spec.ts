@@ -42,8 +42,9 @@ describe('PostgresStorageProvider', () => {
   });
 
   it('should upload', async () => {
+    process.env.STORAGE_TYPE = 's3';
     s3ServiceMock.uploadFile.mockResolvedValue('url');
-    const result = await provider.upload({} as any);
+    const result = await provider.upload({ buffer: Buffer.from('test') } as any);
     expect(result).toBe('url');
   });
 

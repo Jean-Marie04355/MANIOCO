@@ -10,6 +10,7 @@ describe('OrdersController', () => {
   let serviceMock: any;
 
   const adminUser = {
+    id: 'admin-1',
     email: 'admin@test.com',
     role: UserRole.ADMIN,
     userId: 'admin-1',
@@ -100,6 +101,7 @@ describe('OrdersController', () => {
       const result = await controller.updateStatus(
         '1',
         OrderStatus.DELIVERED,
+        'No reason',
         adminUser,
       );
       expect(result.status).toBe(OrderStatus.DELIVERED);
@@ -107,6 +109,7 @@ describe('OrdersController', () => {
         '1',
         OrderStatus.DELIVERED,
         adminUser,
+        'No reason',
       );
     });
   });

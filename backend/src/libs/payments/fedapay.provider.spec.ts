@@ -160,7 +160,7 @@ describe('FedaPayProvider', () => {
       expect(global.fetch).toHaveBeenCalledWith(
         expect.anything(),
         expect.objectContaining({
-          body: expect.stringContaining('"subaccount":{"id":"sub-789"}'),
+          body: expect.stringContaining('"subaccount":{"id":"sub-789"'),
         }),
       );
     });

@@ -22,13 +22,17 @@ jest.mock('passport-jwt', () => ({
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
   let configServiceMock: any;
+  let usersServiceMock: any;
 
   beforeEach(() => {
     configServiceMock = {
       get: jest.fn().mockReturnValue('secret'),
       getOrThrow: jest.fn().mockReturnValue('secret'),
     };
-    strategy = new JwtStrategy(configServiceMock);
+    usersServiceMock = {
+      findOne: jest.fn(),
+    };
+    strategy = new JwtStrategy(configServiceMock, usersServiceMock);
   });
 
   it('should be defined', () => {
@@ -42,10 +46,16 @@ describe('JwtStrategy', () => {
       role: UserRole.CLIENT,
       userId: 'u1',
     };
+    usersServiceMock.findOne.mockResolvedValue({
+      id: 'u1',
+      email: 'user@test.com',
+      role: UserRole.CLIENT,
+      name: 'Test',
+    });
     const result = await strategy.validate(payload);
+    expect(result.id).toBe('u1');
     expect(result.email).toBe('user@test.com');
     expect(result.role).toBe(UserRole.CLIENT);
-    expect(result.userId).toBe('u1');
   });
 
   it('should throw UnauthorizedException if email is missing', async () => {

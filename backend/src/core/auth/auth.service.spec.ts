@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { NotificationsService } from '../notifications/notifications.service';
 import { UnauthorizedException } from '@nestjs/common';
 import { UserRole } from '../../common/enum/role.enum';
 import * as hashHelper from '../../common/helpers/hash.helper';
@@ -12,6 +13,7 @@ describe('AuthService', () => {
   let usersServiceMock: any;
   let jwtServiceMock: any;
   let configServiceMock: any;
+  let notificationsServiceMock: any;
 
   beforeEach(async () => {
     usersServiceMock = {
@@ -26,6 +28,9 @@ describe('AuthService', () => {
       get: jest.fn(),
       getOrThrow: jest.fn(),
     };
+    notificationsServiceMock = {
+      create: jest.fn().mockResolvedValue({}),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -33,6 +38,7 @@ describe('AuthService', () => {
         { provide: UsersService, useValue: usersServiceMock },
         { provide: JwtService, useValue: jwtServiceMock },
         { provide: ConfigService, useValue: configServiceMock },
+        { provide: NotificationsService, useValue: notificationsServiceMock },
         {
           provide: 'QUEUE_SERVICE',
           useValue: {
@@ -200,13 +206,26 @@ describe('AuthService', () => {
   });
 
   describe('me', () => {
-    it('should return the user object', () => {
+    it('should return the user object', async () => {
+      const fullUser = {
+        id: '1',
+        name: 'Test',
+        email: 'test@test.com',
+        role: UserRole.CLIENT,
+        isVerified: true,
+        kycStatus: null,
+        kycRejectionReasons: null,
+        profilePhoto: null,
+      };
+      usersServiceMock.findOne = jest.fn().mockResolvedValue(fullUser);
       const user = {
         email: 'test@test.com',
         role: UserRole.CLIENT,
         userId: '1',
       };
-      expect(service.me(user as any)).toEqual(user);
+      const result = await service.me(user as any);
+      expect(result.email).toBe('test@test.com');
+      expect(result.role).toBe(UserRole.CLIENT);
     });
   });
 });

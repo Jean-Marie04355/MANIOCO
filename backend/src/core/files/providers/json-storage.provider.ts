@@ -33,6 +33,13 @@ export class JsonStorageProvider implements IFileStorage {
 
   async upload(file: any): Promise<string> {
     try {
+      if (process.env.STORAGE_TYPE === 's3') {
+        try {
+          return await this.s3Service.uploadFile(file);
+        } catch (s3Error) {
+          this.logger.warn(`Échec upload S3, repli sur le stockage local: ${s3Error.message}`);
+        }
+      }
       const uploadsDir = 'uploads';
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });

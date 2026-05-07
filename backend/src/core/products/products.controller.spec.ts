@@ -9,6 +9,7 @@ describe('ProductsController', () => {
   let serviceMock: any;
 
   const mockAdmin = {
+    id: 'admin-id',
     userId: 'admin-id',
     role: UserRole.ADMIN,
     email: 'admin@test.com',

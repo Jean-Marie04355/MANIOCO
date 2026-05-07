@@ -3,6 +3,7 @@ import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { UserRole } from '../../common/enum/role.enum';
 import { RolesService } from '../roles/roles.service';
+import { AuditService } from '../audit/audit.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -11,6 +12,7 @@ describe('UsersController', () => {
   beforeEach(async () => {
     serviceMock = {
       findAll: jest.fn(),
+      findAllWithDeleted: jest.fn(),
       create: jest.fn(),
       findOne: jest.fn(),
       remove: jest.fn(),
@@ -28,6 +30,10 @@ describe('UsersController', () => {
           provide: RolesService,
           useValue: { findByName: jest.fn() },
         },
+        {
+          provide: AuditService,
+          useValue: { log: jest.fn() },
+        },
       ],
     }).compile();
 
@@ -41,7 +47,7 @@ describe('UsersController', () => {
   describe('findAll', () => {
     it('should return all users', async () => {
       const users = [{ id: '1', email: 'test@test.com' }];
-      serviceMock.findAll.mockResolvedValue(users);
+      serviceMock.findAllWithDeleted.mockResolvedValue(users);
 
       const result = await controller.findAll();
       expect(result).toEqual(users);
@@ -80,7 +86,7 @@ describe('UsersController', () => {
         role: UserRole.ADMIN,
       });
 
-      await controller.createAdmin(dto as any);
+      await controller.createAdmin(dto as any, mockUser as any);
       expect(serviceMock.create).toHaveBeenCalledWith(
         expect.objectContaining({
           role: UserRole.ADMIN,
@@ -90,6 +96,7 @@ describe('UsersController', () => {
   });
 
   const mockUser = {
+    id: '1',
     userId: '1',
     role: UserRole.SUPER_ADMIN,
     email: 'admin@test.com',
@@ -118,9 +125,10 @@ describe('UsersController', () => {
 
   describe('remove', () => {
     it('should remove a user', async () => {
+      serviceMock.findOne.mockResolvedValue({ id: '1', email: 'test@test.com' });
       serviceMock.remove.mockResolvedValue(true);
       const result = await controller.remove('1', mockUser as any);
-      expect(result).toEqual({ message: 'User deleted successfully' });
+      expect(result).toEqual({ message: 'User suspended successfully' });
     });
 
     it('should throw ForbiddenException if non-owner, non-admin tries to delete', async () => {
@@ -130,14 +138,15 @@ describe('UsersController', () => {
         email: 'other@test.com',
       };
       await expect(controller.remove('1', clientUser as any)).rejects.toThrow(
-        'Only the account owner or a Super Admin can perform this action.',
+        'Only administrators or the account owner can perform this action.',
       );
     });
   });
 
   describe('update', () => {
     it('should update a user', async () => {
-      const updated = { id: '1', name: 'Updated' };
+      const updated = { id: '1', name: 'Updated', email: 'test@test.com' };
+      serviceMock.findOne.mockResolvedValue(updated);
       serviceMock.update.mockResolvedValue(updated);
       const result = await controller.update(
         '1',
@@ -160,6 +169,7 @@ describe('UsersController', () => {
 
     it('should allow update when user is updating their own profile', async () => {
       const clientUser = { userId: '1', role: UserRole.CLIENT };
+      serviceMock.findOne.mockResolvedValue({ id: '1', email: 'test@test.com' });
       serviceMock.update.mockResolvedValue({ id: '1' });
       const result = await controller.update('1', {}, clientUser as any);
       expect(result).toBeDefined();
