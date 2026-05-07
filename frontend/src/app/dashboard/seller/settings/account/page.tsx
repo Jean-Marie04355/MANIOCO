@@ -111,7 +111,16 @@ export default function AccountSettings() {
     setPasswordError('');
 
     let isValid = true;
-    const mismatch = passwordData.newPassword !== passwordData.confirmPassword;
+    const constantTimeCompare = (a: string, b: string) => {
+      if (a.length !== b.length) return false;
+      let result = 0;
+      for (let i = 0; i < a.length; i++) {
+        result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+      }
+      return result === 0;
+    };
+
+    const mismatch = !constantTimeCompare(passwordData.newPassword, passwordData.confirmPassword);
     const tooShort = passwordData.newPassword.length < 6;
 
     if (mismatch) {
