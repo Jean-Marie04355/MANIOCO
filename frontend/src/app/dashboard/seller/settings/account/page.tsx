@@ -111,10 +111,15 @@ export default function AccountSettings() {
     setPasswordError('');
 
     let isValid = true;
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
+    const mismatch = passwordData.newPassword !== passwordData.confirmPassword;
+    const tooShort = passwordData.newPassword.length < 6;
+
+    if (mismatch) {
       setPasswordError('Les mots de passe ne correspondent pas.');
       isValid = false;
-    } else if (passwordData.newPassword.length < 6) {
+    }
+    
+    if (isValid && tooShort) {
       setPasswordError('Le mot de passe doit contenir au moins 6 caractères.');
       isValid = false;
     }
