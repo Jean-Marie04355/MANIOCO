@@ -70,7 +70,7 @@ export default function AdminTasksPage() {
 
                 setTasks(newTasks);
             } catch (error) {
-                console.error("Erreur chargement des tâches admin", error);
+                console.error("Erreur chargement des tâches admin");
             } finally {
                 setIsLoading(false);
             }

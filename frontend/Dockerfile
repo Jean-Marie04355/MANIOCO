@@ -9,7 +9,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 #  DEPENDENCIES STAGE
 # ===========================
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat=1.1.3-r6
 
 COPY package.json package-lock.json* ./
 RUN npm ci

@@ -49,7 +49,7 @@ export default function SellerCategories() {
           setHasStore(false);
         }
       } catch (error) {
-        console.error("Error fetching categories", error);
+        console.error("Error fetching categories");
       } finally {
         setIsLoading(false);
       }

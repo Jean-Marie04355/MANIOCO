@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { IFileStorage } from '../interfaces/file-storage.interface';
@@ -9,6 +9,7 @@ import * as fs from 'node:fs';
 
 @Injectable()
 export class PostgresStorageProvider implements IFileStorage {
+  private readonly logger = new Logger(PostgresStorageProvider.name);
   constructor(
     @InjectRepository(FileEntity)
     private readonly fileRepository: Repository<FileEntity>,
@@ -35,7 +36,7 @@ export class PostgresStorageProvider implements IFileStorage {
         try {
           return await this.s3Service.uploadFile(file);
         } catch (s3Error) {
-          console.warn("Échec upload S3, repli sur le stockage local:", s3Error.message);
+          this.logger.warn("Échec upload S3, repli sur le stockage local");
         }
       }
       

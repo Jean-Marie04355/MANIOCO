@@ -112,7 +112,7 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
 
       router.push('/dashboard/client/orders');
     } catch (error: any) {
-      console.error("Erreur commande", error);
+      console.error("Erreur commande");
       alert(getErrorMessage(error));
     } finally {
       setIsSubmitting(false);

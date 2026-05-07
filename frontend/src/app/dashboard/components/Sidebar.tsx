@@ -39,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
         const currentUserId = user.id || (user as any).userId;
         const myStore = res.data.find((s: any) => s.ownerId === currentUserId);
         if (myStore) setStoreId(myStore.id);
-      }).catch(err => console.error("Erreur identification boutique", err));
+      }).catch(err => console.error("Erreur identification boutique"));
     }
   }, [user, mode, storeId]);
 
@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
         setChatCount(chatRes.data > 0 ? chatRes.data : null);
       }
     } catch (error) {
-      console.error("Erreur badges sidebar", error);
+      console.error("Erreur badges sidebar");
     }
   };
 

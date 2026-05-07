@@ -35,7 +35,7 @@ export default function AdminOrdersManagement() {
                 }
                 setError(null);
             } catch (err: any) {
-                console.error("Erreur lors du chargement des commandes:", err);
+                console.error("Erreur lors du chargement des commandes:");
                 const status = err.response?.status;
                 const message = status === 401 ? "Session expirée (401). Connectez-vous." :
                                status === 403 ? "Accès refusé (403). Permissions insuffisantes." :

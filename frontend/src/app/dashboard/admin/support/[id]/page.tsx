@@ -54,7 +54,7 @@ export default function AdminTicketDetail() {
             setIsLoading(false);
             setTimeout(scrollToBottom, 300);
         } catch (error) {
-            console.error("Erreur détails", error);
+            console.error("Erreur détails");
             setIsLoading(false);
         }
     };
@@ -79,7 +79,7 @@ export default function AdminTicketDetail() {
             setNewMessage('');
             fetchTicketDetails();
         } catch (error) {
-            console.error("Erreur envoi", error);
+            console.error("Erreur envoi");
         } finally {
             setIsSending(false);
         }
@@ -91,7 +91,7 @@ export default function AdminTicketDetail() {
             await api.patch(`/support/tickets/${id}/status`, { status });
             fetchTicketDetails();
         } catch (error) {
-            console.error("Erreur mise à jour statut", error);
+            console.error("Erreur mise à jour statut");
         } finally {
             setIsUpdatingStatus(false);
         }

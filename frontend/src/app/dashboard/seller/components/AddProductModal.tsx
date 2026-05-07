@@ -78,7 +78,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
             setFormData(prev => ({ ...prev, categoryId: response.data[0].id }));
           }
         } catch (error) {
-          console.error("Erreur catégories", error);
+          console.error("Erreur catégories");
         } finally {
           setIsLoadingCategories(false);
         }
@@ -160,7 +160,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
       onSuccess(response.data);
       onClose();
     } catch (error: any) {
-      console.error("Erreur produit", error);
+      console.error("Erreur produit");
       alert(error.response?.data?.message || "Erreur lors de l'enregistrement");
     } finally {
       setIsSubmitting(false);

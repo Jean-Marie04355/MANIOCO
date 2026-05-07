@@ -47,7 +47,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         setItems(JSON.parse(savedCart));
       } catch (e) {
-        console.error("Erreur chargement panier", e);
+        console.error("Erreur chargement panier");
         setItems([]);
       }
     } else {

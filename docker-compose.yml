@@ -60,9 +60,14 @@ services:
       - "127.0.0.1:3900:9000"
       - "127.0.0.1:3901:9001"
     environment:
-      MINIO_ROOT_USER: admin
-      MINIO_ROOT_PASSWORD: password
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-changeme}
     command: server /data --console-address ":9001"
     volumes:
       - ./data/minio:/data
     restart: always
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5

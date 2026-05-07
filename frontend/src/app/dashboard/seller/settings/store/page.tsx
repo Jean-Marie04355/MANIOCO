@@ -97,7 +97,7 @@ export default function StoreSettings() {
           });
         }
       } catch (error) {
-        console.error("Erreur lors de la récupération de la boutique", error);
+        console.error("Erreur lors de la récupération de la boutique");
       }
     };
     fetchStore();
@@ -141,7 +141,7 @@ export default function StoreSettings() {
       }
       setTimeout(() => setIsSaved(false), 3000);
     } catch (error: any) {
-      console.error("Erreur de sauvegarde", error);
+      console.error("Erreur de sauvegarde");
       const msg = error.response?.data?.message;
       alert(Array.isArray(msg) ? msg.join(", ") : (msg || "Erreur lors de la sauvegarde"));
     } finally {

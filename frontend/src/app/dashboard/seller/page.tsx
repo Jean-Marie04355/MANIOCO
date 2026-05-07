@@ -113,7 +113,7 @@ export default function SellerDashboard() {
           setChartData(last6Months);
         }
       } catch (error) {
-        console.error("Erreur chargement dashboard vendeur", error);
+        console.error("Erreur chargement dashboard vendeur");
       } finally {
         setIsLoading(false);
       }

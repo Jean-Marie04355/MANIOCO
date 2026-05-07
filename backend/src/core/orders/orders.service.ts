@@ -165,7 +165,7 @@ export class OrdersService {
       // Initialize Chat conversation automatically
       await this.chatService.findOrCreateConversation(order.customerId, store.id);
     } catch (error) {
-      console.error('Notification/Chat error:', error);
+      this.logger.error(`Notification/Chat error for order ${order.id}`);
     }
 
     // 5. Update stocks
@@ -226,7 +226,7 @@ export class OrdersService {
         });
       }
     } catch (error) {
-      console.error('Failed to notify admins of new order', error);
+      this.logger.error(`Failed to notify admins of new order ${order.id}`);
     }
   }
 

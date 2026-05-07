@@ -65,7 +65,7 @@ export default function SellerRevenues() {
           setTransactions(mappedTransactions);
         }
       } catch (error) {
-        console.error("Erreur chargement revenus", error);
+        console.error("Erreur chargement revenus");
       } finally {
         setIsLoading(false);
       }

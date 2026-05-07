@@ -29,7 +29,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
       const res = await api.get('/notifications');
       setNotifications(res.data);
     } catch (error) {
-      console.error('Erreur lors de la récupération des notifications', error);
+      console.error("Erreur lors de la récupération des notifications");
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
       await api.patch('/notifications/read-all');
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
     } catch (error) {
-      console.error('Erreur lors du marquage des notifications', error);
+      console.error("Erreur lors du marquage des notifications");
     }
   };
 
@@ -59,7 +59,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
       await api.patch(`/notifications/${id}/read`);
       setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
     } catch (error) {
-      console.error('Erreur lors du marquage de la notification', error);
+      console.error("Erreur lors du marquage de la notification");
     }
   };
 

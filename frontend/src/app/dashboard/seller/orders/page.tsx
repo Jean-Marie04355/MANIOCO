@@ -65,7 +65,7 @@ export default function SellerOrders() {
           setHasStore(false);
         }
       } catch (error) {
-        console.error("Error fetching orders", error);
+        console.error("Error fetching orders");
       } finally {
         setIsLoading(false);
       }

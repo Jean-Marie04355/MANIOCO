@@ -31,7 +31,7 @@ export default function ProfessionalProfilePage() {
                 // Sort by date desc
                 logs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 setRecentLogs(logs.slice(0, 3));
-            }).catch(err => console.error("Could not fetch user logs", err));
+            }).catch(err => console.error("Could not fetch user logs"));
         }
     }, [isLoading, user, router]);
 
@@ -86,7 +86,7 @@ export default function ProfessionalProfilePage() {
             await api.patch(`/users/${user.id}`, { profilePhoto: null });
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur de suppression", error);
+            console.error("Erreur de suppression");
         } finally {
             setIsUploading(false);
         }
@@ -101,7 +101,7 @@ export default function ProfessionalProfilePage() {
             setIsEditing(false);
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur de sauvegarde", error);
+            console.error("Erreur de sauvegarde");
             alert("Erreur lors de la sauvegarde du profil.");
         }
     };

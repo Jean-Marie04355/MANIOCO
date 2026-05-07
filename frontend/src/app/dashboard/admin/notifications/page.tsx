@@ -25,7 +25,7 @@ export default function AdminNotificationsPage() {
             const response = await api.get('/notifications');
             setNotifications(response.data);
         } catch (err) {
-            console.error("Erreur chargement notifications:", err);
+            console.error("Erreur chargement notifications:");
         } finally {
             setLoading(false);
         }
@@ -36,7 +36,7 @@ export default function AdminNotificationsPage() {
             await api.patch(`/notifications/${id}/read`);
             setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
         } catch (err) {
-            console.error("Erreur marquage lecture:", err);
+            console.error("Erreur marquage lecture:");
         }
     };
 
@@ -45,7 +45,7 @@ export default function AdminNotificationsPage() {
             await api.patch('/notifications/read-all');
             setNotifications(notifications.map(n => ({ ...n, isRead: true })));
         } catch (err) {
-            console.error("Erreur marquage global:", err);
+            console.error("Erreur marquage global:");
         }
     };
 
@@ -54,7 +54,7 @@ export default function AdminNotificationsPage() {
             await api.delete(`/notifications/${id}`);
             setNotifications(notifications.filter(n => n.id !== id));
         } catch (err) {
-            console.error("Erreur suppression:", err);
+            console.error("Erreur suppression:");
         }
     };
 

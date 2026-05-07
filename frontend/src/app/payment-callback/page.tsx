@@ -18,7 +18,7 @@ function PaymentCallbackContent() {
           await api.get(`/payments/verify/${orderId}`);
           console.log("Paiement vérifié avec succès");
         } catch (error) {
-          console.error("Erreur lors de la vérification du paiement", error);
+          console.error("Erreur lors de la vérification du paiement");
         }
       }
     };

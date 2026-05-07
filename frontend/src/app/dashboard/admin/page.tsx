@@ -29,7 +29,7 @@ export default function AdminDashboard() {
         const res = await api.get('/orders/stats/admin');
         setStats(res.data);
       } catch (error) {
-        console.error("Erreur lors de la récupération des stats admin", error);
+        console.error("Erreur lors de la récupération des stats admin");
       } finally {
         setIsLoading(false);
       }

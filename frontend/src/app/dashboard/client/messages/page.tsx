@@ -37,7 +37,7 @@ function ClientMessagesContent() {
     }
     
     const finalUrl = `${apiUrl}${finalPath}`;
-    console.log("Rendering image URL:", finalUrl);
+    console.log("Rendering image URL:");
     return finalUrl;
   };
 
@@ -52,7 +52,7 @@ function ClientMessagesContent() {
               const initRes = await api.post('/chat/conversations/init', { storeId: targetSellerId });
               initialConvId = initRes.data.id;
            } catch (e) {
-              console.error("Erreur initiation conversation", e);
+              console.error("Erreur initiation conversation");
            }
         }
 
@@ -66,7 +66,7 @@ function ClientMessagesContent() {
            }
         }
       } catch (error) {
-        console.error("Erreur chargement conversations", error);
+        console.error("Erreur chargement conversations");
       } finally {
         setIsLoading(false);
       }
@@ -82,7 +82,7 @@ function ClientMessagesContent() {
           setMessages(res.data || []);
           setTimeout(scrollToBottom, 100);
         } catch (error) {
-          console.error("Erreur chargement messages", error);
+          console.error("Erreur chargement messages");
         }
       };
       fetchMessages();
@@ -146,7 +146,7 @@ function ClientMessagesContent() {
       const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
       setMessages(res.data);
     } catch (error) {
-      console.error("Erreur envoi", error);
+      console.error("Erreur envoi");
     } finally {
       setIsSending(false);
       setTimeout(scrollToBottom, 50);
@@ -175,7 +175,7 @@ function ClientMessagesContent() {
       setMessages(res.data);
       setTimeout(scrollToBottom, 50);
     } catch (error) {
-      console.error("Erreur envoi image", error);
+      console.error("Erreur envoi image");
       alert("Erreur lors de l'envoi de l'image");
     } finally {
       setIsSending(false);

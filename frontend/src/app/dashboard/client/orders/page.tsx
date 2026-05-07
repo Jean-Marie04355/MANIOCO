@@ -52,7 +52,7 @@ export default function ClientOrders() {
         const res = await api.get('/orders');
         setOrders(res.data);
       } catch (error) {
-        console.error("Erreur chargement commandes", error);
+        console.error("Erreur chargement commandes");
       } finally {
         setIsLoading(false);
       }

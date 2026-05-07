@@ -122,7 +122,7 @@ export default function ChatWindow() {
           setActiveConv(convs[0]);
         }
       } catch (error) {
-        console.error("Erreur chargement données chat", error);
+        console.error("Erreur chargement données chat");
       } finally {
         setIsLoading(false);
       }
@@ -180,7 +180,7 @@ export default function ChatWindow() {
           }
           setTimeout(scrollToBottom, 100);
         } catch (error) {
-          console.error("Erreur chargement messages", error);
+          console.error("Erreur chargement messages");
         }
       };
       fetchMessages();
@@ -233,7 +233,7 @@ export default function ChatWindow() {
             : c
         ));
       }
-    } catch (e) { console.error('Erreur suppression', e); }
+    } catch (e) { console.error("Erreur suppression"); }
   };
 
   const handleCopyMessage = (text: string) => {
@@ -308,7 +308,7 @@ export default function ChatWindow() {
          ));
       }
     } catch (error) {
-      console.error("Erreur envoi message", error);
+      console.error("Erreur envoi message");
       setMessages(prev => prev.filter(m => m.id !== tempMsg.id));
       setInputText(inputText);
     } finally {
@@ -485,7 +485,7 @@ export default function ChatWindow() {
                           await api.patch(`/chat/conversations/${activeConv.id}/unread`);
                           // Optional: fetch unread count again
                         } catch (e) {
-                          console.error("Erreur", e);
+                          console.error("Erreur");
                         }
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
@@ -502,7 +502,7 @@ export default function ChatWindow() {
                             setActiveConv(null);
                             setConversations(prev => prev.filter(c => c.id !== activeConv.id));
                           } catch (e) {
-                            console.error("Erreur", e);
+                            console.error("Erreur");
                           }
                         }
                       }}

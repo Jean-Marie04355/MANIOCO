@@ -26,8 +26,7 @@ export class EmailService {
     this.transporter = nodemailer.createTransport({
       host: finalHost,
       port: port,
-      secure: false,
-      ignoreTLS: true,
+      secure: process.env.SMTP_SECURE === 'true',
       auth:
         process.env.SMTP_USER && process.env.SMTP_USER !== 'null'
           ? {
@@ -36,7 +35,10 @@ export class EmailService {
             }
           : undefined,
       tls: {
-        rejectUnauthorized: false,
+        // En prod, on DOIT vérifier les certificats. En dev/test, on peut outrepasser via env.
+        rejectUnauthorized: process.env.NODE_ENV === 'production' 
+          ? (process.env.SMTP_REJECT_UNAUTHORIZED !== 'false')
+          : false,
       },
     });
   }

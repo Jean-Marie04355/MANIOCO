@@ -47,7 +47,7 @@ export default function AccountSettings() {
           profilePhoto: res.data.profilePhoto || ''
         });
       } catch (err) {
-        console.error("Erreur chargement profil", err);
+        console.error("Erreur chargement profil");
       } finally {
         setIsLoading(false);
       }

@@ -34,7 +34,7 @@ export default function AdminSupportHub() {
       const res = await api.get('/support/tickets/all');
       setTickets(res.data);
     } catch (error) {
-      console.error("Erreur récupération tickets admin", error);
+      console.error("Erreur récupération tickets admin");
     } finally {
       setIsLoading(false);
     }

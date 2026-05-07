@@ -57,7 +57,8 @@ WORKDIR /app
 
 RUN addgroup --system --gid 1001 nodejs && adduser --system --uid 1001 nestjs
 
-RUN apk add --no-cache wget
+ARG APK_WGET_VERSION=1.25.0-r2
+RUN apk add --no-cache wget=${APK_WGET_VERSION}
 
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules

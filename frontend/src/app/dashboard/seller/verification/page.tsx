@@ -72,7 +72,7 @@ export default function SellerVerificationPage() {
                 await fetchUser();
             }, 500);
         } catch (error: any) {
-            console.error("Erreur soumission KYC:", error);
+            console.error("Erreur soumission KYC:");
             const msg = error.response?.data?.message || "Une erreur est survenue lors de l'envoi.";
             alert(`❌ Erreur : ${msg}`);
         } finally {

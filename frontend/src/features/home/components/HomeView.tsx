@@ -104,7 +104,7 @@ export default function HomeView() {
             setCategories((catRes?.data || []) as Category[]);
             setStores((storeRes?.data || []).slice(0, 4));
          } catch (error) {
-            console.error("Erreur de chargement", error);
+            console.error("Erreur de chargement");
          } finally {
             setIsLoading(false);
          }
@@ -126,7 +126,7 @@ export default function HomeView() {
                 setUnreadCount(typeof unreadNotifRes.data === 'object' ? unreadNotifRes.data.count : unreadNotifRes.data);
                 setUnreadMessages(typeof unreadChatRes.data === 'object' ? unreadChatRes.data.count : unreadChatRes.data);
              } catch (error) {
-                console.error('Erreur lors du chargement initial des données', error);
+                console.error("Erreur lors du chargement initial des données");
              } finally {
                 setIsNotificationLoading(false);
              }
@@ -170,7 +170,7 @@ export default function HomeView() {
          setNotifications(notifications.map(n => ({ ...n, isRead: true })));
          setUnreadCount(0);
       } catch (error) {
-         console.error('Erreur lors du marquage des notifications', error);
+         console.error("Erreur lors du marquage des notifications");
       }
    };
 
@@ -180,7 +180,7 @@ export default function HomeView() {
          setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
          setUnreadCount(prev => Math.max(0, prev - 1));
       } catch (error) {
-         console.error('Erreur lors du marquage de la notification', error);
+         console.error("Erreur lors du marquage de la notification");
       }
    };
 

@@ -446,7 +446,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { user: any, onClose: () =>
             onClose();
             alert(`✅ Dossier ${status === 'APPROVED' ? 'approvré' : 'rejeté'} avec succès.`);
         } catch (error) {
-            console.error("Erreur review KYC:", error);
+            console.error("Erreur review KYC:");
             alert("❌ Erreur lors de la soumission de la revue.");
         } finally {
             setLoading(false);

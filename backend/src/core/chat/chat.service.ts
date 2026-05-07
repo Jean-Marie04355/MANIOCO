@@ -118,7 +118,7 @@ export class ChatService {
           });
         }
       } catch (e) {
-        console.error('Failed to send notification for chat message:', e);
+        this.logger.error(`Failed to send notification for chat message in conversation ${finalConversationId}`);
       }
 
       // Recharge avec les relations pour le frontend
@@ -160,7 +160,7 @@ export class ChatService {
       }
       return normalizedMsg as Message;
     } catch (error: any) {
-      console.error('sendMessage ERROR:', error);
+      this.logger.error(`sendMessage ERROR in conversation ${conversationId || customerId}: ${error.message}`);
       throw new NotFoundException(error.message || 'Error creating message');
     }
   }
@@ -192,13 +192,11 @@ export class ChatService {
     conversationId: string,
     user: AuthenticatedUser,
   ): Promise<Message[]> {
-    console.log('getMessages called with conversationId:', conversationId);
     const messages = await this.messageRepo.find({
       where: { conversationId },
       order: { createdAt: 'ASC' },
       relations: ['sender'],
     } as object);
-    console.log('getMessages found:', messages.length, 'messages');
     return messages.map(m => ({
       ...m,
       senderId: typeof m.senderId === 'object' ? (m.senderId as any).id : m.senderId

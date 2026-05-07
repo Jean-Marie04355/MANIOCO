@@ -56,7 +56,7 @@ export default function ShopDetails() {
         await api.post('/chat/conversations/init', { storeId: id });
         router.push('/dashboard/client/messages');
      } catch (error) {
-        console.error("Erreur initiation chat", error);
+        console.error("Erreur initiation chat");
         alert("Erreur lors de la mise en relation avec le vendeur.");
      } finally {
         setIsStartingChat(false);
@@ -76,7 +76,7 @@ export default function ShopDetails() {
         setStore(storeRes.data);
         setProducts(productsRes.data || []);
       } catch (error) {
-        console.error("Erreur de chargement de la boutique", error);
+        console.error("Erreur de chargement de la boutique");
       } finally {
         setIsLoading(false);
       }

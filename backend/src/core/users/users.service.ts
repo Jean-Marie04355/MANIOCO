@@ -3,6 +3,7 @@ import {
   Inject,
   NotFoundException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
@@ -27,6 +28,7 @@ const USER_EMAIL_CACHE_KEY = 'user_email_';
 
 @Injectable()
 export class UsersService {
+  private readonly logger = new Logger(UsersService.name);
   constructor(
     @Inject('USER_REPOSITORY')
     private readonly userRepository: IBaseRepository<User>,
@@ -178,7 +180,7 @@ export class UsersService {
         });
       }
     } catch (error) {
-      console.error('Failed to notify admins of new user registration', error);
+      this.logger.error(`Failed to notify admins of new user registration for user ${user.id}`);
     }
   }
 
@@ -246,10 +248,7 @@ export class UsersService {
 
         updateUserDto.profilePhoto = fileUrl;
       } catch (error) {
-        console.error(
-          "Erreur lors de l'upload de la photo de profil vers S3",
-          error,
-        );
+        this.logger.error(`Erreur lors de l'upload de la photo de profil vers S3 pour l'utilisateur ${id}`);
       }
     }
 
@@ -308,7 +307,7 @@ export class UsersService {
         });
       }
     } catch (error) {
-      console.error('Failed to notify admins of KYC submission', error);
+      this.logger.error(`Failed to notify admins of KYC submission for user ${user.id}`);
     }
   }
 

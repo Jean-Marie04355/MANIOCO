@@ -40,7 +40,7 @@ export default function SellerSupport() {
       const res = await api.get('/support/tickets/my-tickets');
       setTickets(res.data);
     } catch (error) {
-      console.error("Erreur lors de la récupération des tickets", error);
+      console.error("Erreur lors de la récupération des tickets");
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +66,7 @@ export default function SellerSupport() {
       setMessage('');
       fetchTickets(); // Refresh list
     } catch (error) {
-      console.error("Erreur création ticket", error);
+      console.error("Erreur création ticket");
       alert("Une erreur est survenue lors de l'envoi du ticket.");
     } finally {
       setIsSubmitting(false);

@@ -55,7 +55,7 @@ export default function ClientSettings() {
           phoneNumber: res.data.phoneNumber || ''
         });
       } catch (err) {
-        console.error("Erreur chargement profil", err);
+        console.error("Erreur chargement profil");
       } finally {
         setIsLoading(false);
       }

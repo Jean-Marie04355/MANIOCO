@@ -47,7 +47,7 @@ export default function TicketDetail() {
             setIsLoading(false);
             setTimeout(scrollToBottom, 100);
         } catch (error) {
-            console.error("Erreur détails ticket", error);
+            console.error("Erreur détails ticket");
             setIsLoading(false);
         }
     };
@@ -68,7 +68,7 @@ export default function TicketDetail() {
             setNewMessage('');
             fetchTicketDetails();
         } catch (error) {
-            console.error("Erreur envoi message", error);
+            console.error("Erreur envoi message");
         } finally {
             setIsSending(false);
         }

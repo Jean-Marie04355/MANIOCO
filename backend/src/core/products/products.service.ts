@@ -3,6 +3,7 @@ import {
   Inject,
   ForbiddenException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -19,6 +20,7 @@ const PRODUCTS_CACHE_KEY = 'all_products';
 
 @Injectable()
 export class ProductsService {
+  private readonly logger = new Logger(ProductsService.name);
   constructor(
     @Inject('PRODUCT_REPOSITORY')
     private readonly repo: IBaseRepository<Product>,
@@ -57,10 +59,7 @@ export class ProductsService {
 
         createProductDto.image = fileUrl;
       } catch (error) {
-        console.error(
-          "Erreur lors de l'upload de l'image du produit vers S3",
-          error,
-        );
+        this.logger.error("Erreur lors de l'upload de l'image du produit vers S3");
       }
     }
 
@@ -133,10 +132,7 @@ export class ProductsService {
 
         updateProductDto.image = fileUrl;
       } catch (error) {
-        console.error(
-          "Erreur lors de l'upload de l'image du produit vers S3",
-          error,
-        );
+        this.logger.error("Erreur lors de l'upload de l'image du produit vers S3 lors de la mise à jour");
       }
     }
 
