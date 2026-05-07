@@ -41,7 +41,7 @@ api.interceptors.response.use(
       console.groupCollapsed('AXIOS ERROR DETAILS');
       console.log(details);
       if (typeof error?.toJSON === 'function') {
-        console.log("AXIOS ERROR JSON"));
+        console.log("AXIOS ERROR JSON", error.toJSON());
       }
       console.groupEnd();
     } else {

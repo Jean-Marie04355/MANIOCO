@@ -18,10 +18,36 @@ backend-coverage:
     - npm ci --prefer-offline
   script:
     - npx jest --coverage --coverageReporters=lcov --coverageDirectory=coverage --passWithNoTests --forceExit
+    # Fix paths for SonarQube (prefix with backend/)
+    - sed -i 's|SF:src/|SF:backend/src/|g' coverage/lcov.info
   artifacts:
     when: always
     paths:
       - backend/coverage/lcov.info
+    expire_in: 1 day
+  allow_failure: true
+
+# ─────────────────────────────────────────────────────────────
+# Job: génère le rapport de couverture frontend (LCOV) pour Sonar
+# ─────────────────────────────────────────────────────────────
+frontend-coverage:
+  stage: test
+  image: node:20-alpine
+  cache:
+    key: frontend-$CI_COMMIT_REF_SLUG
+    paths:
+      - frontend/node_modules/
+  before_script:
+    - cd frontend
+    - npm ci --prefer-offline
+  script:
+    - npm run test:cov
+    # Fix paths for SonarQube (prefix with frontend/)
+    - sed -i 's|SF:src/|SF:frontend/src/|g' coverage/lcov.info
+  artifacts:
+    when: always
+    paths:
+      - frontend/coverage/lcov.info
     expire_in: 1 day
   allow_failure: true
 
@@ -31,8 +57,10 @@ sonarqube-checker:
   needs:
     - job: backend-coverage
       artifacts: true
+    - job: frontend-coverage
+      artifacts: true
   allow_failure: true
   variables:
-    SONAR_SOURCES: "backend/src"
+    SONAR_SOURCES: "backend/src,frontend/src"
     SONAR_SCANNER_OPTS: "-Xmx4096m"
     SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
