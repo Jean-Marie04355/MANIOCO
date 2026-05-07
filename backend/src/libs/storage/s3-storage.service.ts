@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
@@ -11,7 +11,7 @@ import {
 import { IStorageService } from './interfaces/storage-service.interface';
 
 @Injectable()
-export class S3StorageService implements IStorageService {
+export class S3StorageService implements IStorageService, OnModuleInit {
   private readonly logger = new Logger(S3StorageService.name);
   private readonly s3Client: S3Client;
   private readonly bucketName: string;
@@ -41,8 +41,11 @@ export class S3StorageService implements IStorageService {
       forcePathStyle: true,
     });
 
+  }
+
+  async onModuleInit() {
     // Create bucket if it doesn't exist
-    this.ensureBucketExists();
+    await this.ensureBucketExists();
   }
 
   private async ensureBucketExists() {

@@ -18,8 +18,9 @@ export default function AdminRegisterPage() {
 
          <form className="w-full space-y-8">
             <div className="relative border-b-2 border-slate-100 focus-within:border-orange-400 transition-colors">
-               <label className="text-[11px] font-black uppercase text-slate-400 block mb-1 uppercase tracking-widest">Full Name</label>
+               <label htmlFor="fullName" className="text-[11px] font-black uppercase text-slate-400 block mb-1 uppercase tracking-widest">Full Name</label>
                <input 
+                  id="fullName"
                   type="text" 
                   placeholder="John Doe" 
                   className="w-full py-2 bg-transparent text-sm font-bold text-slate-700 outline-none placeholder:text-slate-200" 
@@ -27,8 +28,9 @@ export default function AdminRegisterPage() {
             </div>
 
             <div className="relative border-b-2 border-slate-100 focus-within:border-orange-400 transition-colors">
-               <label className="text-[11px] font-black uppercase text-slate-400 block mb-1 uppercase tracking-widest">Email</label>
+               <label htmlFor="email" className="text-[11px] font-black uppercase text-slate-400 block mb-1 uppercase tracking-widest">Email</label>
                <input 
+                  id="email"
                   type="email" 
                   placeholder="example@gmail.com" 
                   className="w-full py-2 bg-transparent text-sm font-bold text-slate-700 outline-none placeholder:text-slate-200" 
@@ -36,8 +38,9 @@ export default function AdminRegisterPage() {
             </div>
 
             <div className="relative border-b-2 border-slate-100 focus-within:border-orange-400 transition-colors">
-               <label className="text-[11px] font-black uppercase text-slate-400 block mb-1 uppercase tracking-widest">Phone Number</label>
+               <label htmlFor="phone" className="text-[11px] font-black uppercase text-slate-400 block mb-1 uppercase tracking-widest">Phone Number</label>
                <input 
+                  id="phone"
                   type="text" 
                   placeholder="+1 234 567 89" 
                   className="w-full py-2 bg-transparent text-sm font-bold text-slate-700 outline-none placeholder:text-slate-200" 

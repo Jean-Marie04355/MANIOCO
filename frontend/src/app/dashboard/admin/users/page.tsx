@@ -464,7 +464,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { user: any, onClose: () =>
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose}></div>
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} role="presentation" onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}></div>
             <div className="relative bg-white w-full max-w-5xl h-[90vh] rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                 
                 {/* Header */}
@@ -513,7 +513,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { user: any, onClose: () =>
                                     <div className="h-48 bg-white rounded-2xl overflow-hidden border border-slate-200 relative group/img">
                                         {field.value ? (
                                             <>
-                                                <img src={field.value} className="w-full h-full object-cover" />
+                                                <img src={field.value} alt={field.label} className="w-full h-full object-cover" />
                                                 <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-all">
                                                     <a href={field.value} target="_blank" className="bg-white p-3 rounded-full text-slate-900 hover:scale-110 transition-transform"><ExternalLink size={20} /></a>
                                                 </div>

@@ -188,7 +188,7 @@ export default function AdminChatView() {
                     <Store size={12} /> Profil Boutique
                  </p>
                  <div className="flex items-center gap-4 mb-4 pb-4 border-b border-slate-50">
-                    <img src={getImageUrl(conversation.store?.profilePhoto)} className="w-12 h-12 rounded-2xl object-cover border border-slate-100" />
+                    <img src={getImageUrl(conversation.store?.profilePhoto)} alt={conversation.store?.name || "Logo Boutique"} className="w-12 h-12 rounded-2xl object-cover border border-slate-100" />
                     <div>
                        <p className="text-sm font-black text-slate-900 truncate">{conversation.store?.name}</p>
                        <p className="text-[10px] font-bold text-slate-400 truncate">Vendeur: {conversation.store?.owner?.name}</p>

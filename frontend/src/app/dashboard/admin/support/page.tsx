@@ -160,6 +160,9 @@ export default function AdminSupportHub() {
                   <div 
                     key={ticket.id} 
                     onClick={() => window.location.href = `/dashboard/admin/support/${ticket.id}`}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.location.href = `/dashboard/admin/support/${ticket.id}` }}
                     className="group bg-white border border-slate-200/60 rounded-[2.5rem] p-8 hover:border-emerald-500/30 transition-all cursor-pointer flex items-center justify-between shadow-sm hover:shadow-2xl hover:shadow-emerald-500/5 hover:-translate-y-1"
                   >
                     <div className="flex gap-8 items-center">

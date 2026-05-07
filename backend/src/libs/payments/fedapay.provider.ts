@@ -74,7 +74,7 @@ export class FedaPayProvider implements IPaymentProvider {
             lastname: (params.customer.lastname || 'Afrigari') as string,
             email: params.customer.email as string,
             phone_number: params.customer.phoneNumber ? {
-              number: params.customer.phoneNumber.replace(/\D/g, '').replace(/^229/, ''),
+              number: params.customer.phoneNumber.replaceAll(/\D/g, '').replace(/^229/, ''),
               country: 'BJ'
             } : undefined
           } : undefined

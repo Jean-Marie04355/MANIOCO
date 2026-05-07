@@ -44,7 +44,7 @@ export class AuditService {
 
     return rawData.map((d) => ({
       date: d.date,
-      count: parseInt(d.count, 10),
+      count: Number.parseInt(d.count, 10),
     }));
   }
 }

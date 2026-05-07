@@ -147,6 +147,9 @@ export default function AdminTasksPage() {
                         ) : tasks.map((task) => (
                             <div 
                                 onClick={() => router.push(task.link)}
+                                role="button"
+                                tabIndex={0}
+                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(task.link) }}
                                 key={task.id} 
                                 className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6"
                             >

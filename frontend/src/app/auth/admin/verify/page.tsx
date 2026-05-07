@@ -48,7 +48,7 @@ export default function AdminVerifyPage() {
    }, [mounted]);
 
    const handleChange = (element: any, index: number) => {
-      if (isNaN(element.value)) return false;
+      if (Number.isNaN(Number(element.value))) return false;
       const newOtp = [...otp];
       newOtp[index] = element.value;
       setOtp(newOtp);

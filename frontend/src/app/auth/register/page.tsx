@@ -16,26 +16,26 @@ export default function RegisterPage() {
 
          <div className="glass-premium p-10 rounded-[48px] border border-white space-y-6">
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest ml-4 text-forest-green/40">Nom Complet</label>
+               <label htmlFor="fullName" className="text-[10px] font-black uppercase tracking-widest ml-4 text-forest-green/40">Nom Complet</label>
                <div className="relative">
                   <User className="absolute left-5 top-1/2 -translate-y-1/2 text-forest-green/30" size={18} />
-                  <input type="text" placeholder="Jean Bosco" className="w-full bg-forest-green/5 border-none rounded-full py-4 pl-14 pr-6 text-sm font-bold outline-none focus:ring-2 focus:ring-afrigari-gold/20 transition-all" />
+                  <input id="fullName" type="text" placeholder="Jean Bosco" className="w-full bg-forest-green/5 border-none rounded-full py-4 pl-14 pr-6 text-sm font-bold outline-none focus:ring-2 focus:ring-afrigari-gold/20 transition-all" />
                </div>
             </div>
 
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest ml-4 text-forest-green/40">Adresse Email</label>
+               <label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest ml-4 text-forest-green/40">Adresse Email</label>
                <div className="relative">
                   <Mail className="absolute left-5 top-1/2 -translate-y-1/2 text-forest-green/30" size={18} />
-                  <input type="email" placeholder="votre@email.com" className="w-full bg-forest-green/5 border-none rounded-full py-4 pl-14 pr-6 text-sm font-bold outline-none focus:ring-2 focus:ring-afrigari-gold/20 transition-all" />
+                  <input id="email" type="email" placeholder="votre@email.com" className="w-full bg-forest-green/5 border-none rounded-full py-4 pl-14 pr-6 text-sm font-bold outline-none focus:ring-2 focus:ring-afrigari-gold/20 transition-all" />
                </div>
             </div>
 
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest ml-4 text-forest-green/40">Mot de passe</label>
+               <label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest ml-4 text-forest-green/40">Mot de passe</label>
                <div className="relative">
                   <Lock className="absolute left-5 top-1/2 -translate-y-1/2 text-forest-green/30" size={18} />
-                  <input type="password" placeholder="••••••••" className="w-full bg-forest-green/5 border-none rounded-full py-4 pl-14 pr-6 text-sm font-bold outline-none focus:ring-2 focus:ring-afrigari-gold/20 transition-all" />
+                  <input id="password" type="password" placeholder="••••••••" className="w-full bg-forest-green/5 border-none rounded-full py-4 pl-14 pr-6 text-sm font-bold outline-none focus:ring-2 focus:ring-afrigari-gold/20 transition-all" />
                </div>
             </div>
 

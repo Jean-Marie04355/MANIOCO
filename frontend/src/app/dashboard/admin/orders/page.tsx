@@ -272,7 +272,7 @@ function OrderCardItem({ order, active, onClick }: any) {
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs ${active ? 'bg-white/10' : 'bg-slate-50 text-emerald-600'}`}>{avatar}</div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-black tracking-tight">{Number(order.totalAmount).toLocaleString()} FCFA</p>
-                    <p className={`text-[10px] font-bold truncate ${active ? 'text-slate-400' : 'text-slate-400'}`}>{order.customer?.firstName} ➔ {order.store?.name || 'Boutique'}</p>
+                    <p className={`text-[10px] font-bold truncate ${active ? 'text-slate-100' : 'text-slate-400'}`}>{order.customer?.firstName} ➔ {order.store?.name || 'Boutique'}</p>
                 </div>
             </div>
         </button>
@@ -289,7 +289,7 @@ function CustomerCardItem({ customer, active, onClick }: any) {
                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-sm ${active ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-emerald-50 text-emerald-600'}`}>{customer.avatar}</div>
                 <div className="flex-1">
                     <h4 className="font-black text-xs uppercase tracking-tight">{customer.name}</h4>
-                    <p className={`text-[10px] font-bold ${active ? 'text-slate-400' : 'text-slate-400'}`}>{customer.totalOrders} commandes passées</p>
+                    <p className={`text-[10px] font-bold ${active ? 'text-slate-100' : 'text-slate-400'}`}>{customer.totalOrders} commandes passées</p>
                 </div>
                 <ChevronRight size={18} className={active ? 'text-emerald-500' : 'text-slate-200'} />
             </div>
