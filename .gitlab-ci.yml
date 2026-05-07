@@ -3,9 +3,64 @@ include:
     file: 'svcitemplate.yml'
     ref: 'main'
 
+# ─────────────────────────────────────────────────────────────
+# Job: génère le rapport de couverture backend (LCOV) pour Sonar
+# ─────────────────────────────────────────────────────────────
+backend-coverage:
+  stage: test
+  image: node:20-alpine
+  cache:
+    key: backend-$CI_COMMIT_REF_SLUG
+    paths:
+      - backend/node_modules/
+  before_script:
+    - cd backend
+    - npm ci --prefer-offline
+  script:
+    - npx jest --coverage --coverageReporters=lcov --coverageDirectory=coverage --passWithNoTests --forceExit
+    # Fix paths for SonarQube (prefix with backend/)
+    - sed -i 's|^SF:|SF:backend/|' coverage/lcov.info
+  artifacts:
+    when: always
+    paths:
+      - backend/coverage/lcov.info
+    expire_in: 1 day
+  allow_failure: true
+
+# ─────────────────────────────────────────────────────────────
+# Job: génère le rapport de couverture frontend (LCOV) pour Sonar
+# ─────────────────────────────────────────────────────────────
+frontend-coverage:
+  stage: test
+  image: node:20-alpine
+  cache:
+    key: frontend-$CI_COMMIT_REF_SLUG
+    paths:
+      - frontend/node_modules/
+  before_script:
+    - cd frontend
+    - npm ci --prefer-offline
+  script:
+    - npm run test:cov
+    # Fix paths for SonarQube (prefix with frontend/)
+    - sed -i 's|^SF:|SF:frontend/|' coverage/lcov.info
+  artifacts:
+    when: always
+    paths:
+      - frontend/coverage/lcov.info
+    expire_in: 1 day
+  allow_failure: true
+
 sonarqube-checker:
-  services: [] # Désactivé car le runner semble déjà avoir l'accès Docker (conflit de socket dind)
+  stage: test
+  services: []
+  needs:
+    - job: backend-coverage
+      artifacts: true
+    - job: frontend-coverage
+      artifacts: true
+  allow_failure: true
   variables:
-    SONAR_SOURCES: "backend/src"
-    SONAR_SCANNER_OPTS: "-Xmx4096m" # Augmenté pour éviter les crashs sur gros projets
-    SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true" # Accélère le démarrage
+    SONAR_SOURCES: "backend/src,frontend/src"
+    SONAR_SCANNER_OPTS: "-Xmx4096m"
+    SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
