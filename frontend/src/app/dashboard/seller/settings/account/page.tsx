@@ -119,20 +119,20 @@ export default function AccountSettings() {
       isValid = false;
     }
 
-    if (!isValid) return;
-
-    setIsSavingPassword(true);
-    const userId = user?.id || (user as any)?.userId;
-    try {
-      await api.patch(`/users/${userId}`, { password: passwordData.newPassword });
-      setIsSavedPassword(true);
-      setPasswordData({ newPassword: '', confirmPassword: '' });
-      setTimeout(() => setIsSavedPassword(false), 3000);
-    } catch (err: any) {
-      const msg = err.response?.data?.message;
-      setPasswordError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Erreur lors du changement de mot de passe'));
-    } finally {
-      setIsSavingPassword(false);
+    if (isValid) {
+      setIsSavingPassword(true);
+      const userId = user?.id || (user as any)?.userId;
+      try {
+        await api.patch(`/users/${userId}`, { password: passwordData.newPassword });
+        setIsSavedPassword(true);
+        setPasswordData({ newPassword: '', confirmPassword: '' });
+        setTimeout(() => setIsSavedPassword(false), 3000);
+      } catch (err: any) {
+        const msg = err.response?.data?.message;
+        setPasswordError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Erreur lors du changement'));
+      } finally {
+        setIsSavingPassword(false);
+      }
     }
   };
 

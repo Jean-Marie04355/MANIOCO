@@ -50,7 +50,7 @@ export default function SellerProducts() {
           localStorage.removeItem('afrigari_has_store');
         }
       } catch (error) {
-        console.error("Erreur d'initialisation", error);
+        console.error("Erreur d'initialisation");
       } finally {
         setIsLoading(false);
       }

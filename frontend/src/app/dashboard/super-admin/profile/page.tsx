@@ -72,7 +72,7 @@ export default function ProfessionalProfilePage() {
             // Refresh context
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur lors de l'upload", error);
+            console.error("Erreur lors de l'upload");
             alert("Erreur lors de l'envoi de la photo.");
         } finally {
             setIsUploading(false);
