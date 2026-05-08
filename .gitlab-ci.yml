@@ -9,6 +9,8 @@ afrigari-backend-coverage:
   image: node:20-alpine
   tags:
     - easyjob
+  before_script:
+    - apk add --no-cache python3 make g++
   script:
     - cd backend
     - npm install --prefer-offline --legacy-peer-deps
