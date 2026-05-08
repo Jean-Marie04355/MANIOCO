@@ -3,8 +3,8 @@ include:
     file: 'svcitemplate.yml'
     ref: 'main'
 
-# On utilise les noms attendus par le template si possible, ou on les complète
-backend-coverage:
+# On renomme notre job pour correspondre à ce que le template attend
+test_coverage_node:
   stage: check
   image: node:20-alpine
   tags:
@@ -19,6 +19,7 @@ backend-coverage:
       - backend/coverage/lcov.info
     expire_in: 1 day
 
+# On garde notre job frontend à part
 frontend-coverage:
   stage: check
   image: node:20-alpine
@@ -34,18 +35,25 @@ frontend-coverage:
       - frontend/coverage/lcov.info
     expire_in: 1 day
 
-# On surcharge Sonar en remettant TOUTE la liste des dépendances obligatoires
+# On surcharge Sonar en rendant les dépendances manquantes OPTIONNELLES
 sonarqube-checker:
   needs: 
-    - svscanners_check
-    - dockerfile_conformity_check
-    - others_infra_conformity_check
-    - initial_security_checkpoint
-    - security_check
-    - test_coverage_node
-    - test_coverage_fastapi
-    - backend-coverage
-    - frontend-coverage
+    - job: svscanners_check
+      optional: true
+    - job: dockerfile_conformity_check
+      optional: true
+    - job: others_infra_conformity_check
+      optional: true
+    - job: initial_security_checkpoint
+      optional: true
+    - job: security_check
+      optional: true
+    - job: test_coverage_node
+      optional: false # Celui-là on le veut absolument !
+    - job: test_coverage_fastapi
+      optional: true
+    - job: frontend-coverage
+      optional: false # Celui-là aussi !
   variables:
     SONAR_SOURCES: "backend/src,frontend/src"
     SONAR_SCANNER_OPTS: "-Xmx4096m"
