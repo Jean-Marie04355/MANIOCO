@@ -2,11 +2,11 @@
 import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
 import { 
-    Users, Search, ShieldCheck, 
+    Search, ShieldCheck, 
     Mail, Trash2, CheckCircle, 
-    ShoppingBag, User as UserIcon,
+    User as UserIcon,
     AlertCircle, X, Clock, ShieldAlert, BadgeCheck,
-    ChevronRight, ExternalLink, ShieldX, UserMinus, Loader2, FileText
+    ChevronRight, ExternalLink, ShieldX, Loader2, FileText
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -41,7 +41,7 @@ export default function AdminUsersManagement() {
                 setSelectedUser(firstPending || data[0]);
             }
         } catch (err) {
-            console.error("Erreur");
+            console.error("Erreur lors du chargement des utilisateurs:", err);
         } finally {
             setLoading(false);
         }
@@ -50,25 +50,34 @@ export default function AdminUsersManagement() {
     const handleAction = async (action: 'validate' | 'delete' | 'restore' | 'suspend') => {
         if (!selectedUser) return;
         
-        if (action === 'delete' && !confirm(`🚫 ATTENTION : Cette action supprimera DÉFINITIVEMENT ${selectedUser.name}. Confirmer ?`)) return;
-        if (action === 'validate' && !confirm(`Voulez-vous valider ce compte marchand ?`)) return;
+        const confirmations = {
+            delete: `🚫 ATTENTION : Cette action supprimera DÉFINITIVEMENT ${selectedUser.name}. Confirmer ?`,
+            validate: `Voulez-vous valider ce compte marchand ?`,
+            restore: null,
+            suspend: null
+        };
+
+        const confirmationMsg = confirmations[action];
+        if (confirmationMsg && !confirm(confirmationMsg)) return;
 
         try {
-            if (action === 'validate') await api.patch(`/users/${selectedUser.id}`, { isVerified: true });
-            
-            // On utilise la suppression PERMANENTE pour le bouton Suppression Totale
-            if (action === 'delete') {
-                await api.delete(`/users/${selectedUser.id}/permanent`);
-                setSelectedUser(null);
-            }
-            
-            if (action === 'restore') await api.patch(`/users/${selectedUser.id}/restore`);
-            
-            if (action === 'suspend') {
-                const until = new Date();
-                until.setDate(until.getDate() + suspensionDays);
-                await api.patch(`/users/${selectedUser.id}`, { suspensionUntil: until });
-                setIsSuspending(false);
+            switch (action) {
+                case 'validate':
+                    await api.patch(`/users/${selectedUser.id}`, { isVerified: true });
+                    break;
+                case 'delete':
+                    await api.delete(`/users/${selectedUser.id}/permanent`);
+                    setSelectedUser(null);
+                    break;
+                case 'restore':
+                    await api.patch(`/users/${selectedUser.id}/restore`);
+                    break;
+                case 'suspend':
+                    const until = new Date();
+                    until.setDate(until.getDate() + suspensionDays);
+                    await api.patch(`/users/${selectedUser.id}`, { suspensionUntil: until });
+                    setIsSuspending(false);
+                    break;
             }
 
             // Rafraîchir la liste et mettre à jour l'utilisateur sélectionné
@@ -85,7 +94,7 @@ export default function AdminUsersManagement() {
             }
 
         } catch (err) {
-            console.error("Erreur");
+            console.error(`Erreur lors de l'action ${action}:`, err);
             alert("❌ Une erreur est survenue lors de l'opération.");
         }
     };
@@ -446,7 +455,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { user: any, onClose: () =>
             onClose();
             alert(`✅ Dossier ${status === 'APPROVED' ? 'approvré' : 'rejeté'} avec succès.`);
         } catch (error) {
-            console.error("Erreur review KYC:");
+            console.error("Erreur review KYC:", error);
             alert("❌ Erreur lors de la soumission de la revue.");
         } finally {
             setLoading(false);

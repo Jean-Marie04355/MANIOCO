@@ -86,8 +86,8 @@ export class OrdersService {
 
       // Initialize Chat conversation automatically
       await this.chatService.findOrCreateConversation(order.customerId, store.id);
-    } catch (error) {
-      this.logger.error(`Notification/Chat error for order ${order.id}`);
+    } catch (error: any) {
+      this.logger.error(`Notification/Chat error for order ${order.id}: ${error.message}`, error.stack);
     }
 
     // 5. Update stocks
@@ -147,8 +147,8 @@ export class OrdersService {
           metadata: JSON.stringify({ orderId: order.id }),
         });
       }
-    } catch (error) {
-      this.logger.error(`Failed to notify admins of new order ${order.id}`);
+    } catch (error: any) {
+      this.logger.error(`Failed to notify admins of new order ${order.id}: ${error.message}`, error.stack);
     }
   }
 
@@ -201,8 +201,8 @@ export class OrdersService {
         message: `Votre commande #${order.id.split('-')[0]} a été annulée. Motif : ${reason || 'Non spécifié'}.`,
         metadata: JSON.stringify({ orderId: order.id, status: OrderStatus.CANCELLED }),
       });
-    } catch (e) {
-      this.logger.error(`Failed to notify customer of cancellation for order ${id}`);
+    } catch (e: any) {
+      this.logger.error(`Failed to notify customer of cancellation for order ${id}: ${e.message}`, e.stack);
     }
 
     return this.orderRepository.findOne({ where: { id } } as any);
@@ -224,8 +224,8 @@ export class OrdersService {
           relations: ['customer'],
           order: { createdAt: 'DESC' }
         } as any);
-      } catch (error) {
-        this.logger.warn(`No store found for vendor ${user.userId}, returning empty orders list`);
+      } catch (error: any) {
+        this.logger.warn(`No store found for vendor ${user.userId}, returning empty orders list: ${error.message}`);
         return [];
       }
     }
@@ -385,8 +385,8 @@ export class OrdersService {
         message: `Votre commande #${order.id.split('-')[0]} est passée au statut : ${statusLabel}.`,
         metadata: JSON.stringify({ orderId: order.id, status }),
       });
-    } catch (e) {
-      this.logger.error(`Failed to send internal status notification for order ${id}`);
+    } catch (e: any) {
+      this.logger.error(`Failed to send internal status notification for order ${id}: ${e.message}`, e.stack);
     }
 
     return this.orderRepository.findOne({ where: { id } } as any);

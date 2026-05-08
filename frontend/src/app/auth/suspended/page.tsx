@@ -1,6 +1,6 @@
 "use client";
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Leaf, Clock, ArrowLeft, ShieldCheck, Mail, AlertCircle, Info } from 'lucide-react';
+import { Leaf, Clock, ArrowLeft, ShieldCheck, Mail, AlertCircle } from 'lucide-react';
 import { useState, useEffect, Suspense } from 'react';
 
 function SuspendedContent() {
@@ -17,7 +17,7 @@ function SuspendedContent() {
       if (!until) return;
 
       const timer = setInterval(() => {
-         const now = new Date().getTime();
+         const now = Date.now();
          const distance = new Date(until).getTime() - now;
 
          if (distance < 0) {
@@ -131,7 +131,7 @@ function SuspendedContent() {
    );
 }
 
-function TimeBox({ value, label }: { value: number, label: string }) {
+function TimeBox({ value, label }: Readonly<{ value: number, label: string }>) {
    return (
       <div className="bg-white p-5 rounded-[2rem] border border-slate-100 flex flex-col items-center shadow-sm">
          <p className="text-3xl font-black text-forest-green tracking-tighter leading-none mb-1">{value < 10 ? `0${value}` : value}</p>

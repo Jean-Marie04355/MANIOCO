@@ -1,12 +1,13 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
 import { 
-  HelpCircle, Search, MessageSquare, Clock, 
-  CheckCircle2, AlertCircle, Loader2, Filter, 
+  Search, MessageSquare, Clock, 
+  CheckCircle2, AlertCircle, Loader2, 
   User as UserIcon, Calendar, ArrowRight,
-  Inbox, Zap, Shield
+  Inbox, Zap
 } from 'lucide-react';
 import api from '@/lib/axios';
 
@@ -34,7 +35,7 @@ export default function AdminSupportHub() {
       const res = await api.get('/support/tickets/all');
       setTickets(res.data);
     } catch (error) {
-      console.error("Erreur récupération tickets admin");
+      console.error("Erreur récupération tickets admin:", error);
     } finally {
       setIsLoading(false);
     }
@@ -157,13 +158,10 @@ export default function AdminSupportHub() {
                 </div>
               ) : (
                 filteredTickets.map(ticket => (
-                  <div 
+                  <Link 
                     key={ticket.id} 
-                    onClick={() => window.location.href = `/dashboard/admin/support/${ticket.id}`}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') window.location.href = `/dashboard/admin/support/${ticket.id}` }}
-                    className="group bg-white border border-slate-200/60 rounded-[2.5rem] p-8 hover:border-emerald-500/30 transition-all cursor-pointer flex items-center justify-between shadow-sm hover:shadow-2xl hover:shadow-emerald-500/5 hover:-translate-y-1"
+                    href={`/dashboard/admin/support/${ticket.id}`}
+                    className="group bg-white border border-slate-200/60 rounded-[2.5rem] p-8 hover:border-emerald-500/30 transition-all cursor-pointer flex items-center justify-between shadow-sm hover:shadow-2xl hover:shadow-emerald-500/5 hover:-translate-y-1 text-left"
                   >
                     <div className="flex gap-8 items-center">
                         <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center border transition-all ${
@@ -197,7 +195,7 @@ export default function AdminSupportHub() {
                             <ArrowRight size={20} />
                         </div>
                     </div>
-                  </div>
+                  </Link>
                 ))
               )}
             </div>

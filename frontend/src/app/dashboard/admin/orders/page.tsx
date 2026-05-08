@@ -3,13 +3,13 @@ import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
 import api from '@/lib/axios';
 import { 
-    ShoppingCart, Search, Filter, 
-    ArrowRight, User, Store, 
+    ShoppingCart, Search,
+    User, Store, 
     Clock, CheckCircle2, AlertCircle, 
-    Package, MapPin, CreditCard, 
+    Package, CreditCard, 
     ChevronRight, TrendingUp, ShieldCheck, Mail,
-    Printer, Phone, MessageSquare, Truck,
-    Star, MoreHorizontal, Download, History,
+    Printer, Phone, Truck,
+    History,
     Loader2
 } from 'lucide-react';
 import React, { useState, useEffect, useMemo } from 'react';
@@ -119,7 +119,7 @@ export default function AdminOrdersManagement() {
                     <div className="mx-10 mt-4 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center gap-3 text-rose-600 text-xs font-bold animate-shake">
                         <AlertCircle size={18} />
                         {error}
-                        <button onClick={() => window.location.reload()} className="ml-auto underline">Réessayer</button>
+                        <button onClick={() => globalThis.location.reload()} className="ml-auto underline">Réessayer</button>
                     </div>
                 )}
 
@@ -158,39 +158,39 @@ export default function AdminOrdersManagement() {
                         )}
 
                         <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                            {viewMode === 'orders' ? (
-                                filteredOrders.length > 0 ? filteredOrders.map((order) => (
-                                    <OrderCardItem 
-                                        key={order.id} 
-                                        order={order} 
-                                        active={selectedOrder?.id === order.id && !selectedCustomer}
-                                        onClick={() => { setSelectedOrder(order); setSelectedCustomer(null); }}
-                                    />
-                                )) : (
-                                    <div className="py-20 text-center opacity-20"><ShoppingCart size={40} className="mx-auto mb-2"/><p className="text-[10px] font-black uppercase">Aucune commande</p></div>
-                                )
-                            ) : (
-                                uniqueCustomers.length > 0 ? uniqueCustomers.map((cust) => (
-                                    <CustomerCardItem 
-                                        key={cust.email} 
-                                        customer={cust} 
-                                        active={selectedCustomer?.email === cust.email}
-                                        onClick={() => { setSelectedCustomer(cust); setSelectedOrder(null); }}
-                                    />
-                                )) : (
-                                    <div className="py-20 text-center opacity-20"><User size={40} className="mx-auto mb-2"/><p className="text-[10px] font-black uppercase">Aucun client</p></div>
-                                )
+                            {viewMode === 'orders' && filteredOrders.length > 0 && filteredOrders.map((order) => (
+                                <OrderCardItem 
+                                    key={order.id} 
+                                    order={order} 
+                                    active={selectedOrder?.id === order.id && !selectedCustomer}
+                                    onClick={() => { setSelectedOrder(order); setSelectedCustomer(null); }}
+                                />
+                            ))}
+                            
+                            {viewMode === 'orders' && filteredOrders.length === 0 && (
+                                <div className="py-20 text-center opacity-20"><ShoppingCart size={40} className="mx-auto mb-2"/><p className="text-[10px] font-black uppercase">Aucune commande</p></div>
+                            )}
+
+                            {viewMode === 'customers' && uniqueCustomers.length > 0 && uniqueCustomers.map((cust) => (
+                                <CustomerCardItem 
+                                    key={cust.email} 
+                                    customer={cust} 
+                                    active={selectedCustomer?.email === cust.email}
+                                    onClick={() => { setSelectedCustomer(cust); setSelectedOrder(null); }}
+                                />
+                            ))}
+
+                            {viewMode === 'customers' && uniqueCustomers.length === 0 && (
+                                <div className="py-20 text-center opacity-20"><User size={40} className="mx-auto mb-2"/><p className="text-[10px] font-black uppercase">Aucun client</p></div>
                             )}
                         </div>
                     </div>
 
                     {/* Right Detail Area */}
                     <div className="flex-1 bg-white rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.03)] border border-slate-100 flex flex-col overflow-hidden">
-                        {selectedOrder ? (
-                            <OrderDisplay order={selectedOrder} />
-                        ) : selectedCustomer ? (
-                            <CustomerDisplay customer={selectedCustomer} />
-                        ) : (
+                        {selectedOrder && <OrderDisplay order={selectedOrder} />}
+                        {!selectedOrder && selectedCustomer && <CustomerDisplay customer={selectedCustomer} />}
+                        {!selectedOrder && !selectedCustomer && (
                             <div className="flex-1 flex flex-col items-center justify-center p-20 text-center opacity-20">
                                 <ShoppingCart size={100} className="mb-6" />
                                 <h2 className="text-xl font-black uppercase tracking-widest text-slate-400">Sélectionnez un élément</h2>
@@ -250,7 +250,15 @@ function FilterTab({ active, label, count, onClick, alert }: any) {
             className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex flex-col items-center gap-1.5 transition-all ${active ? 'bg-emerald-50 text-emerald-600 shadow-sm' : 'text-slate-400 hover:bg-slate-50'}`}
         >
             {label}
-            {count > 0 && <span className={`px-2 py-0.5 rounded-md text-[8px] ${active ? (alert ? 'bg-rose-500 text-white animate-pulse' : 'bg-emerald-500 text-white shadow-xl') : 'bg-slate-200 text-slate-500'}`}>{count}</span>}
+            {count > 0 && (
+                <span className={`px-2 py-0.5 rounded-md text-[8px] ${
+                    active 
+                        ? (alert ? 'bg-rose-500 text-white animate-pulse' : 'bg-emerald-500 text-white shadow-xl') 
+                        : 'bg-slate-200 text-slate-500'
+                }`}>
+                    {count}
+                </span>
+            )}
         </button>
     );
 }
@@ -320,7 +328,7 @@ function OrderDisplay({ order }: any) {
                         </div>
                     </div>
                     <div className="flex gap-3">
-                        <DetailAction icon={Printer} onClick={() => window.print()} />
+                        <DetailAction icon={Printer} onClick={() => globalThis.print()} />
                         <DetailAction icon={CreditCard} label="Agir sur Transaction" color="emerald" onClick={() => {}} />
                     </div>
                 </div>
@@ -341,8 +349,8 @@ function OrderDisplay({ order }: any) {
                         <table className="w-full text-left">
                             <thead className="bg-white border-b border-slate-100"><tr><th className="p-8 text-[10px] font-black uppercase text-slate-300">Désignation Produit</th><th className="p-8 text-center text-[10px] font-black uppercase text-slate-300">Qté</th><th className="p-8 text-right text-[10px] font-black uppercase text-slate-300">Unitaire</th><th className="p-8 text-right text-[10px] font-black uppercase text-slate-300">Total</th></tr></thead>
                             <tbody className="divide-y divide-slate-100">
-                                {order.items?.map((it: any, i: number) => (
-                                    <tr key={i} className="hover:bg-white transition-colors">
+                                {order.items?.map((it: any) => (
+                                    <tr key={it.productId || it.id} className="hover:bg-white transition-colors">
                                         <td className="p-8 font-black text-xs text-slate-700 uppercase tracking-tight">{it.productName}</td>
                                         <td className="p-8 text-center font-bold text-xs">x{it.quantity}</td>
                                         <td className="p-8 text-right font-medium text-xs font-mono">{Number(it.price).toLocaleString()}</td>

@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from 'next/navigation';
-import { Leaf, Clock, ArrowLeft, ShieldCheck, Mail, Hourglass, UserCheck } from 'lucide-react';
+import { Leaf, Clock, ArrowLeft, Mail, Hourglass, UserCheck } from 'lucide-react';
 import { Suspense } from 'react';
 
 function PendingValidationContent() {

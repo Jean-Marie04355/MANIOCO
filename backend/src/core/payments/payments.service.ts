@@ -177,7 +177,7 @@ export class PaymentsService {
     this.logger.log(`Manually verifying payment status for order ${orderId}`);
     
     const transaction = await this.transactionRepository.findOne({ orderId });
-    if (!transaction || !transaction.externalId) {
+    if (!transaction?.externalId) {
       this.logger.warn(`No external transaction ID found for order ${orderId}`);
       return null;
     }

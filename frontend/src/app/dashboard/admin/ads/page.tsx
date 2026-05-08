@@ -3,8 +3,8 @@ import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
 import { 
     Megaphone, Plus, Trash2, Edit3, 
-    Power, Image as ImageIcon, ExternalLink,
-    Clock, Eye, MousePointer2
+    Power, Image as ImageIcon,
+    Eye, MousePointer2
 } from 'lucide-react';
 import React, { useState } from 'react';
 

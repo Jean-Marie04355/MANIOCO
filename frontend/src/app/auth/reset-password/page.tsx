@@ -1,6 +1,6 @@
 "use client";
 import { Lock, ArrowLeft, Leaf, Sparkles, ShieldCheck } from 'lucide-react';
-import { useState, useEffect, Suspense } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';

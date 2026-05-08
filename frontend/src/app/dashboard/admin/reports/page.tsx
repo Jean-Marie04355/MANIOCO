@@ -102,15 +102,11 @@ export default function AdminReports() {
     ? reports
     : reports.filter(r => r.status === filterStatus);
 
-  // Mise à jour locale du statut (à connecter au backend)
   const updateStatus = async (id: string, status: Report['status'], note?: string) => {
     setActionLoading(id + status);
     try {
-      // await api.patch(`/reports/${id}`, { status, internalNote: note });
-      await new Promise(r => setTimeout(r, 700));
-      setReports(prev => prev.map(r =>
-        r.id === id ? { ...r, status, internalNote: note ?? r.internalNote } : r
-      ));
+      await api.patch(`/reports/${id}`, { status, internalNote: note });
+      setReports(prev => prev.map(r => r.id === id ? { ...r, status, internalNote: note ?? r.internalNote } : r));
       setExpandedId(null);
     } finally {
       setActionLoading(null);
@@ -120,8 +116,7 @@ export default function AdminReports() {
   const suspendSeller = async (sellerId: string, reportId: string) => {
     setActionLoading('suspend-' + reportId);
     try {
-      // await api.patch(`/users/${sellerId}/suspend`);
-      await new Promise(r => setTimeout(r, 700));
+      await api.patch(`/users/${sellerId}/suspend`);
       alert('Boutique suspendue temporairement.');
     } finally {
       setActionLoading(null);
@@ -132,8 +127,7 @@ export default function AdminReports() {
     if (!confirm('Bannir définitivement ce vendeur ? Cette action est irréversible.')) return;
     setActionLoading('ban-' + reportId);
     try {
-      // await api.patch(`/users/${sellerId}/ban`);
-      await new Promise(r => setTimeout(r, 700));
+      await api.patch(`/users/${sellerId}/ban`);
       alert('Vendeur banni.');
     } finally {
       setActionLoading(null);
@@ -209,12 +203,16 @@ export default function AdminReports() {
             <div className="py-20 flex justify-center">
               <Loader2 size={40} className="animate-spin text-orange-500" />
             </div>
-          ) : filtered.length === 0 ? (
+          ) : null}
+
+          {!isLoading && filtered.length === 0 ? (
             <div className="bg-white rounded-[2rem] p-16 text-center border border-slate-100">
               <Flag size={48} className="mx-auto mb-4 text-slate-200" />
               <p className="font-black text-slate-400 uppercase text-sm tracking-widest">Aucun signalement</p>
             </div>
-          ) : (
+          ) : null}
+
+          {!isLoading && filtered.length > 0 ? (
             <div className="space-y-4">
               {filtered.map(report => {
                 const cfg = STATUS_CONFIG[report.status];

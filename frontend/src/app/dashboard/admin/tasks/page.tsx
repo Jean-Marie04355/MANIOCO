@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { 
     Clock, 
@@ -70,7 +71,7 @@ export default function AdminTasksPage() {
 
                 setTasks(newTasks);
             } catch (error) {
-                console.error("Erreur chargement des tâches admin");
+                console.error("Erreur lors du chargement des tâches admin:", error);
             } finally {
                 setIsLoading(false);
             }
@@ -145,11 +146,8 @@ export default function AdminTasksPage() {
                                 <p className="text-slate-400 text-sm mt-1">Excellent travail, la plateforme est à jour.</p>
                             </div>
                         ) : tasks.map((task) => (
-                            <div 
-                                onClick={() => router.push(task.link)}
-                                role="button"
-                                tabIndex={0}
-                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') router.push(task.link) }}
+                            <Link 
+                                href={task.link}
                                 key={task.id} 
                                 className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6"
                             >
@@ -184,7 +182,7 @@ export default function AdminTasksPage() {
                                         <ChevronRight size={20} />
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         ))}
                     </div>
 

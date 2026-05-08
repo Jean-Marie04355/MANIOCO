@@ -6,7 +6,7 @@ import {
     Bell, CheckCircle2, AlertCircle, 
     ShoppingCart, UserPlus, Flag, 
     Trash2, Clock, CheckCheck,
-    Loader2, MoreVertical
+    Loader2
 } from 'lucide-react';
 import React, { useState, useEffect } from 'react';
 
@@ -25,7 +25,7 @@ export default function AdminNotificationsPage() {
             const response = await api.get('/notifications');
             setNotifications(response.data);
         } catch (err) {
-            console.error("Erreur chargement notifications:");
+            console.error("Erreur chargement notifications:", err);
         } finally {
             setLoading(false);
         }
@@ -36,7 +36,7 @@ export default function AdminNotificationsPage() {
             await api.patch(`/notifications/${id}/read`);
             setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
         } catch (err) {
-            console.error("Erreur marquage lecture:");
+            console.error("Erreur marquage lecture:", err);
         }
     };
 
@@ -45,7 +45,7 @@ export default function AdminNotificationsPage() {
             await api.patch('/notifications/read-all');
             setNotifications(notifications.map(n => ({ ...n, isRead: true })));
         } catch (err) {
-            console.error("Erreur marquage global:");
+            console.error("Erreur marquage global:", err);
         }
     };
 
@@ -54,7 +54,7 @@ export default function AdminNotificationsPage() {
             await api.delete(`/notifications/${id}`);
             setNotifications(notifications.filter(n => n.id !== id));
         } catch (err) {
-            console.error("Erreur suppression:");
+            console.error("Erreur suppression:", err);
         }
     };
 
@@ -96,12 +96,13 @@ export default function AdminNotificationsPage() {
 
                     {/* Content Section */}
                     <div className="flex-1 overflow-y-auto pr-4 custom-scrollbar space-y-4 pb-10">
-                        {loading ? (
+                        {loading && (
                             <div className="flex flex-col items-center justify-center py-20 opacity-30">
                                 <Loader2 size={40} className="animate-spin mb-4" />
                                 <p className="text-xs font-black uppercase tracking-widest">Récupération des alertes...</p>
                             </div>
-                        ) : filteredNotifications.length > 0 ? (
+                        )}
+                        {!loading && filteredNotifications.length > 0 && (
                             filteredNotifications.map((noti) => (
                                 <NotificationItem 
                                     key={noti.id} 
@@ -110,7 +111,8 @@ export default function AdminNotificationsPage() {
                                     onDelete={() => deleteNotification(noti.id)}
                                 />
                             ))
-                        ) : (
+                        )}
+                        {!loading && filteredNotifications.length === 0 && (
                             <div className="flex flex-col items-center justify-center py-32 text-center bg-white rounded-[3rem] border border-dashed border-slate-200">
                                 <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center text-slate-200 mb-6">
                                     <Bell size={40} />

@@ -3,8 +3,8 @@ import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TopNav from '../components/TopNav';
 import { 
-  Users, ShoppingCart, TrendingUp, MoreVertical, 
-  ExternalLink, Loader2, ShieldCheck, MessageSquare 
+  Users, ShoppingCart, TrendingUp,
+  Loader2, ShieldCheck, MessageSquare 
 } from 'lucide-react';
 import api from '@/lib/axios';
 
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
         const res = await api.get('/orders/stats/admin');
         setStats(res.data);
       } catch (error) {
-        console.error("Erreur lors de la récupération des stats admin");
+        console.error("Erreur lors de la récupération des stats admin:", error);
       } finally {
         setIsLoading(false);
       }
@@ -125,7 +125,7 @@ export default function AdminDashboard() {
                     const dayNum = dateObj.getDate();
                     
                     return (
-                      <div key={i} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
+                      <div key={day.date} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
                         <div className="w-full bg-slate-100/50 rounded-t-lg relative transition-all hover:bg-slate-200/50 flex-1 flex items-end">
                           <div 
                             style={{ height: `${Math.max(height, day.amount > 0 ? 8 : 0)}%` }} 

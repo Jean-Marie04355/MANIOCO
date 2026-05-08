@@ -5,10 +5,9 @@ import Sidebar from '../../../components/Sidebar';
 import {
     ChevronLeft, Send, Loader2, User,
     ShieldCheck, CheckCircle2, AlertCircle,
-    Check, Info, MessageSquare, Clock, MapPin, Phone, Mail
+    Check, Info, MessageSquare, Clock, Phone, Mail
 } from 'lucide-react';
 import api from '@/lib/axios';
-import { useAuth } from '@/features/auth/AuthContext';
 
 interface Message {
     id: string;
@@ -35,7 +34,6 @@ interface Ticket {
 export default function AdminTicketDetail() {
     const { id } = useParams();
     const router = useRouter();
-    const { user } = useAuth();
     const [ticket, setTicket] = useState<Ticket | null>(null);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(true);
@@ -54,7 +52,7 @@ export default function AdminTicketDetail() {
             setIsLoading(false);
             setTimeout(scrollToBottom, 300);
         } catch (error) {
-            console.error("Erreur détails");
+            console.error("Erreur lors du chargement des détails du ticket:", error);
             setIsLoading(false);
         }
     };
@@ -79,7 +77,7 @@ export default function AdminTicketDetail() {
             setNewMessage('');
             fetchTicketDetails();
         } catch (error) {
-            console.error("Erreur envoi");
+            console.error("Erreur lors de l'envoi du message:", error);
         } finally {
             setIsSending(false);
         }
@@ -91,7 +89,7 @@ export default function AdminTicketDetail() {
             await api.patch(`/support/tickets/${id}/status`, { status });
             fetchTicketDetails();
         } catch (error) {
-            console.error("Erreur mise à jour statut");
+            console.error("Erreur lors de la mise à jour du statut:", error);
         } finally {
             setIsUpdatingStatus(false);
         }
@@ -151,7 +149,14 @@ export default function AdminTicketDetail() {
                     </div>
 
                     <div className="flex items-center gap-4">
-                        {ticket.status !== 'CLOSED' ? (
+                        {ticket.status === 'CLOSED' ? (
+                            <button
+                                onClick={() => updateStatus('IN_PROGRESS')}
+                                className="text-emerald-600 hover:text-white hover:bg-emerald-500 text-[10px] font-black uppercase tracking-widest bg-emerald-50 px-6 py-3 rounded-xl border border-emerald-200 transition-all shadow-sm active:scale-95"
+                            >
+                                Réouvrir le dossier
+                            </button>
+                        ) : (
                             <button
                                 onClick={() => updateStatus('CLOSED')}
                                 disabled={isUpdatingStatus}
@@ -159,13 +164,6 @@ export default function AdminTicketDetail() {
                             >
                                 {isUpdatingStatus ? <Loader2 size={14} className="animate-spin" /> : <Check size={16} className="group-hover:scale-125 transition-transform" />}
                                 Clôturer le ticket
-                            </button>
-                        ) : (
-                            <button
-                                onClick={() => updateStatus('IN_PROGRESS')}
-                                className="text-emerald-600 hover:text-white hover:bg-emerald-500 text-[10px] font-black uppercase tracking-widest bg-emerald-50 px-6 py-3 rounded-xl border border-emerald-200 transition-all shadow-sm active:scale-95"
-                            >
-                                Réouvrir le dossier
                             </button>
                         )}
                     </div>

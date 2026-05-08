@@ -3,11 +3,11 @@ import Sidebar from '../../components/Sidebar';
 import {
     Mail, Calendar, Smartphone, LogOut, Camera,
     Lock, Bell, Eye, EyeOff,
-    Zap, Award, Fingerprint, Activity, Trash2
+    Zap, Award, Fingerprint, Activity, Trash2,
+    Loader2
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
-import { Loader2 } from 'lucide-react';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
 
@@ -30,7 +30,7 @@ export default function AdminProfilePage() {
                 // Sort by date desc
                 logs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 setRecentLogs(logs.slice(0, 3));
-            }).catch(err => console.error("Could not fetch user logs"));
+            }).catch(err => console.error("Could not fetch user logs:", err));
         }
     }, [isLoading, user, router]);
 
@@ -72,7 +72,7 @@ export default function AdminProfilePage() {
             // Refresh context
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur lors de l'upload");
+            console.error("Erreur lors de l'upload:", error);
             alert("Erreur lors de l'envoi de la photo.");
         } finally {
             setIsUploading(false);
@@ -86,7 +86,7 @@ export default function AdminProfilePage() {
             await api.patch(`/users/${user.id}`, { profilePhoto: null });
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur de suppression");
+            console.error("Erreur de suppression:", error);
         } finally {
             setIsUploading(false);
         }
@@ -101,7 +101,7 @@ export default function AdminProfilePage() {
             setIsEditing(false);
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur de sauvegarde");
+            console.error("Erreur de sauvegarde:", error);
             alert("Erreur lors de la sauvegarde du profil.");
         }
     };
