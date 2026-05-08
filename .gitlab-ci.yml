@@ -12,7 +12,7 @@ afrigari-backend-coverage:
   script:
     - cd backend
     - npm install --prefer-offline --legacy-peer-deps
-    - npx jest --coverage --coverageReporters=lcov --coverageDirectory=coverage --passWithNoTests --forceExit
+    - npx jest --coverage --coverageReporters=lcov --coverageDirectory=coverage --passWithNoTests
     - sed -i 's|^SF:|SF:backend/|' coverage/lcov.info
   artifacts:
     paths:

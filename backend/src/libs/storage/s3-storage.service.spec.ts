@@ -9,6 +9,7 @@ describe('S3StorageService', () => {
   let service: S3StorageService;
   let configServiceMock: any;
   let s3ClientMock: any;
+  let module: TestingModule;
 
   beforeEach(async () => {
     configServiceMock = {
@@ -25,7 +26,7 @@ describe('S3StorageService', () => {
     };
     (S3Client as jest.Mock).mockReturnValue(s3ClientMock);
 
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         S3StorageService,
         { provide: ConfigService, useValue: configServiceMock },
@@ -33,6 +34,12 @@ describe('S3StorageService', () => {
     }).compile();
 
     service = module.get<S3StorageService>(S3StorageService);
+  });
+
+  afterEach(async () => {
+    if (module) {
+      await module.close();
+    }
   });
 
   it('should be defined', () => {
