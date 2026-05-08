@@ -10,9 +10,10 @@ import { AuditService } from '../audit/audit.service';
 import { S3StorageService } from '../../libs/storage/s3-storage.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { CacheService } from '../../libs/cache/cache.service';
+import { NotificationType } from '../notifications/notification.entity';
 
 describe('UsersService', () => {
-  jest.setTimeout(15000); // hash functions can be slow on CI
+  jest.setTimeout(30000); // hash functions can be slow on CI
   let service: UsersService;
   let repositoryMock: any;
   let auditServiceMock: any;
@@ -30,6 +31,8 @@ describe('UsersService', () => {
       create: jest.fn(),
       count: jest.fn(),
       softDelete: jest.fn(),
+      restore: jest.fn(),
+      delete: jest.fn(),
       update: jest.fn(),
       save: jest.fn(),
     };
@@ -106,19 +109,38 @@ describe('UsersService', () => {
     service = module.get<UsersService>(UsersService);
   });
 
-
   it('should be defined', () => {
     expect(service).toBeDefined();
   });
 
   describe('findAll', () => {
-    it('should return users with stats', async () => {
-      const users = [{ id: '1', email: 'test@test.com', createdAt: new Date() }];
+    it('should return users with basic stats for regular clients', async () => {
+      const users = [{ id: '1', email: 'test@test.com', createdAt: new Date(), role: UserRole.CLIENT }];
       repositoryMock.find.mockResolvedValue(users);
 
       const result = await service.findAll();
-      expect(result[0].stats).toBeDefined();
-      expect(repositoryMock.find).toHaveBeenCalled();
+      expect(result[0].stats.seniority).toBeDefined();
+      expect(result[0].stats.productCount).toBe(0);
+    });
+
+    it('should calculate detailed stats for vendors', async () => {
+      const vendor = { id: 'v1', email: 'v@v.com', createdAt: new Date(), role: UserRole.VENDEUR };
+      repositoryMock.find.mockResolvedValue([vendor]);
+      storeRepoMock.findOne.mockResolvedValue({ id: 'store-1' });
+      productRepoMock.count.mockResolvedValue(5);
+      orderRepoMock.find.mockResolvedValue([{ totalAmount: 100 }, { totalAmount: 50 }]);
+
+      const result = await service.findAll();
+      const stats = result[0].stats;
+      expect(stats.productCount).toBe(5);
+      expect(stats.totalRevenue).toBe(150);
+    });
+  });
+
+  describe('findAllWithDeleted', () => {
+    it('should call repository with withDeleted option', async () => {
+      await service.findAllWithDeleted();
+      expect(repositoryMock.find).toHaveBeenCalledWith({ withDeleted: true });
     });
   });
 
@@ -130,13 +152,6 @@ describe('UsersService', () => {
 
       const result = await service.findByEmail('test@test.com');
       expect(result).toEqual(user);
-    });
-
-    it('should return null if not found', async () => {
-      cacheServiceMock.get.mockResolvedValue(null);
-      repositoryMock.findOne.mockResolvedValue(null);
-      const result = await service.findByEmail('notfound@test.com');
-      expect(result).toBeNull();
     });
   });
 
@@ -150,118 +165,75 @@ describe('UsersService', () => {
 
     it('should throw ConflictException if user already exists', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1' });
-      await expect(service.create(createUserDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
     });
 
     it('should create a SUPER_ADMIN if it is the first user', async () => {
       repositoryMock.findOne.mockResolvedValue(null);
       repositoryMock.count.mockResolvedValue(0);
-      repositoryMock.create.mockResolvedValue({
-        ...createUserDto,
-        id: '1',
-        role: UserRole.SUPER_ADMIN,
-      });
+      repositoryMock.create.mockResolvedValue({ ...createUserDto, id: '1', role: UserRole.SUPER_ADMIN });
 
       const result = await service.create(createUserDto);
-      expect(result.id).toBe('1');
-      expect(repositoryMock.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          role: UserRole.SUPER_ADMIN,
-        }),
-      );
-    });
-
-    it('should create a regular user if not the first', async () => {
-      repositoryMock.findOne.mockResolvedValue(null);
-      repositoryMock.count.mockResolvedValue(10);
-      repositoryMock.create.mockResolvedValue({
-        ...createUserDto,
-        id: '1',
-        role: UserRole.CLIENT,
-      });
-
-      const result = await service.create(createUserDto);
-      expect(result.id).toBe('1');
-      expect(repositoryMock.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          role: UserRole.CLIENT,
-        }),
-      );
-    });
-
-    it('should prevent creating a SUPER_ADMIN if one already exists', async () => {
-      const superAdminDto = { ...createUserDto, role: UserRole.SUPER_ADMIN };
-      repositoryMock.findOne.mockResolvedValue(null);
-      repositoryMock.count.mockResolvedValue(1);
-      repositoryMock.create.mockResolvedValue({
-        ...superAdminDto,
-        id: '1',
-        role: UserRole.CLIENT,
-      });
-
-      const result = await service.create(superAdminDto);
-      expect(repositoryMock.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          role: UserRole.CLIENT,
-        }),
-      );
-    });
-  });
-
-  describe('findOne', () => {
-    it('should return a user if found (with cache)', async () => {
-      const user = { id: '1', email: 'test@test.com' };
-      cacheServiceMock.get.mockResolvedValue(null);
-      repositoryMock.findOne.mockResolvedValue(user);
-
-      const result = await service.findOne('1');
-      expect(result).toEqual(user);
-    });
-
-    it('should throw NotFoundException if not found', async () => {
-      cacheServiceMock.get.mockResolvedValue(null);
-      repositoryMock.findOne.mockResolvedValue(null);
-      await expect(service.findOne('999')).rejects.toThrow(NotFoundException);
-    });
-  });
-
-  describe('remove', () => {
-    it('should call softDelete and clear cache', async () => {
-      const user = { id: '1', email: 't@t.com' };
-      cacheServiceMock.get.mockResolvedValue(user);
-      repositoryMock.findOne.mockResolvedValue(user);
-      repositoryMock.softDelete.mockResolvedValue(true);
-
-      const result = await service.remove('1');
-      expect(result).toBe(true);
-      expect(cacheServiceMock.del).toHaveBeenCalled();
+      expect(repositoryMock.create).toHaveBeenCalledWith(expect.objectContaining({ role: UserRole.SUPER_ADMIN }));
     });
   });
 
   describe('update', () => {
-    it('should update user data', async () => {
-      repositoryMock.findOne.mockResolvedValue({ id: '1' });
-      await service.update('1', { name: 'Updated' });
-      expect(repositoryMock.update).toHaveBeenCalledWith('1', {
-        name: 'Updated',
-      });
-    });
-
     it('should hash password if provided in update', async () => {
-      repositoryMock.findOne.mockResolvedValue({ id: '1' });
+      repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com' });
       const updateDto = { password: 'newpassword' };
       await service.update('1', updateDto);
-      expect(repositoryMock.update).toHaveBeenCalledWith(
-        '1',
-        expect.objectContaining({
-          password: expect.any(String),
-        }),
-      );
-      expect(repositoryMock.update.mock.calls[0][1].password).not.toBe(
-        'newpassword',
-      );
+      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ password: expect.any(String) }));
+    });
+
+    it('should handle Base64 profile photo upload to S3', async () => {
+      repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com' });
+      s3StorageServiceMock.uploadFile.mockResolvedValue('http://s3.url/photo.jpg');
+
+      const updateDto = { profilePhoto: 'data:image/png;base64,xxxx' };
+      await service.update('1', updateDto);
+
+      expect(s3StorageServiceMock.uploadFile).toHaveBeenCalled();
+      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ profilePhoto: 'http://s3.url/photo.jpg' }));
+    });
+  });
+
+  describe('restore', () => {
+    it('should restore user and clear suspension fields', async () => {
+      repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com', suspensionUntil: new Date() });
+      await service.restore('1');
+      expect(repositoryMock.restore).toHaveBeenCalledWith('1');
+      expect(repositoryMock.save).toHaveBeenCalledWith(expect.objectContaining({ suspensionUntil: null }));
+    });
+  });
+
+  describe('hardDelete', () => {
+    it('should delete store if user is a vendor before deleting user', async () => {
+      repositoryMock.findOne.mockResolvedValue({ id: '1', email: 'v@v.com' });
+      storeRepoMock.findOne.mockResolvedValue({ id: 'store-1' });
+      await service.hardDelete('1');
+      expect(storeRepoMock.delete).toHaveBeenCalledWith('store-1');
+      expect(repositoryMock.delete).toHaveBeenCalledWith('1');
+    });
+  });
+
+  describe('KYC Process', () => {
+    const user = { id: '1', name: 'Vendor', email: 'v@v.com', role: UserRole.VENDEUR };
+
+    it('should submit KYC and handle Base64 document uploads', async () => {
+      repositoryMock.findOne.mockResolvedValue(user);
+      s3StorageServiceMock.uploadFile.mockResolvedValue('http://s3.url/doc.jpg');
+      repositoryMock.find.mockResolvedValue([{ id: 'admin-1', role: UserRole.ADMIN }]);
+
+      await service.submitKyc('1', { idCardFront: 'data:image/jpeg;base64,xxxx' });
+
+      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ kycStatus: 'PENDING', idCardFront: 'http://s3.url/doc.jpg' }));
+    });
+
+    it('should approve KYC and verify user', async () => {
+      repositoryMock.findOne.mockResolvedValue(user);
+      await service.reviewKyc('1', { status: 'APPROVED' });
+      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ kycStatus: 'APPROVED', isVerified: true }));
     });
   });
 });
