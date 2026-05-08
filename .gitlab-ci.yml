@@ -3,7 +3,7 @@ include:
     file: 'svcitemplate.yml'
     ref: 'main'
 
-# Noms uniques pour éviter tout conflit avec le template
+# Génération couverture Backend
 afrigari-backend-coverage:
   stage: check
   image: node:20-alpine
@@ -11,7 +11,7 @@ afrigari-backend-coverage:
     - easyjob
   script:
     - cd backend
-    - npm ci --prefer-offline
+    - npm install --prefer-offline
     - npx jest --coverage --coverageReporters=lcov --coverageDirectory=coverage --passWithNoTests --forceExit
     - sed -i 's|^SF:|SF:backend/|' coverage/lcov.info
   artifacts:
@@ -19,6 +19,7 @@ afrigari-backend-coverage:
       - backend/coverage/lcov.info
     expire_in: 1 day
 
+# Génération couverture Frontend
 afrigari-frontend-coverage:
   stage: check
   image: node:20-alpine
@@ -26,7 +27,7 @@ afrigari-frontend-coverage:
     - easyjob
   script:
     - cd frontend
-    - npm ci --prefer-offline
+    - npm install --prefer-offline
     - npm run test:cov
     - sed -i 's|^SF:|SF:frontend/|' coverage/lcov.info
   artifacts:
