@@ -630,6 +630,7 @@ export default function ChatWindow() {
         <div
           className="fixed z-50"
           style={{ top: contextMenu.y, left: contextMenu.x }}
+          role="presentation"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150">
