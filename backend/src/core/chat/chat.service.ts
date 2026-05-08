@@ -1,3 +1,4 @@
+import {
   Injectable,
   Inject,
   NotFoundException,
@@ -48,8 +49,6 @@ export class ChatService {
     return conversation;
   }
 
-  async sendMessage(
-    senderId: string,
   async sendMessage(
     senderId: string,
     conversationId?: string,
