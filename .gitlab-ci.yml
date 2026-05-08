@@ -11,7 +11,7 @@ afrigari-backend-coverage:
     - easyjob
   script:
     - cd backend
-    - npm install --prefer-offline
+    - npm install --prefer-offline --legacy-peer-deps
     - npx jest --coverage --coverageReporters=lcov --coverageDirectory=coverage --passWithNoTests --forceExit
     - sed -i 's|^SF:|SF:backend/|' coverage/lcov.info
   artifacts:
@@ -27,7 +27,7 @@ afrigari-frontend-coverage:
     - easyjob
   script:
     - cd frontend
-    - npm install --prefer-offline
+    - npm install --prefer-offline --legacy-peer-deps
     - npm run test:cov
     - sed -i 's|^SF:|SF:frontend/|' coverage/lcov.info
   artifacts:
