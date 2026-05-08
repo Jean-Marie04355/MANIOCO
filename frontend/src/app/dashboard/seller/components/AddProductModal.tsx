@@ -107,8 +107,8 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
     const oldFactor = UNIT_FACTORS[oldUnit] || 1;
     const newFactor = UNIT_FACTORS[newUnit] || 1;
 
-    const priceNum = parseFloat(formData.price);
-    if (!isNaN(priceNum) && priceNum > 0) {
+    const priceNum = Number.parseFloat(formData.price);
+    if (!Number.isNaN(priceNum) && priceNum > 0) {
       // Calculate new price based on the ratio of the new factor to the old factor
       const newPrice = priceNum * (newFactor / oldFactor);
       // Calculate new stock based on the ratio of the old factor to the new factor
@@ -189,10 +189,11 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
           <form id="product-form" onSubmit={handleSubmit} className="space-y-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                <label htmlFor="productName" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   Nom du produit <span className="text-red-500">*</span>
                 </label>
                 <input 
+                  id="productName"
                   type="text" 
                   required
                   placeholder="Ex: iPhone 15 Pro Max" 
@@ -202,13 +203,14 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                 />
               </div>
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                <label htmlFor="productCategory" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   Catégorie <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
                   {categories.length > 0 ? (
                     <>
                       <select 
+                        id="productCategory"
                         required
                         className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all text-sm font-bold shadow-inner appearance-none disabled:opacity-50"
                         value={formData.categoryId}
@@ -242,10 +244,11 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                <label htmlFor="productPrice" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   Prix (FCFA) <span className="text-red-500">*</span>
                 </label>
                 <input 
+                  id="productPrice"
                   type="number" 
                   required
                   placeholder="0" 
@@ -255,11 +258,12 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                 />
               </div>
               <div className="space-y-3">
-                <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                <label htmlFor="productStock" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                   Stock disponible <span className="text-red-500">*</span>
                 </label>
                 <div className="flex items-center gap-2 bg-slate-50 rounded-2xl px-4 py-3.5 shadow-inner">
                   <input 
+                    id="productStock"
                     type="number" 
                     min="0"
                     step="0.01"
@@ -281,9 +285,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                   </select>
                 </div>
                 <div className="px-2 space-y-1">
-                  {formData.price && !isNaN(parseFloat(formData.price)) && (
+                  {formData.price && !Number.isNaN(Number.parseFloat(formData.price)) && (
                     <p className="text-[10px] text-slate-400 font-bold">
-                      ℹ️ Prix équivalent : {(parseFloat(formData.price) / (UNIT_FACTORS[formData.unit] || 1)).toFixed(0)} FCFA le Kg
+                      ℹ️ Prix équivalent : {(Number.parseFloat(formData.price) / (UNIT_FACTORS[formData.unit] || 1)).toFixed(0)} FCFA le Kg
                     </p>
                   )}
                 </div>
@@ -291,8 +295,9 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
             </div>
 
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Description détaillée</label>
+              <label htmlFor="productDescription" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Description détaillée</label>
               <textarea 
+                id="productDescription"
                 rows={4} 
                 placeholder="Décrivez votre produit..."
                 className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all text-sm font-bold shadow-inner resize-none"

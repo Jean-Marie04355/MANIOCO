@@ -156,6 +156,9 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                       <div 
                         key={notif.id} 
                         onClick={() => markAsRead(notif.id)}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') markAsRead(notif.id); }}
+                        role="button"
+                        tabIndex={0}
                         className={`px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0 ${!notif.isRead ? (pathname.includes('/admin') ? 'bg-emerald-50/10' : 'bg-orange-50/10') : ''}`}
                       >
                         <div className="flex justify-between items-start mb-1">

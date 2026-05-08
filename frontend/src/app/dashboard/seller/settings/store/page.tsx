@@ -326,10 +326,11 @@ export default function StoreSettings() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-3">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <label htmlFor="storeName" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <Store size={14} /> Nom de la boutique
                     </label>
                     <input 
+                      id="storeName"
                       type="text" 
                       required
                       placeholder="Ex: Afrigari Electronics" 
@@ -340,10 +341,11 @@ export default function StoreSettings() {
                   </div>
 
                   <div className="space-y-3">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <label htmlFor="storePhone" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                       <Phone size={14} /> Téléphone de contact
                     </label>
                     <input 
+                      id="storePhone"
                       type="tel" 
                       required
                       placeholder="0102030405 (Chiffres uniquement)" 
@@ -355,10 +357,11 @@ export default function StoreSettings() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <label htmlFor="storeDescription" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                     <AlignLeft size={14} /> Description
                   </label>
                   <textarea 
+                    id="storeDescription"
                     rows={4}
                     required
                     placeholder="Décrivez votre activité..." 
@@ -372,8 +375,9 @@ export default function StoreSettings() {
                   <h4 className="text-sm font-black text-slate-900 mb-8 flex items-center gap-2"><MapPin size={16} className="text-orange-500"/> Localisation physique</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-3">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Ville</label>
+                      <label htmlFor="storeCity" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Ville</label>
                       <input 
+                        id="storeCity"
                         type="text" 
                         required
                         placeholder="Ex: Abidjan" 
@@ -383,8 +387,9 @@ export default function StoreSettings() {
                       />
                     </div>
                     <div className="space-y-3">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Adresse détaillée</label>
+                      <label htmlFor="storeAddress" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Adresse détaillée</label>
                       <input 
+                        id="storeAddress"
                         type="text" 
                         required
                         placeholder="Ex: Cocody Angré" 
@@ -397,29 +402,31 @@ export default function StoreSettings() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8">
                     <div className="space-y-3">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <label htmlFor="storeLatitude" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <Globe size={12} /> Latitude (GPS)
                       </label>
                       <input 
+                        id="storeLatitude"
                         type="number" 
                         step="any"
                         placeholder="Ex: 5.348" 
                         className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
                         value={storeData.latitude}
-                        onChange={(e) => setStoreData({...storeData, latitude: parseFloat(e.target.value) || 0})}
+                        onChange={(e) => setStoreData({...storeData, latitude: Number.parseFloat(e.target.value) || 0})}
                       />
                     </div>
                     <div className="space-y-3">
-                      <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <label htmlFor="storeLongitude" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                         <Globe size={12} /> Longitude (GPS)
                       </label>
                       <input 
+                        id="storeLongitude"
                         type="number" 
                         step="any"
                         placeholder="Ex: -4.033" 
                         className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
                         value={storeData.longitude}
-                        onChange={(e) => setStoreData({...storeData, longitude: parseFloat(e.target.value) || 0})}
+                        onChange={(e) => setStoreData({...storeData, longitude: Number.parseFloat(e.target.value) || 0})}
                       />
                     </div>
                   </div>
@@ -428,8 +435,9 @@ export default function StoreSettings() {
                 <div className="pt-8 border-t border-slate-100">
                   <h4 className="text-sm font-black text-slate-900 mb-8 flex items-center gap-2"><CreditCard size={16} className="text-orange-500"/> Retraits (FedaPay)</h4>
                   <div className="space-y-3">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Compte FedaPay</label>
+                    <label htmlFor="payoutAccountId" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Compte FedaPay</label>
                     <input 
+                      id="payoutAccountId"
                       type="text" 
                       required
                       placeholder="acc_p8p8p8..." 

@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
         // Commandes
         const ordersRes = await api.get(`/orders/store/${storeId}`);
         const totalOrders = ordersRes.data.length;
-        const lastSeen = parseInt(localStorage.getItem(`lastSeenOrders_${storeId}`) || '0');
+        const lastSeen = Number.parseInt(localStorage.getItem(`lastSeenOrders_${storeId}`) || '0');
         setOrderCount(totalOrders > lastSeen ? totalOrders - lastSeen : null);
 
         // Chat / Messages

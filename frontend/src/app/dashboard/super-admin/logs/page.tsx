@@ -49,7 +49,7 @@ export default function LuxuryLogsPage() {
                 `"${log.adminName || ''}"`,
                 `"${log.adminEmail || ''}"`,
                 `"${log.action || ''}"`,
-                `"${(log.details || '').replace(/"/g, '""')}"`
+                `"${(log.details || '').replaceAll(/"/g, '""')}"`
             ];
             csvRows.push(values.join(','));
         });

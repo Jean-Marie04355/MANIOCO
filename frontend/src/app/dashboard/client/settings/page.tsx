@@ -221,10 +221,11 @@ export default function ClientSettings() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Nom Complet</label>
+                  <label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Nom Complet</label>
                   <div className="relative">
                     <UserIcon size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-[#c5a059]" />
                     <input 
+                      id="name"
                       type="text" 
                       value={profileData.name}
                       onChange={(e) => setProfileData({...profileData, name: e.target.value})}
@@ -235,10 +236,11 @@ export default function ClientSettings() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Adresse E-mail</label>
+                  <label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Adresse E-mail</label>
                   <div className="relative">
                     <Mail size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-[#c5a059]" />
                     <input 
+                      id="email"
                       type="email" 
                       value={profileData.email}
                       onChange={(e) => setProfileData({...profileData, email: e.target.value})}
@@ -249,10 +251,11 @@ export default function ClientSettings() {
                 </div>
 
                 <div className="space-y-3 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Téléphone</label>
+                  <label htmlFor="phoneNumber" className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Téléphone</label>
                   <div className="relative">
                     <Phone size={16} className="absolute left-6 top-1/2 -translate-y-1/2 text-[#c5a059]" />
                     <input 
+                      id="phoneNumber"
                       type="text" 
                       value={profileData.phoneNumber}
                       onChange={(e) => setProfileData({...profileData, phoneNumber: e.target.value})}
@@ -288,8 +291,9 @@ export default function ClientSettings() {
             <form onSubmit={handleSavePassword} className="p-10 space-y-8">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Nouveau Mot de Passe</label>
+                  <label htmlFor="newPassword" className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Nouveau Mot de Passe</label>
                   <input 
+                    id="newPassword"
                     type="password" 
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({...passwordData, newPassword: e.target.value})}
@@ -298,8 +302,9 @@ export default function ClientSettings() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Confirmer</label>
+                  <label htmlFor="confirmPassword" className="text-[10px] font-black uppercase tracking-widest text-[#1a2e22]/40 ml-4">Confirmer</label>
                   <input 
+                    id="confirmPassword"
                     type="password" 
                     value={passwordData.confirmPassword}
                     onChange={(e) => setPasswordData({...passwordData, confirmPassword: e.target.value})}

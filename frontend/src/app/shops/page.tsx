@@ -99,7 +99,7 @@ export default function PublicShopsPage() {
                 {user ? (
                    <div className="w-12 h-12 rounded-full bg-[#1a2e22] text-[#c5a059] flex items-center justify-center font-black text-sm shadow-xl uppercase overflow-hidden border-2 border-white">
                       {user?.profilePhoto ? (
-                         <img src={getRealInternetLink(user.profilePhoto)} className="w-full h-full object-cover" />
+                         <img src={getRealInternetLink(user.profilePhoto)} alt="Profil" className="w-full h-full object-cover" />
                       ) : (
                          <span>{user?.name?.[0] || 'U'}</span>
                       )}
@@ -172,7 +172,7 @@ function ShopCard({ shop, delay, getImageUrl }: any) {
         <div className="group bg-white rounded-[60px] overflow-hidden border border-[#1a2e22]/5 shadow-[0_30px_100px_rgba(26,46,34,0.05)] hover:shadow-[0_50px_120px_-20px_rgba(26,46,34,0.15)] hover:-translate-y-4 transition-all duration-1000 animate-reveal" style={{ animationDelay: delay }}>
            {/* Cover Photo */}
            <div className="h-56 relative overflow-hidden bg-slate-100">
-              <img src={getImageUrl(shop.profilePhoto, shop.name)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[4s]" />
+              <img src={getImageUrl(shop.profilePhoto, shop.name)} alt={shop.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[4s]" />
               <div className="absolute inset-0 bg-[#1a2e22]/20 group-hover:bg-transparent transition-colors duration-1000"></div>
               <div className="absolute top-8 right-8 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full text-[10px] font-black uppercase text-[#1a2e22] flex items-center gap-2 shadow-xl">
                  <Star size={12} fill="#c5a059" className="text-[#c5a059]" /> {shop.rating || '4.9'}
@@ -184,7 +184,7 @@ function ShopCard({ shop, delay, getImageUrl }: any) {
               {/* Profile Logo */}
               <div className="w-24 h-24 bg-white p-3 rounded-[32px] shadow-2xl absolute -top-12 left-10 ring-8 ring-white overflow-hidden flex items-center justify-center text-[#1a2e22] font-black text-3xl uppercase">
                  {shop.profilePhoto ? (
-                    <img src={getImageUrl(shop.profilePhoto, shop.name)} className="w-full h-full object-contain rounded-2xl" />
+                    <img src={getImageUrl(shop.profilePhoto, shop.name)} alt={`Logo ${shop.name}`} className="w-full h-full object-contain rounded-2xl" />
                  ) : (
                     <span>{shop.name[0]}</span>
                  )}

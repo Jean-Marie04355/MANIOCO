@@ -114,7 +114,7 @@ export default function PublicShopPreview() {
             <div className="flex items-center gap-10">
                <div className="w-12 h-12 rounded-full border-2 border-white shadow-2xl overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
                   {user?.profilePhoto ? (
-                     <img src={getRealInternetLink({name: 'user', image: user.profilePhoto})} className="w-full h-full object-cover" />
+                     <img src={getRealInternetLink({name: 'user', image: user.profilePhoto})} alt="Profil" className="w-full h-full object-cover" />
                   ) : (
                      <span>{user?.name?.[0] || 'U'}</span>
                   )}
@@ -127,6 +127,7 @@ export default function PublicShopPreview() {
       <section className="relative h-[70vh] w-full overflow-hidden">
          <img 
             src={getRealInternetLink({name: store.name, image: store.profilePhoto})} 
+            alt={store.name}
             className="w-full h-full object-cover"
          />
          <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22] via-[#1a2e22]/40 to-transparent"></div>
@@ -136,7 +137,7 @@ export default function PublicShopPreview() {
                <div className="w-48 h-48 bg-white p-4 rounded-[56px] shadow-3xl ring-[16px] ring-white/10 shrink-0">
                   <div className="w-full h-full rounded-[40px] bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-5xl font-black uppercase overflow-hidden">
                      {store.profilePhoto ? (
-                        <img src={getRealInternetLink({name: store.name, image: store.profilePhoto})} className="w-full h-full object-cover" />
+                        <img src={getRealInternetLink({name: store.name, image: store.profilePhoto})} alt={store.name} className="w-full h-full object-cover" />
                      ) : (
                         <span>{store.name?.[0]}</span>
                      )}
@@ -248,10 +249,11 @@ function ProductCard({ product, getImageUrl, isOwner }: any) {
    return (
       <div className="group bg-white rounded-[70px] overflow-hidden border border-[#1a2e22]/5 shadow-2xl hover:shadow-3xl hover:-translate-y-4 transition-all duration-1000 p-6 ring-1 ring-slate-50 border-[10px] border-white">
          <div className="relative aspect-[4/3] rounded-[56px] overflow-hidden mb-8 bg-slate-50">
-            <img 
-               src={getImageUrl()} 
-               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s] block" 
-            />
+               <img 
+                  src={getImageUrl()} 
+                  alt={product.name}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s] block" 
+               />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
          </div>
          

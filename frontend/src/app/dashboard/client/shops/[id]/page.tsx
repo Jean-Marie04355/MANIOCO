@@ -123,7 +123,11 @@ export default function ShopDetails() {
             <div className="flex items-center gap-10">
                <div 
                   onClick={() => setIsCartOpen(true)}
+                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsCartOpen(true); }}
+                  role="button"
+                  tabIndex={0}
                   className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
+                  aria-label="Voir le panier"
                >
                   <ShoppingCart size={22} className="group-hover:scale-110 transition-transform" />
                   {totalItems > 0 && (
@@ -132,35 +136,36 @@ export default function ShopDetails() {
                      </span>
                   )}
                </div>
-               <div className="w-12 h-12 rounded-full border-2 border-white shadow-2xl overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
-                  {user?.profilePhoto ? (
-                     <img src={getRealInternetLink({name: 'user', image: user.profilePhoto})} className="w-full h-full object-cover" />
-                  ) : (
-                     <span>{user?.name?.[0] || 'U'}</span>
-                  )}
-               </div>
+                <div className="w-12 h-12 rounded-full border-2 border-white shadow-2xl overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
+                   {user?.profilePhoto ? (
+                      <img src={getRealInternetLink({name: 'user', image: user.profilePhoto})} alt="Profil" className="w-full h-full object-cover" />
+                   ) : (
+                      <span>{user?.name?.[0] || 'U'}</span>
+                   )}
+                </div>
             </div>
          </div>
       </nav>
 
       {/* Hero Header */}
       <section className="relative h-[70vh] w-full overflow-hidden">
-         <img 
-            src={getRealInternetLink({name: store.name, image: store.profilePhoto})} 
-            className="w-full h-full object-cover"
-         />
+          <img 
+             src={getRealInternetLink({name: store.name, image: store.profilePhoto})} 
+             alt={store.name}
+             className="w-full h-full object-cover"
+          />
          <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22] via-[#1a2e22]/40 to-transparent"></div>
          
          <div className="absolute bottom-0 left-0 right-0 p-20 pb-32">
             <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-end gap-12">
                <div className="w-48 h-48 bg-white p-4 rounded-[56px] shadow-3xl ring-[16px] ring-white/10 shrink-0">
-                  <div className="w-full h-full rounded-[40px] bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-5xl font-black uppercase overflow-hidden">
-                     {store.profilePhoto ? (
-                        <img src={getRealInternetLink({name: store.name, image: store.profilePhoto})} className="w-full h-full object-cover" />
-                     ) : (
-                        <span>{store.name?.[0]}</span>
-                     )}
-                  </div>
+                   <div className="w-full h-full rounded-[40px] bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-5xl font-black uppercase overflow-hidden">
+                      {store.profilePhoto ? (
+                         <img src={getRealInternetLink({name: store.name, image: store.profilePhoto})} alt={store.name} className="w-full h-full object-cover" />
+                      ) : (
+                         <span>{store.name?.[0]}</span>
+                      )}
+                   </div>
                </div>
                
                <div className="flex-1 pb-4 text-white">
@@ -286,10 +291,11 @@ function ProductCard({ product, addToCart, getImageUrl, isOwner }: any) {
    return (
       <div className="group bg-white rounded-[70px] overflow-hidden border border-[#1a2e22]/5 shadow-2xl hover:shadow-3xl hover:-translate-y-4 transition-all duration-1000 p-6 ring-1 ring-slate-50 border-[10px] border-white">
          <div className="relative aspect-[4/3] rounded-[56px] overflow-hidden mb-8 bg-slate-50">
-            <img 
-               src={getImageUrl()} 
-               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s] block" 
-            />
+             <img 
+                src={getImageUrl()} 
+                alt={product.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s] block" 
+             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
             {!isOwner && (
                <button 
@@ -308,17 +314,21 @@ function ProductCard({ product, addToCart, getImageUrl, isOwner }: any) {
             </div>
             <h4 className="text-[28px] font-black mb-8 tracking-[-0.03em] text-[#1a2e22] uppercase leading-none truncate">{product.name}</h4>
             
-            <div className="flex justify-between items-center bg-[#1a2e22]/5 p-3 rounded-[32px] group-hover:bg-[#1a2e22] group-hover:text-white transition-all duration-700 shadow-sm border border-[#1a2e22]/5">
-               <span className="text-2xl font-black ml-4 tracking-tighter">{Number(product.price).toLocaleString('fr-FR')} FCFA</span>
-               {!isOwner && (
-                  <div 
-                     onClick={(e) => { e.preventDefault(); addToCart(product); }}
-                     className="w-14 h-14 rounded-2xl bg-white text-[#1a2e22] flex items-center justify-center group-hover:bg-[#c5a059] group-hover:text-white transition-all shadow-xl cursor-pointer"
-                  >
-                     <ShoppingCart size={20} />
-                  </div>
-               )}
-            </div>
+             <div className="flex justify-between items-center bg-[#1a2e22]/5 p-3 rounded-[32px] group-hover:bg-[#1a2e22] group-hover:text-white transition-all duration-700 shadow-sm border border-[#1a2e22]/5">
+                <span className="text-2xl font-black ml-4 tracking-tighter">{Number(product.price).toLocaleString('fr-FR')} FCFA</span>
+                {!isOwner && (
+                   <div 
+                      onClick={(e) => { e.preventDefault(); addToCart(product); }}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); addToCart(product); } }}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`Ajouter ${product.name} au panier`}
+                      className="w-14 h-14 rounded-2xl bg-white text-[#1a2e22] flex items-center justify-center group-hover:bg-[#c5a059] group-hover:text-white transition-all shadow-xl cursor-pointer"
+                   >
+                      <ShoppingCart size={20} />
+                   </div>
+                )}
+             </div>
          </div>
       </div>
    );

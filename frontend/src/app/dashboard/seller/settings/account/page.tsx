@@ -297,8 +297,9 @@ export default function AccountSettings() {
               <div className="p-8 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-3">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Nouveau mot de passe</label>
+                    <label htmlFor="newPassword" title="Nouveau mot de passe" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Nouveau mot de passe</label>
                     <input 
+                      id="newPassword"
                       type="password" 
                       placeholder="••••••••" 
                       minLength={6}
@@ -308,8 +309,9 @@ export default function AccountSettings() {
                     />
                   </div>
                   <div className="space-y-3">
-                    <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Confirmer le nouveau mot de passe</label>
+                    <label htmlFor="confirmPassword" title="Confirmer le nouveau mot de passe" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Confirmer le nouveau mot de passe</label>
                     <input 
+                      id="confirmPassword"
                       type="password" 
                       placeholder="••••••••" 
                       className="w-full px-4 py-3.5 bg-slate-50 border-none rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all shadow-inner"

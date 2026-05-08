@@ -262,7 +262,7 @@ export default function SellerDashboard() {
                          <div className="flex items-center gap-4">
                             <div className="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden relative">
                                {p.profilePhoto ? (
-                                 <img src={p.profilePhoto} className="w-full h-full object-cover" />
+                                 <img src={p.profilePhoto} alt={p.name} className="w-full h-full object-cover" />
                                ) : (
                                  <div className="w-full h-full flex items-center justify-center text-slate-300"><Package size={20} /></div>
                                )}

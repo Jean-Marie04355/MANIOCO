@@ -240,10 +240,13 @@ function ClientMessagesContent() {
                         <div 
                            key={c.id} 
                            onClick={() => setActiveConv(c)}
+                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveConv(c); }}
+                           role="button"
+                           tabIndex={0}
                            className={`p-5 rounded-[32px] flex items-center gap-4 cursor-pointer transition-all duration-500 ${activeConv?.id === c.id ? 'bg-[#1a2e22] text-white shadow-2xl scale-[1.02]' : 'hover:bg-[#1a2e22]/5'}`}
                         >
                            <div className="w-14 h-14 rounded-2xl bg-[#f4f1ea] overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
-                              <img src={getImageUrl(c.store?.profilePhoto)} className="w-full h-full object-cover" />
+                              <img src={getImageUrl(c.store?.profilePhoto)} alt={storeName} className="w-full h-full object-cover" />
                            </div>
                            <div className="flex-1 min-w-0">
                               <div className="flex justify-between items-start mb-1">
@@ -284,7 +287,7 @@ function ClientMessagesContent() {
                       <div className="flex items-center gap-4">
                          <div className="relative">
                             <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg">
-                               <img src={getImageUrl(activeConv.store?.profilePhoto)} className="w-full h-full object-cover" />
+                               <img src={getImageUrl(activeConv.store?.profilePhoto)} alt={activeConv.store?.name || 'Artisan'} className="w-full h-full object-cover" />
                             </div>
                             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-4 border-white rounded-full"></div>
                          </div>

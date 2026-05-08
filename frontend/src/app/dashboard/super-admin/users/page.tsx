@@ -52,7 +52,7 @@ export default function StylishUsersPage() {
             const status = u.deletedAt ? 'Suspendu' : 'Actif';
             const values = [
                 `"${u.id}"`,
-                `"${(u.name || '').replace(/"/g, '""')}"`,
+                `"${(u.name || '').replaceAll(/"/g, '""')}"`,
                 `"${u.email || ''}"`,
                 `"${u.role || ''}"`,
                 date,

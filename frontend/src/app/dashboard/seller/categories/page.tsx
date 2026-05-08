@@ -226,8 +226,9 @@ export default function SellerCategories() {
             </div>
             <form onSubmit={handleAddCategory} className="p-8 space-y-6">
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nom de la catégorie</label>
+                <label htmlFor="categoryName" className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Nom de la catégorie</label>
                 <input 
+                  id="categoryName"
                   type="text" 
                   autoFocus
                   required

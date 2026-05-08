@@ -105,7 +105,7 @@ export default function ClientOrders() {
 
             <div className="w-10 h-10 rounded-full border-2 border-white shadow-xl overflow-hidden relative bg-forest-green/5 flex items-center justify-center text-forest-green font-bold uppercase">
                {user?.profilePhoto ? (
-                  <img src={user.profilePhoto} className="w-full h-full object-cover" />
+                  <img src={user.profilePhoto} alt="Profil" className="w-full h-full object-cover" />
                ) : (
                   <span>{user?.name?.[0] || 'U'}</span>
                )}
@@ -178,7 +178,7 @@ export default function ClientOrders() {
                            <div className="flex -space-x-3">
                               {order.items?.map((item: any, i: number) => (
                                  <div key={i} className="w-10 h-10 rounded-xl border-[3px] border-white overflow-hidden shadow-sm" title={item.productName}>
-                                    <img src={item.productImage || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=100"} className="w-full h-full object-cover" />
+                                    <img src={item.productImage || "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=100"} alt={item.productName} className="w-full h-full object-cover" />
                                  </div>
                               ))}
                               {order.items?.length > 3 && (
@@ -238,9 +238,10 @@ export default function ClientOrders() {
 
             <div className="space-y-6">
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-forest-green/60 mb-2">Motif du signalement</label>
+                <label htmlFor="reportReason" className="block text-[10px] font-black uppercase tracking-widest text-forest-green/60 mb-2">Motif du signalement</label>
                 <div className="relative">
                    <select 
+                     id="reportReason"
                      value={reportReason}
                      onChange={(e) => setReportReason(e.target.value)}
                      className="w-full bg-forest-green/5 border-none rounded-2xl p-4 pr-10 text-forest-green font-bold focus:ring-2 focus:ring-afrigari-gold outline-none appearance-none"
@@ -258,8 +259,9 @@ export default function ClientOrders() {
               </div>
 
               <div>
-                <label className="block text-[10px] font-black uppercase tracking-widest text-forest-green/60 mb-2">Description du problème</label>
+                <label htmlFor="reportDescription" className="block text-[10px] font-black uppercase tracking-widest text-forest-green/60 mb-2">Description du problème</label>
                 <textarea 
+                  id="reportDescription"
                   value={reportDescription}
                   onChange={(e) => setReportDescription(e.target.value)}
                   placeholder="Expliquez en détail ce qui s'est passé avec ce vendeur..."

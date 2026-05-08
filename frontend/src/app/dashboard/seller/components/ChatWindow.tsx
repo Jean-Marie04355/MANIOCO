@@ -310,7 +310,7 @@ export default function ChatWindow() {
     } catch (error) {
       console.error("Erreur envoi message");
       setMessages(prev => prev.filter(m => m.id !== tempMsg.id));
-      setInputText(inputText);
+      setInputText(tempMsg.text);
     } finally {
       setIsSending(false);
       setTimeout(scrollToBottom, 50);
