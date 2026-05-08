@@ -287,6 +287,9 @@ export default function HomeView() {
                            {/* Notifications */}
                            <div className="relative" ref={notificationsRef}>
                               <div
+                                 role="button"
+                                 tabIndex={0}
+                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsNotificationsOpen(!isNotificationsOpen); } }}
                                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                                  className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
                               >
@@ -315,6 +318,9 @@ export default function HomeView() {
                                           notifications.map((notif) => (
                                              <div 
                                                 key={notif.id} 
+                                                role="button"
+                                                tabIndex={0}
+                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); markAsRead(notif.id); } }}
                                                 onClick={() => markAsRead(notif.id)}
                                                 className={`px-8 py-5 hover:bg-[#1a2e22]/5 transition-colors cursor-pointer border-b border-[#1a2e22]/5 last:border-0 ${!notif.isRead ? 'bg-[#c5a059]/5' : ''}`}
                                              >
@@ -341,6 +347,9 @@ export default function HomeView() {
                            </div>
 
                            <div
+                              role="button"
+                              tabIndex={0}
+                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsCartOpen(true); } }}
                               onClick={() => setIsCartOpen(true)}
                               className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
                            >
@@ -367,7 +376,7 @@ export default function HomeView() {
                      <div className="relative" ref={profileRef}>
                         <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-12 h-12 rounded-full border-2 border-white shadow-2xl hover:scale-110 transition-all overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
                            {user?.profilePhoto ? (
-                              <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover" />
+                              <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover" />
                            ) : (
                               <span>{user?.name?.[0] || 'U'}</span>
                            )}
@@ -378,7 +387,7 @@ export default function HomeView() {
                               <div className="flex flex-col items-center mb-6">
                                  <div className="w-16 h-16 rounded-full border-4 border-[#c5a059]/20 p-1 mb-3 overflow-hidden bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-xl font-black uppercase">
                                     {user?.profilePhoto ? (
-                                       <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt="Photo de profil" className="w-full h-full object-cover rounded-full" />
+                                       <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover rounded-full" />
                                     ) : (
                                        <span>{user?.name?.[0] || 'U'}</span>
                                     )}
@@ -453,7 +462,7 @@ export default function HomeView() {
                   <div className="relative w-full aspect-[4/5] rounded-[80px] overflow-hidden shadow-2xl border-[16px] border-white bg-white">
                      <img
                         src="https://res.cloudinary.com/hv9ssmzrz/image/fetch/c_fill,f_auto,h_675,q_auto:eco,w_1200/https://images-ca-1-0-1-eu.s3-eu-west-1.amazonaws.com/photos/original/1980/manioc-produit-AdobeStock_230338430.jpeg" className="w-full h-full object-cover block"
-                        alt="Afrigari Premium"
+                        alt="Gros plan sur du Gari premium de haute qualité"
                      />
                      <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/20 to-transparent"></div>
                   </div>
@@ -468,15 +477,35 @@ export default function HomeView() {
                </div>
                
                <div className="flex flex-wrap justify-center gap-8 md:gap-12">
-                  <div onClick={() => setActiveCategoryId(null)} className="cursor-pointer">
+                  <div 
+                     role="button"
+                     tabIndex={0}
+                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveCategoryId(null); } }}
+                     onClick={() => setActiveCategoryId(null)} 
+                     className="cursor-pointer"
+                  >
                      <LuxuryCategoryBubble label="Tout" active={activeCategoryId === null} icon="🌍" />
                   </div>
                   {categories.slice(0, isExploreOpen ? categories.length : 8).map(cat => (
-                      <div key={cat.id} onClick={() => {
-                         const categoryId = String(cat.id);
-                         setActiveCategoryId(categoryId === activeCategoryId ? null : categoryId);
-                         document.getElementById('arrivages')?.scrollIntoView({ behavior: 'smooth' });
-                      }} className="cursor-pointer">
+                      <div 
+                         key={cat.id} 
+                         role="button"
+                         tabIndex={0}
+                         onKeyDown={(e) => { 
+                           if (e.key === 'Enter' || e.key === ' ') { 
+                             e.preventDefault(); 
+                             const categoryId = String(cat.id);
+                             setActiveCategoryId(categoryId === activeCategoryId ? null : categoryId);
+                             document.getElementById('arrivages')?.scrollIntoView({ behavior: 'smooth' });
+                           } 
+                         }}
+                         onClick={() => {
+                            const categoryId = String(cat.id);
+                            setActiveCategoryId(categoryId === activeCategoryId ? null : categoryId);
+                            document.getElementById('arrivages')?.scrollIntoView({ behavior: 'smooth' });
+                         }} 
+                         className="cursor-pointer"
+                      >
                         <LuxuryCategoryBubble 
                            label={cat.name} 
                            active={activeCategoryId === String(cat.id)} 

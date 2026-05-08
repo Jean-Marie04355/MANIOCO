@@ -364,6 +364,9 @@ export default function ChatWindow() {
                        return (
                           <div 
                              key={client.id}
+                             role="button"
+                             tabIndex={0}
+                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
                              onClick={() => {
                                 if (existingConv) {
                                    setActiveConv(existingConv);
@@ -414,6 +417,9 @@ export default function ChatWindow() {
             conversations.map((c) => (
               <div 
                 key={c.id} 
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveConv(c); } }}
                 onClick={() => setActiveConv(c)}
                 className={`p-4 flex gap-3 cursor-pointer transition-colors ${activeConv?.id === c.id ? 'bg-orange-50/50 border-r-4 border-orange-500' : 'hover:bg-slate-50'}`}
               >
@@ -519,6 +525,7 @@ export default function ChatWindow() {
             <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
+              role="presentation"
               onClick={() => setContextMenu(null)}
             >
               {messages.map((m) => (
@@ -527,6 +534,9 @@ export default function ChatWindow() {
                   className={`flex ${m.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openContextMenu(e as any, m); } }}
                     className={`rounded-[2rem] p-3 cursor-pointer select-none
                       ${m.senderId === currentUserId
                         ? 'bg-orange-500 text-white rounded-tr-none'

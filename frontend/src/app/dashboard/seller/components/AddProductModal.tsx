@@ -307,11 +307,12 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
             </div>
 
             <div className="space-y-3">
-              <label className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+              <label htmlFor="productImage" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
                 Image du produit <span className="text-red-500">*</span>
               </label>
               <div className="w-40">
                 <input 
+                  id="productImage"
                   type="file" 
                   ref={fileInputRef}
                   onChange={handleImageChange}
@@ -320,14 +321,23 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                 />
                 
                 {imagePreview ? (
-                  <div className="relative aspect-square rounded-[2rem] overflow-hidden border-2 border-orange-100 group cursor-pointer" onClick={triggerFileInput}>
-                    <Image src={imagePreview} alt="Preview" fill className="object-cover" />
+                  <div 
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFileInput(); } }}
+                    className="relative aspect-square rounded-[2rem] overflow-hidden border-2 border-orange-100 group cursor-pointer" 
+                    onClick={triggerFileInput}
+                  >
+                    <Image src={imagePreview} alt="Aperçu du produit" fill className="object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                        <p className="text-[10px] text-white font-black uppercase tracking-widest">Changer</p>
                     </div>
                   </div>
                 ) : (
                   <div 
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFileInput(); } }}
                     onClick={triggerFileInput}
                     className="aspect-square bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-all group shadow-inner"
                   >

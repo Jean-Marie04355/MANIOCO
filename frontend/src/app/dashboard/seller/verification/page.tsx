@@ -270,8 +270,9 @@ function InfoItem({ icon, title, text }: any) {
 function InputField({ label, value, onChange, type = "text", placeholder, error }: any) {
     return (
         <div className="space-y-2 text-left">
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-4">{label}</label>
+            <label htmlFor={`input-${label}`} className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-4">{label}</label>
             <input 
+                id={`input-${label}`}
                 type={type}
                 value={value}
                 onChange={(e) => onChange(e.target.value)}
@@ -286,17 +287,17 @@ function InputField({ label, value, onChange, type = "text", placeholder, error 
 function FileLoader({ label, field, value, onUpload, isFull, error }: any) {
     return (
         <div className={`space-y-2 text-left ${isFull ? 'md:col-span-2' : ''}`}>
-            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-4">{label}</label>
+            <label htmlFor={`file-${field}`} className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-4">{label}</label>
             <div className={`relative h-40 group cursor-pointer overflow-hidden rounded-[2rem] border-2 border-dashed transition-all ${error ? 'border-rose-300 bg-rose-50' : 'border-slate-100 bg-slate-50 hover:bg-orange-50/20'}`}>
                 {value ? (
-                    <img src={value} className="w-full h-full object-cover" />
+                    <img src={value} className="w-full h-full object-cover" alt={label} />
                 ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center space-y-2 text-slate-300">
                         <Upload size={24} />
                         <span className="text-[9px] font-black uppercase tracking-widest">Choisir un fichier</span>
                     </div>
                 )}
-                <input type="file" accept="image/*" onChange={(e) => onUpload(e, field)} className="absolute inset-0 opacity-0 cursor-pointer" />
+                <input id={`file-${field}`} type="file" accept="image/*" onChange={(e) => onUpload(e, field)} className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
             {error && <p className="text-[9px] font-black italic text-rose-500 ml-4 animate-pulse">Rectifier : {error}</p>}
         </div>

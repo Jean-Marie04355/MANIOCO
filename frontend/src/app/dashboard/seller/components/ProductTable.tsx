@@ -10,7 +10,7 @@ interface ProductTableProps {
 
 export default function ProductTable({ products, onDelete, onEdit }: ProductTableProps) {
   const formatPrice = (price: number | string) => {
-    const num = typeof price === 'string' ? parseFloat(price) : price;
+    const num = typeof price === 'string' ? Number.parseFloat(price) : price;
     return new Intl.NumberFormat('fr-FR').format(num) + " FCFA";
   };
 

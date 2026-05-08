@@ -294,7 +294,7 @@ export default function StoreSettings() {
               <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <div className="flex items-center gap-6">
                   <div className="relative group">
-                    <div className="w-24 h-24 rounded-3xl bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-all overflow-hidden shadow-sm" onClick={() => fileInputRef.current?.click()}>
+                    <div className="w-24 h-24 rounded-3xl bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-all overflow-hidden shadow-sm" role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }} onClick={() => fileInputRef.current?.click()}>
                       {logoPreview ? (
                         <Image src={logoPreview} alt="Logo de la boutique" fill className="object-cover" />
                       ) : (
@@ -464,7 +464,7 @@ export default function StoreSettings() {
                     {isSaving ? (
                       <>
                         <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                        Traitement...
+                        {' '}Traitement...
                       </>
                     ) : (
                       storeId ? "Mettre à jour" : "Créer ma boutique"

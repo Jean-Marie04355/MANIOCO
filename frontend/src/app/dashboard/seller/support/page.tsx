@@ -145,7 +145,14 @@ export default function SellerSupport() {
               ) : (
                 <div className="divide-y divide-slate-50">
                   {tickets.map(ticket => (
-                    <div key={ticket.id} className="p-6 hover:bg-slate-50/50 transition-colors flex items-center justify-between group cursor-pointer" onClick={() => window.location.href = `/dashboard/seller/support/${ticket.id}`}>
+                    <div 
+                      key={ticket.id} 
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.href = `/dashboard/seller/support/${ticket.id}`; } }}
+                      className="p-6 hover:bg-slate-50/50 transition-colors flex items-center justify-between group cursor-pointer" 
+                      onClick={() => window.location.href = `/dashboard/seller/support/${ticket.id}`}
+                    >
                       <div className="flex gap-4 items-center">
                         <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <HelpCircle size={20} />
@@ -180,7 +187,11 @@ export default function SellerSupport() {
       {/* New Ticket Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => !isSubmitting && setIsModalOpen(false)}></div>
+          <div 
+             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+             role="presentation"
+             onClick={() => !isSubmitting && setIsModalOpen(false)}
+           ></div>
           <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in fade-in duration-300">
             <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
@@ -199,8 +210,9 @@ export default function SellerSupport() {
               
               <div className="grid grid-cols-2 gap-6">
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sujet / Résumé du problème</label>
+                  <label htmlFor="ticketSubject" className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Sujet / Résumé du problème</label>
                   <input 
+                    id="ticketSubject"
                     type="text" 
                     required
                     value={subject}
@@ -211,8 +223,9 @@ export default function SellerSupport() {
                 </div>
                 
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Catégorie</label>
+                  <label htmlFor="ticketCategory" className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Catégorie</label>
                   <select 
+                    id="ticketCategory"
                     value={category}
                     onChange={e => setCategory(e.target.value)}
                     className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all appearance-none cursor-pointer"
@@ -222,8 +235,9 @@ export default function SellerSupport() {
                 </div>
 
                 <div className="col-span-2">
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Message détaillé</label>
+                  <label htmlFor="ticketMessage" className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Message détaillé</label>
                   <textarea 
+                    id="ticketMessage"
                     required
                     rows={5}
                     value={message}
