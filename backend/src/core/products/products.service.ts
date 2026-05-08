@@ -35,16 +35,13 @@ export class ProductsService {
       try {
         const store = await this.storeService.findByOwnerId(user.userId);
         createProductDto.storeId = store.id;
-      } catch (error) {
-        throw new ForbiddenException('Vous devez créer une boutique avant d\'ajouter des produits');
+      } catch (error: any) {
+        throw new ForbiddenException(`Vous devez créer une boutique avant d'ajouter des produits: ${error.message}`);
       }
     }
 
     // Handle Base64 image upload to S3
-    if (
-      createProductDto.image &&
-      createProductDto.image.startsWith('data:image')
-    ) {
+    if (createProductDto.image?.startsWith('data:image')) {
       try {
         const base64Data = createProductDto.image.split(',')[1];
         const mimeType = createProductDto.image.split(';')[0].split(':')[1];
@@ -58,8 +55,8 @@ export class ProductsService {
         });
 
         createProductDto.image = fileUrl;
-      } catch (error) {
-        this.logger.error("Erreur lors de l'upload de l'image du produit vers S3");
+      } catch (error: any) {
+        this.logger.error(`Erreur lors de l'upload de l'image du produit vers S3: ${error.message}`);
       }
     }
 
@@ -102,9 +99,9 @@ export class ProductsService {
         if (String(product.storeId) !== String(store.id)) {
           throw new ForbiddenException('Vous ne pouvez modifier que vos propres produits');
         }
-      } catch (error) {
+      } catch (error: any) {
         if (error instanceof ForbiddenException) throw error;
-        throw new ForbiddenException('Boutique non trouvée ou accès refusé');
+        throw new ForbiddenException(`Boutique non trouvée ou accès refusé: ${error.message}`);
       }
     }
 
@@ -114,10 +111,7 @@ export class ProductsService {
     }
 
     // Handle Base64 image upload to S3 for update
-    if (
-      updateProductDto.image &&
-      updateProductDto.image.startsWith('data:image')
-    ) {
+    if (updateProductDto.image?.startsWith('data:image')) {
       try {
         const base64Data = updateProductDto.image.split(',')[1];
         const mimeType = updateProductDto.image.split(';')[0].split(':')[1];
@@ -131,8 +125,8 @@ export class ProductsService {
         });
 
         updateProductDto.image = fileUrl;
-      } catch (error) {
-        this.logger.error("Erreur lors de l'upload de l'image du produit vers S3 lors de la mise à jour");
+      } catch (error: any) {
+        this.logger.error(`Erreur lors de l'upload de l'image du produit vers S3 lors de la mise à jour: ${error.message}`);
       }
     }
 
@@ -157,9 +151,9 @@ export class ProductsService {
             'Vous ne pouvez supprimer que vos propres produits',
           );
         }
-      } catch (error) {
+      } catch (error: any) {
         if (error instanceof ForbiddenException) throw error;
-        throw new ForbiddenException('Boutique non trouvée ou accès refusé');
+        throw new ForbiddenException(`Boutique non trouvée ou accès refusé: ${error.message}`);
       }
     }
     await this.cache.del(PRODUCTS_CACHE_KEY);

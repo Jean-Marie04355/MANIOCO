@@ -31,8 +31,8 @@ export class ProductCategoriesService {
       try {
         const store = await this.storeService.findByOwnerId(user.userId);
         createDto.storeId = store.id;
-      } catch (error) {
-        throw new ForbiddenException('Vous devez créer une boutique avant de créer une catégorie');
+      } catch (error: any) {
+        throw new ForbiddenException(`Vous devez créer une boutique avant de créer une catégorie: ${error.message}`);
       }
     }
     const category = await this.repo.create(createDto);

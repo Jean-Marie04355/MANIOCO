@@ -38,10 +38,10 @@ export class RedisCacheService extends CacheService {
     try {
       const payload = JSON.stringify(value);
       const ttlSeconds = options?.ttlSeconds;
-      if (ttlSeconds != null) {
-        await this.redis.set(key, payload, 'EX', ttlSeconds);
-      } else {
+      if (ttlSeconds == null) {
         await this.redis.set(key, payload);
+      } else {
+        await this.redis.set(key, payload, 'EX', ttlSeconds);
       }
     } catch (err) {
       this.logger.warn(`Cache SET failed for key "${key}": ${(err as Error).message}`);

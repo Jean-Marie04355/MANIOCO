@@ -35,8 +35,8 @@ export class PostgresStorageProvider implements IFileStorage {
       if (process.env.STORAGE_TYPE === 's3') {
         try {
           return await this.s3Service.uploadFile(file);
-        } catch (s3Error) {
-          this.logger.warn("Échec upload S3, repli sur le stockage local");
+        } catch (s3Error: any) {
+          this.logger.warn(`Échec upload S3 (${s3Error.message}), repli sur le stockage local`);
         }
       }
       
