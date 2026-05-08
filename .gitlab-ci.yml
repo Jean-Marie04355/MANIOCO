@@ -3,7 +3,7 @@ include:
     file: 'svcitemplate.yml'
     ref: 'main'
 
-# Génération couverture Backend
+# On utilise les noms attendus par le template si possible, ou on les complète
 backend-coverage:
   stage: check
   image: node:20-alpine
@@ -19,7 +19,6 @@ backend-coverage:
       - backend/coverage/lcov.info
     expire_in: 1 day
 
-# Génération couverture Frontend
 frontend-coverage:
   stage: check
   image: node:20-alpine
@@ -35,9 +34,18 @@ frontend-coverage:
       - frontend/coverage/lcov.info
     expire_in: 1 day
 
-# Surcharge du job Sonar pour inclure nos rapports
+# On surcharge Sonar en remettant TOUTE la liste des dépendances obligatoires
 sonarqube-checker:
-  needs: ["backend-coverage", "frontend-coverage"]
+  needs: 
+    - svscanners_check
+    - dockerfile_conformity_check
+    - others_infra_conformity_check
+    - initial_security_checkpoint
+    - security_check
+    - test_coverage_node
+    - test_coverage_fastapi
+    - backend-coverage
+    - frontend-coverage
   variables:
     SONAR_SOURCES: "backend/src,frontend/src"
     SONAR_SCANNER_OPTS: "-Xmx4096m"
