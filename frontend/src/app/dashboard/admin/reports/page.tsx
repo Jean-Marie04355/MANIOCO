@@ -429,7 +429,7 @@ export default function AdminReports() {
                 );
               })}
             </div>
-          )}
+          ) : null}
         </div>
       </main>
     </div>
