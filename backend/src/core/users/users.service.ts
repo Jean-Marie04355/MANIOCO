@@ -65,7 +65,7 @@ export class UsersService {
     // Calcul des statistiques en parallèle pour chaque utilisateur
     return Promise.all(
       users.map(async (user) => {
-        let stats = { productCount: 0, totalRevenue: 0, seniority: 0 };
+        const stats = { productCount: 0, totalRevenue: 0, seniority: 0 };
 
         // Calcul ancienneté (en jours)
         const diffTime = Math.abs(
@@ -179,7 +179,9 @@ export class UsersService {
         });
       }
     } catch (error: any) {
-      this.logger.error(`Failed to notify admins of new user registration for user ${user.id}: ${error.message}`);
+      this.logger.error(
+        `Failed to notify admins of new user registration for user ${user.id}: ${error.message}`,
+      );
     }
   }
 
@@ -195,7 +197,7 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found.`);
     }
-    
+
     await this.cache.set(cacheKey, user, { ttlSeconds: 3600 });
     return user;
   }
@@ -229,9 +231,7 @@ export class UsersService {
     }
 
     // Handle Base64 profile photo upload to S3
-    if (
-      updateUserDto.profilePhoto?.startsWith('data:image')
-    ) {
+    if (updateUserDto.profilePhoto?.startsWith('data:image')) {
       try {
         const base64Data = updateUserDto.profilePhoto.split(',')[1];
         const mimeType = updateUserDto.profilePhoto.split(';')[0].split(':')[1];
@@ -246,7 +246,9 @@ export class UsersService {
 
         updateUserDto.profilePhoto = fileUrl;
       } catch (error: any) {
-        this.logger.error(`Erreur lors de l'upload de la photo de profil vers S3 pour l'utilisateur ${id}: ${error.message}`);
+        this.logger.error(
+          `Erreur lors de l'upload de la photo de profil vers S3 pour l'utilisateur ${id}: ${error.message}`,
+        );
       }
     }
 
@@ -305,7 +307,9 @@ export class UsersService {
         });
       }
     } catch (error: any) {
-      this.logger.error(`Failed to notify admins of KYC submission for user ${user.id}: ${error.message}`);
+      this.logger.error(
+        `Failed to notify admins of KYC submission for user ${user.id}: ${error.message}`,
+      );
     }
   }
 

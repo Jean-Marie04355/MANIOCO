@@ -47,7 +47,9 @@ describe('JsonStorageProvider', () => {
   it('should call upload', async () => {
     process.env.STORAGE_TYPE = 's3';
     s3ServiceMock.uploadFile.mockResolvedValue('url');
-    const result = await provider.upload({ buffer: Buffer.from('test') } as any);
+    const result = await provider.upload({
+      buffer: Buffer.from('test'),
+    } as any);
     expect(result).toBe('url');
   });
 
@@ -59,7 +61,7 @@ describe('JsonStorageProvider', () => {
 
   it('should findOne - found', async () => {
     const result = await provider.findOne('1');
-    expect(result!.id).toBe('1');
+    expect(result.id).toBe('1');
   });
 
   it('should findOne - not found', async () => {
@@ -83,7 +85,7 @@ describe('JsonStorageProvider', () => {
 
   it('should update an item', async () => {
     const result = await provider.update('1', { filename: 'updated.png' });
-    expect(result!.filename).toBe('updated.png');
+    expect(result.filename).toBe('updated.png');
     expect(fs.writeFileSync).toHaveBeenCalled();
   });
 

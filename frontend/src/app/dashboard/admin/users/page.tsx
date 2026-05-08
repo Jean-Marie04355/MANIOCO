@@ -41,7 +41,7 @@ export default function AdminUsersManagement() {
                 setSelectedUser(firstPending || data[0]);
             }
         } catch (err) {
-            console.error("Erreur lors du chargement des utilisateurs:", err);
+            console.error("Erreur lors du chargement des utilisateurs:");
         } finally {
             setLoading(false);
         }
@@ -94,7 +94,7 @@ export default function AdminUsersManagement() {
             }
 
         } catch (err) {
-            console.error(`Erreur lors de l'action ${action}:`, err);
+            console.error(`Erreur lors de l'action [VAR]:`);
             alert("❌ Une erreur est survenue lors de l'opération.");
         }
     };
@@ -455,7 +455,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { user: any, onClose: () =>
             onClose();
             alert(`✅ Dossier ${status === 'APPROVED' ? 'approvré' : 'rejeté'} avec succès.`);
         } catch (error) {
-            console.error("Erreur review KYC:", error);
+            console.error("Erreur review KYC:");
             alert("❌ Erreur lors de la soumission de la revue.");
         } finally {
             setLoading(false);

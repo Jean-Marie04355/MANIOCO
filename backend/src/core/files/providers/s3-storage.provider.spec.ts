@@ -59,7 +59,7 @@ describe('S3StorageProvider', () => {
     const file = { id: '1', filename: 'test.png' };
     fileRepositoryMock.findOne.mockResolvedValue(file);
     const result = await provider.findOne('1');
-    expect(result!.id).toBe('1');
+    expect(result.id).toBe('1');
   });
 
   it('should return null if findOne not found', async () => {
@@ -85,7 +85,7 @@ describe('S3StorageProvider', () => {
     const dto = { filename: 'updated.png' };
     fileRepositoryMock.findOne.mockResolvedValue({ id: '1', ...dto });
     const result = await provider.update('1', dto);
-    expect(result!.filename).toBe('updated.png');
+    expect(result.filename).toBe('updated.png');
     expect(fileRepositoryMock.update).toHaveBeenCalledWith('1', dto);
   });
 

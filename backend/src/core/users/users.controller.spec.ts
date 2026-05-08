@@ -125,7 +125,10 @@ describe('UsersController', () => {
 
   describe('remove', () => {
     it('should remove a user', async () => {
-      serviceMock.findOne.mockResolvedValue({ id: '1', email: 'test@test.com' });
+      serviceMock.findOne.mockResolvedValue({
+        id: '1',
+        email: 'test@test.com',
+      });
       serviceMock.remove.mockResolvedValue(true);
       const result = await controller.remove('1', mockUser as any);
       expect(result).toEqual({ message: 'User suspended successfully' });
@@ -169,7 +172,10 @@ describe('UsersController', () => {
 
     it('should allow update when user is updating their own profile', async () => {
       const clientUser = { userId: '1', role: UserRole.CLIENT };
-      serviceMock.findOne.mockResolvedValue({ id: '1', email: 'test@test.com' });
+      serviceMock.findOne.mockResolvedValue({
+        id: '1',
+        email: 'test@test.com',
+      });
       serviceMock.update.mockResolvedValue({ id: '1' });
       const result = await controller.update('1', {}, clientUser as any);
       expect(result).toBeDefined();

@@ -42,7 +42,9 @@ export async function handleWorkerJob(job: Job) {
       log(`[worker] Reset password email sent successfully to ${email}`);
       return { ok: true, emailSent: true };
     } catch (error) {
-      log(`[worker] Failed to send reset password email to ${email}: ${error.message}`);
+      log(
+        `[worker] Failed to send reset password email to ${email}: ${error.message}`,
+      );
       throw error;
     }
   }

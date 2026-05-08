@@ -25,7 +25,9 @@ export class RedisCacheService extends CacheService {
       if (raw == null) return null;
       return JSON.parse(raw) as T;
     } catch (err) {
-      this.logger.warn(`Cache GET failed for key "${key}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Cache GET failed for key "${key}": ${(err as Error).message}`,
+      );
       return null;
     }
   }
@@ -44,7 +46,9 @@ export class RedisCacheService extends CacheService {
         await this.redis.set(key, payload, 'EX', ttlSeconds);
       }
     } catch (err) {
-      this.logger.warn(`Cache SET failed for key "${key}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Cache SET failed for key "${key}": ${(err as Error).message}`,
+      );
       // Do not throw — app continues without cache
     }
   }
@@ -53,7 +57,9 @@ export class RedisCacheService extends CacheService {
     try {
       return await this.redis.del(key);
     } catch (err) {
-      this.logger.warn(`Cache DEL failed for key "${key}": ${(err as Error).message}`);
+      this.logger.warn(
+        `Cache DEL failed for key "${key}": ${(err as Error).message}`,
+      );
       return 0;
     }
   }

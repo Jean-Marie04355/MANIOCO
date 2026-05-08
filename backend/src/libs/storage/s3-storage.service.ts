@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import {
   S3Client,
@@ -20,7 +26,6 @@ export class S3StorageService implements IStorageService, OnModuleInit {
   private readonly bucketName: string;
   private readonly endpoint: string;
 
-
   constructor(private readonly configService: ConfigService) {
     this.endpoint = this.configService.get<string>('S3_ENDPOINT');
 
@@ -36,7 +41,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
     );
 
     const region = this.configService.get<string>('S3_REGION', 'us-east-1');
-    this.logger.debug(`Configuring S3 Client - Endpoint: ${this.endpoint}, Region: ${region}`);
+    this.logger.debug(
+      `Configuring S3 Client - Endpoint: ${this.endpoint}, Region: ${region}`,
+    );
 
     this.s3Client = new S3Client({
       region,
@@ -48,7 +55,6 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       forcePathStyle: true,
       maxAttempts: 3,
     });
-
   }
 
   async onModuleInit() {
@@ -64,7 +70,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
           new HeadBucketCommand({ Bucket: this.bucketName }),
         );
       } catch (error: any) {
-        this.logger.log(`Bucket ${this.bucketName} not found or inaccessible (${error.message}), attempting to create it...`);
+        this.logger.log(
+          `Bucket ${this.bucketName} not found or inaccessible (${error.message}), attempting to create it...`,
+        );
         await this.s3Client.send(
           new CreateBucketCommand({ Bucket: this.bucketName }),
         );
@@ -138,7 +146,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       }
 
       // Upload
-      this.logger.debug(`Uploading to S3 - Bucket: ${this.bucketName}, Key: ${name}, Endpoint: ${this.endpoint}`);
+      this.logger.debug(
+        `Uploading to S3 - Bucket: ${this.bucketName}, Key: ${name}, Endpoint: ${this.endpoint}`,
+      );
       await this.s3Client.send(
         new PutObjectCommand({
           Bucket: this.bucketName,

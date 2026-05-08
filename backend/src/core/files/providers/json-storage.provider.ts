@@ -37,7 +37,9 @@ export class JsonStorageProvider implements IFileStorage {
         try {
           return await this.s3Service.uploadFile(file);
         } catch (s3Error) {
-          this.logger.warn(`Échec upload S3, repli sur le stockage local: ${s3Error.message}`);
+          this.logger.warn(
+            `Échec upload S3, repli sur le stockage local: ${s3Error.message}`,
+          );
         }
       }
       const uploadsDir = 'uploads';
@@ -47,15 +49,15 @@ export class JsonStorageProvider implements IFileStorage {
 
       const filename = `${Date.now()}-${file.originalname || 'upload.jpg'}`;
       const filePath = `${uploadsDir}/${filename}`;
-      
+
       if (file.buffer) {
         fs.writeFileSync(filePath, file.buffer);
       } else if (file.path) {
         fs.copyFileSync(file.path, filePath);
       } else {
-        throw new Error("Aucun contenu de fichier trouvé");
+        throw new Error('Aucun contenu de fichier trouvé');
       }
-      
+
       return `/uploads/${filename}`;
     } catch (error) {
       this.logger.error(`Local upload error: ${error.message}`);

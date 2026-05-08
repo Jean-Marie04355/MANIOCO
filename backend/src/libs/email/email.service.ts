@@ -36,9 +36,10 @@ export class EmailService {
           : undefined,
       tls: {
         // En prod, on DOIT vérifier les certificats. En dev/test, on peut outrepasser via env.
-        rejectUnauthorized: process.env.NODE_ENV === 'production' 
-          ? (process.env.SMTP_REJECT_UNAUTHORIZED !== 'false')
-          : false,
+        rejectUnauthorized:
+          process.env.NODE_ENV === 'production'
+            ? process.env.SMTP_REJECT_UNAUTHORIZED !== 'false'
+            : false,
       },
     });
   }

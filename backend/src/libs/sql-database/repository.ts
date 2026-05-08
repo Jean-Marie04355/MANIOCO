@@ -11,8 +11,8 @@ export class SqlRepository<
 
     // Si l'objet contient déjà des clés d'options TypeORM (autre que withDeleted)
     const { withDeleted, ...rest } = options as any;
-    const isFullOptions = Object.keys(rest).some(key => 
-      ['where', 'relations', 'select', 'order', 'take', 'skip'].includes(key)
+    const isFullOptions = Object.keys(rest).some((key) =>
+      ['where', 'relations', 'select', 'order', 'take', 'skip'].includes(key),
     );
 
     if (isFullOptions) {
@@ -20,9 +20,9 @@ export class SqlRepository<
     }
 
     // Sinon, on traite comme un critère simple (where)
-    return this.repo.find({ 
+    return this.repo.find({
       where: rest as FindOptionsWhere<T>,
-      withDeleted: !!withDeleted
+      withDeleted: !!withDeleted,
     });
   }
 
@@ -30,9 +30,16 @@ export class SqlRepository<
     if (!criteria) return this.repo.findOne({ where: {} as any });
 
     const options: any = {};
-    
+
     // Si criteria contient déjà des options TypeORM connues
-    if (criteria.where || criteria.relations || criteria.order || criteria.select || criteria.take || criteria.skip) {
+    if (
+      criteria.where ||
+      criteria.relations ||
+      criteria.order ||
+      criteria.select ||
+      criteria.take ||
+      criteria.skip
+    ) {
       options.where = criteria.where;
       options.relations = criteria.relations;
       options.order = criteria.order;
@@ -41,17 +48,19 @@ export class SqlRepository<
       options.skip = criteria.skip;
       options.withDeleted = !!criteria.withDeleted;
 
-      // Si criteria contient aussi d'autres champs à la racine (comme 'id'), 
+      // Si criteria contient aussi d'autres champs à la racine (comme 'id'),
       // et que 'where' n'est pas défini, on les utilise comme 'where'
       if (!options.where) {
-        const { relations, withDeleted, order, select, take, skip, ...where } = criteria;
+        const { relations, withDeleted, order, select, take, skip, ...where } =
+          criteria;
         if (Object.keys(where).length > 0) {
           options.where = where as FindOptionsWhere<T>;
         }
       }
     } else {
       // Sinon on traite criteria comme l'objet 'where'
-      const { relations, withDeleted, order, select, take, skip, ...where } = criteria;
+      const { relations, withDeleted, order, select, take, skip, ...where } =
+        criteria;
       options.where = where as FindOptionsWhere<T>;
       options.relations = relations;
       options.order = order;

@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  Inject,
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, Logger } from '@nestjs/common';
 import { IBaseRepository } from '../../common/interfaces/base-repository.interface';
 import { Conversation, Message } from './entities/chat.entity';
 import { StoreService } from '../store/store.service';
@@ -206,14 +201,16 @@ export class ChatService {
       try {
         const store = await this.storeService.findByOwnerId(user.userId);
         if (!store) return [];
-        
+
         return this.conversationRepo.find({
           where: { storeId: store.id },
           relations: ['customer'],
-          order: { lastMessageAt: 'DESC' }
+          order: { lastMessageAt: 'DESC' },
         } as any);
       } catch (e: any) {
-        this.logger.error(`Error fetching conversations for seller ${user.userId}: ${e.message}`);
+        this.logger.error(
+          `Error fetching conversations for seller ${user.userId}: ${e.message}`,
+        );
         return [];
       }
     }
@@ -234,9 +231,10 @@ export class ChatService {
       order: { createdAt: 'ASC' },
       relations: ['sender'],
     } as object);
-    return messages.map(m => ({
+    return messages.map((m) => ({
       ...m,
-      senderId: typeof m.senderId === 'object' ? (m.senderId as any).id : m.senderId
+      senderId:
+        typeof m.senderId === 'object' ? (m.senderId as any).id : m.senderId,
     })) as Message[];
   }
 
@@ -248,9 +246,12 @@ export class ChatService {
 
     let count = 0;
     for (const convId of conversationIds) {
-      const messages = await this.messageRepo.find({ where: { conversationId: convId, isRead: false } } as object);
-      count += messages.filter(m => {
-        const sid = typeof m.senderId === 'object' ? (m.senderId as any).id : m.senderId;
+      const messages = await this.messageRepo.find({
+        where: { conversationId: convId, isRead: false },
+      } as object);
+      count += messages.filter((m) => {
+        const sid =
+          typeof m.senderId === 'object' ? (m.senderId as any).id : m.senderId;
         return String(sid) !== String(user.userId);
       }).length;
     }
@@ -265,7 +266,10 @@ export class ChatService {
       where: { conversationId, isRead: false },
     } as object);
     for (const msg of messages) {
-      const sid = typeof msg.senderId === 'object' ? (msg.senderId as any).id : msg.senderId;
+      const sid =
+        typeof msg.senderId === 'object'
+          ? (msg.senderId as any).id
+          : msg.senderId;
       if (String(sid) !== String(user.userId)) {
         await this.messageRepo.update(msg.id, { isRead: true });
       }
@@ -282,7 +286,7 @@ export class ChatService {
     // On prend le dernier message reçu et on le marque comme non lu
     const receivedMessages = messages.filter((m) => m.senderId !== user.userId);
     if (receivedMessages.length > 0) {
-    const lastMsg = receivedMessages.at(-1);
+      const lastMsg = receivedMessages.at(-1);
       await this.messageRepo.update(lastMsg.id, { isRead: false });
     }
   }
@@ -315,16 +319,21 @@ export class ChatService {
     await this.messageRepo.delete(messageId);
   }
 
-  async getConversationByParticipants(customerId: string, storeId: string): Promise<Conversation> {
+  async getConversationByParticipants(
+    customerId: string,
+    storeId: string,
+  ): Promise<Conversation> {
     const conversation = await this.conversationRepo.findOne({
       where: { customerId, storeId },
-      relations: ['customer', 'store', 'store.owner']
+      relations: ['customer', 'store', 'store.owner'],
     } as any);
-    
+
     if (!conversation) {
-      throw new NotFoundException('Conversation introuvable entre ces participants');
+      throw new NotFoundException(
+        'Conversation introuvable entre ces participants',
+      );
     }
-    
+
     return conversation;
   }
 }

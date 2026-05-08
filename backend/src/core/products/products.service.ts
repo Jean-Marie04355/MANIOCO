@@ -36,7 +36,9 @@ export class ProductsService {
         const store = await this.storeService.findByOwnerId(user.userId);
         createProductDto.storeId = store.id;
       } catch (error: any) {
-        throw new ForbiddenException(`Vous devez créer une boutique avant d'ajouter des produits: ${error.message}`);
+        throw new ForbiddenException(
+          `Vous devez créer une boutique avant d'ajouter des produits: ${error.message}`,
+        );
       }
     }
 
@@ -56,7 +58,9 @@ export class ProductsService {
 
         createProductDto.image = fileUrl;
       } catch (error: any) {
-        this.logger.error(`Erreur lors de l'upload de l'image du produit vers S3: ${error.message}`);
+        this.logger.error(
+          `Erreur lors de l'upload de l'image du produit vers S3: ${error.message}`,
+        );
       }
     }
 
@@ -69,9 +73,12 @@ export class ProductsService {
 
   async findAll(storeId?: string) {
     if (storeId) {
-      return this.repo.find({ where: { storeId }, relations: ['store'] } as any);
+      return this.repo.find({
+        where: { storeId },
+        relations: ['store'],
+      } as any);
     }
-    
+
     // Check Cache
     const cached = await this.cache.get<Product[]>(PRODUCTS_CACHE_KEY);
     if (cached) return cached;
@@ -97,11 +104,15 @@ export class ProductsService {
       try {
         const store = await this.storeService.findByOwnerId(user.userId);
         if (String(product.storeId) !== String(store.id)) {
-          throw new ForbiddenException('Vous ne pouvez modifier que vos propres produits');
+          throw new ForbiddenException(
+            'Vous ne pouvez modifier que vos propres produits',
+          );
         }
       } catch (error: any) {
         if (error instanceof ForbiddenException) throw error;
-        throw new ForbiddenException(`Boutique non trouvée ou accès refusé: ${error.message}`);
+        throw new ForbiddenException(
+          `Boutique non trouvée ou accès refusé: ${error.message}`,
+        );
       }
     }
 
@@ -126,7 +137,9 @@ export class ProductsService {
 
         updateProductDto.image = fileUrl;
       } catch (error: any) {
-        this.logger.error(`Erreur lors de l'upload de l'image du produit vers S3 lors de la mise à jour: ${error.message}`);
+        this.logger.error(
+          `Erreur lors de l'upload de l'image du produit vers S3 lors de la mise à jour: ${error.message}`,
+        );
       }
     }
 
@@ -153,7 +166,9 @@ export class ProductsService {
         }
       } catch (error: any) {
         if (error instanceof ForbiddenException) throw error;
-        throw new ForbiddenException(`Boutique non trouvée ou accès refusé: ${error.message}`);
+        throw new ForbiddenException(
+          `Boutique non trouvée ou accès refusé: ${error.message}`,
+        );
       }
     }
     await this.cache.del(PRODUCTS_CACHE_KEY);

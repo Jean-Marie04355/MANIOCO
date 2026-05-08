@@ -1,5 +1,11 @@
 import * as crypto from 'node:crypto';
-import { Injectable, UnauthorizedException, Inject, BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  UnauthorizedException,
+  Inject,
+  BadRequestException,
+  NotFoundException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 
@@ -195,7 +201,10 @@ export class AuthService {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
       // Pour des raisons de sécurité, on ne dit pas si l'email existe ou non
-      return { message: 'If this email is registered, you will receive a reset link shortly.' };
+      return {
+        message:
+          'If this email is registered, you will receive a reset link shortly.',
+      };
     }
 
     const resetPasswordToken = crypto.randomBytes(32).toString('hex');
@@ -208,7 +217,8 @@ export class AuthService {
 
     // Put reset email job into the queue
     const queueName = this.configService.get('QUEUE_NAME') || 'default';
-    const rawFrontendUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
+    const rawFrontendUrl =
+      this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
     const frontendUrl = rawFrontendUrl.split(',')[0].trim();
     const resetLink = `${frontendUrl}/auth/reset-password?token=${resetPasswordToken}`;
 
@@ -217,13 +227,22 @@ export class AuthService {
       resetLink,
     });
 
-    return { message: 'If this email is registered, you will receive a reset link shortly.' };
+    return {
+      message:
+        'If this email is registered, you will receive a reset link shortly.',
+    };
   }
 
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+  async resetPassword(
+    token: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
     const user = await this.usersService.findByResetToken(token);
-    
-    if (user?.resetPasswordExpires == null || new Date() > user.resetPasswordExpires) {
+
+    if (
+      user?.resetPasswordExpires == null ||
+      new Date() > user.resetPasswordExpires
+    ) {
       throw new BadRequestException('Invalid or expired reset token.');
     }
 

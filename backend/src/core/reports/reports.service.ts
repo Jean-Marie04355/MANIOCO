@@ -12,7 +12,10 @@ export class ReportsService {
     private readonly reportRepository: Repository<Report>,
   ) {}
 
-  async create(reporterId: string, createReportDto: CreateReportDto): Promise<Report> {
+  async create(
+    reporterId: string,
+    createReportDto: CreateReportDto,
+  ): Promise<Report> {
     const report = this.reportRepository.create({
       ...createReportDto,
       reporterId,
@@ -57,11 +60,11 @@ export class ReportsService {
 
   async update(id: string, updateReportDto: UpdateReportDto): Promise<Report> {
     const report = await this.findOne(id);
-    
+
     if (updateReportDto.status) {
       report.status = updateReportDto.status;
     }
-    
+
     if (updateReportDto.internalNote !== undefined) {
       report.internalNote = updateReportDto.internalNote;
     }
@@ -71,10 +74,16 @@ export class ReportsService {
 
   async getStats() {
     const total = await this.reportRepository.count();
-    const pending = await this.reportRepository.count({ where: { status: ReportStatus.NEW } });
-    const investigating = await this.reportRepository.count({ where: { status: ReportStatus.INVESTIGATING } });
-    const resolved = await this.reportRepository.count({ where: { status: ReportStatus.RESOLVED } });
-    
+    const pending = await this.reportRepository.count({
+      where: { status: ReportStatus.NEW },
+    });
+    const investigating = await this.reportRepository.count({
+      where: { status: ReportStatus.INVESTIGATING },
+    });
+    const resolved = await this.reportRepository.count({
+      where: { status: ReportStatus.RESOLVED },
+    });
+
     return {
       total,
       pending,

@@ -97,7 +97,10 @@ export class SupportService {
   }
 
   async countActiveTickets(): Promise<number> {
-    const activeStatuses = new Set([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]);
+    const activeStatuses = new Set([
+      TicketStatus.OPEN,
+      TicketStatus.IN_PROGRESS,
+    ]);
     const tickets = await this.ticketRepository.find();
     // On filtre manuellement car le dépôt peut varier (SQL/NoSQL)
     return tickets.filter((t: any) => activeStatuses.has(t.status)).length;

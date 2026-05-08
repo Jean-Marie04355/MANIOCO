@@ -116,7 +116,10 @@ export class ChatController {
   @Get('admin/conversation')
   @UseGuards(RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
-  @ApiOperation({ summary: 'Récupérer une conversation entre un client et une boutique (Admin)' })
+  @ApiOperation({
+    summary:
+      'Récupérer une conversation entre un client et une boutique (Admin)',
+  })
   async getAdminConversation(
     @Query('customerId') customerId: string,
     @Query('storeId') storeId: string,

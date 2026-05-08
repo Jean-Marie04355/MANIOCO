@@ -13,7 +13,7 @@ describe('DatabaseModule', () => {
     expect(module.imports).toContain(NoSqlDatabaseModule);
 
     // Test factory
-    const provider = module.providers![0] as any;
+    const provider = module.providers[0] as any;
     expect(provider.provide).toBe('DATABASE_REPOSITORY');
     const mockRepo = {};
     expect(provider.useFactory(null, mockRepo)).toBe(mockRepo);
@@ -27,7 +27,7 @@ describe('DatabaseModule', () => {
     expect(module.imports).toContain(SqlDatabaseModule);
 
     // Test factory
-    const provider = module.providers![0] as any;
+    const provider = module.providers[0] as any;
     expect(provider.provide).toBe('DATABASE_REPOSITORY');
     const mockRepo = {};
     expect(provider.useFactory(null, mockRepo)).toBe(mockRepo);

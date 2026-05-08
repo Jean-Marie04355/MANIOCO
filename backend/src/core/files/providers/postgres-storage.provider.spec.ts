@@ -44,7 +44,9 @@ describe('PostgresStorageProvider', () => {
   it('should upload', async () => {
     process.env.STORAGE_TYPE = 's3';
     s3ServiceMock.uploadFile.mockResolvedValue('url');
-    const result = await provider.upload({ buffer: Buffer.from('test') } as any);
+    const result = await provider.upload({
+      buffer: Buffer.from('test'),
+    } as any);
     expect(result).toBe('url');
   });
 
@@ -65,7 +67,7 @@ describe('PostgresStorageProvider', () => {
       size: 1,
     });
     const result = await provider.findOne('1');
-    expect(result!.id).toBe('1');
+    expect(result.id).toBe('1');
   });
 
   it('should return null on findOne if not found', async () => {
@@ -91,7 +93,7 @@ describe('PostgresStorageProvider', () => {
       size: 1,
     });
     const result = await provider.update('1', { filename: 'u.png' });
-    expect(result!.filename).toBe('u.png');
+    expect(result.filename).toBe('u.png');
     expect(fileRepositoryMock.update).toHaveBeenCalledWith('1', {
       filename: 'u.png',
     });

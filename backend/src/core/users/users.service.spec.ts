@@ -115,7 +115,14 @@ describe('UsersService', () => {
 
   describe('findAll', () => {
     it('should return users with basic stats for regular clients', async () => {
-      const users = [{ id: '1', email: 'test@test.com', createdAt: new Date(), role: UserRole.CLIENT }];
+      const users = [
+        {
+          id: '1',
+          email: 'test@test.com',
+          createdAt: new Date(),
+          role: UserRole.CLIENT,
+        },
+      ];
       repositoryMock.find.mockResolvedValue(users);
 
       const result = await service.findAll();
@@ -124,11 +131,19 @@ describe('UsersService', () => {
     });
 
     it('should calculate detailed stats for vendors', async () => {
-      const vendor = { id: 'v1', email: 'v@v.com', createdAt: new Date(), role: UserRole.VENDEUR };
+      const vendor = {
+        id: 'v1',
+        email: 'v@v.com',
+        createdAt: new Date(),
+        role: UserRole.VENDEUR,
+      };
       repositoryMock.find.mockResolvedValue([vendor]);
       storeRepoMock.findOne.mockResolvedValue({ id: 'store-1' });
       productRepoMock.count.mockResolvedValue(5);
-      orderRepoMock.find.mockResolvedValue([{ totalAmount: 100 }, { totalAmount: 50 }]);
+      orderRepoMock.find.mockResolvedValue([
+        { totalAmount: 100 },
+        { totalAmount: 50 },
+      ]);
 
       const result = await service.findAll();
       const stats = result[0].stats;
@@ -165,16 +180,24 @@ describe('UsersService', () => {
 
     it('should throw ConflictException if user already exists', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1' });
-      await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
+      await expect(service.create(createUserDto)).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should create a SUPER_ADMIN if it is the first user', async () => {
       repositoryMock.findOne.mockResolvedValue(null);
       repositoryMock.count.mockResolvedValue(0);
-      repositoryMock.create.mockResolvedValue({ ...createUserDto, id: '1', role: UserRole.SUPER_ADMIN });
+      repositoryMock.create.mockResolvedValue({
+        ...createUserDto,
+        id: '1',
+        role: UserRole.SUPER_ADMIN,
+      });
 
       const result = await service.create(createUserDto);
-      expect(repositoryMock.create).toHaveBeenCalledWith(expect.objectContaining({ role: UserRole.SUPER_ADMIN }));
+      expect(repositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({ role: UserRole.SUPER_ADMIN }),
+      );
     });
   });
 
@@ -183,27 +206,41 @@ describe('UsersService', () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com' });
       const updateDto = { password: 'newpassword' };
       await service.update('1', updateDto);
-      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ password: expect.any(String) }));
+      expect(repositoryMock.update).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({ password: expect.any(String) }),
+      );
     });
 
     it('should handle Base64 profile photo upload to S3', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com' });
-      s3StorageServiceMock.uploadFile.mockResolvedValue('http://s3.url/photo.jpg');
+      s3StorageServiceMock.uploadFile.mockResolvedValue(
+        'http://s3.url/photo.jpg',
+      );
 
       const updateDto = { profilePhoto: 'data:image/png;base64,xxxx' };
       await service.update('1', updateDto);
 
       expect(s3StorageServiceMock.uploadFile).toHaveBeenCalled();
-      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ profilePhoto: 'http://s3.url/photo.jpg' }));
+      expect(repositoryMock.update).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({ profilePhoto: 'http://s3.url/photo.jpg' }),
+      );
     });
   });
 
   describe('restore', () => {
     it('should restore user and clear suspension fields', async () => {
-      repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com', suspensionUntil: new Date() });
+      repositoryMock.findOne.mockResolvedValue({
+        id: '1',
+        email: 't@t.com',
+        suspensionUntil: new Date(),
+      });
       await service.restore('1');
       expect(repositoryMock.restore).toHaveBeenCalledWith('1');
-      expect(repositoryMock.save).toHaveBeenCalledWith(expect.objectContaining({ suspensionUntil: null }));
+      expect(repositoryMock.save).toHaveBeenCalledWith(
+        expect.objectContaining({ suspensionUntil: null }),
+      );
     });
   });
 
@@ -218,22 +255,42 @@ describe('UsersService', () => {
   });
 
   describe('KYC Process', () => {
-    const user = { id: '1', name: 'Vendor', email: 'v@v.com', role: UserRole.VENDEUR };
+    const user = {
+      id: '1',
+      name: 'Vendor',
+      email: 'v@v.com',
+      role: UserRole.VENDEUR,
+    };
 
     it('should submit KYC and handle Base64 document uploads', async () => {
       repositoryMock.findOne.mockResolvedValue(user);
-      s3StorageServiceMock.uploadFile.mockResolvedValue('http://s3.url/doc.jpg');
-      repositoryMock.find.mockResolvedValue([{ id: 'admin-1', role: UserRole.ADMIN }]);
+      s3StorageServiceMock.uploadFile.mockResolvedValue(
+        'http://s3.url/doc.jpg',
+      );
+      repositoryMock.find.mockResolvedValue([
+        { id: 'admin-1', role: UserRole.ADMIN },
+      ]);
 
-      await service.submitKyc('1', { idCardFront: 'data:image/jpeg;base64,xxxx' });
+      await service.submitKyc('1', {
+        idCardFront: 'data:image/jpeg;base64,xxxx',
+      });
 
-      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ kycStatus: 'PENDING', idCardFront: 'http://s3.url/doc.jpg' }));
+      expect(repositoryMock.update).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({
+          kycStatus: 'PENDING',
+          idCardFront: 'http://s3.url/doc.jpg',
+        }),
+      );
     });
 
     it('should approve KYC and verify user', async () => {
       repositoryMock.findOne.mockResolvedValue(user);
       await service.reviewKyc('1', { status: 'APPROVED' });
-      expect(repositoryMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ kycStatus: 'APPROVED', isVerified: true }));
+      expect(repositoryMock.update).toHaveBeenCalledWith(
+        '1',
+        expect.objectContaining({ kycStatus: 'APPROVED', isVerified: true }),
+      );
     });
   });
 });

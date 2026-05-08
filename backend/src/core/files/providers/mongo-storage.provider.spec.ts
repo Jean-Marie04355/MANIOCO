@@ -14,16 +14,12 @@ describe('MongoStorageProvider', () => {
       ...data,
       save: jest.fn().mockResolvedValue({ _id: '1', ...data }),
     }));
-    (fileModelMock as any).find = jest
+    fileModelMock.find = jest.fn().mockReturnValue({ exec: jest.fn() });
+    fileModelMock.findById = jest.fn().mockReturnValue({ exec: jest.fn() });
+    fileModelMock.findByIdAndUpdate = jest
       .fn()
       .mockReturnValue({ exec: jest.fn() });
-    (fileModelMock as any).findById = jest
-      .fn()
-      .mockReturnValue({ exec: jest.fn() });
-    (fileModelMock as any).findByIdAndUpdate = jest
-      .fn()
-      .mockReturnValue({ exec: jest.fn() });
-    (fileModelMock as any).findByIdAndDelete = jest
+    fileModelMock.findByIdAndDelete = jest
       .fn()
       .mockReturnValue({ exec: jest.fn() });
 
@@ -72,7 +68,7 @@ describe('MongoStorageProvider', () => {
     };
     (fileModelMock.findById().exec as jest.Mock).mockResolvedValue(doc);
     const result = await provider.findOne('1');
-    expect(result!.id).toBe('1');
+    expect(result.id).toBe('1');
   });
 
   it('should create', async () => {
@@ -93,7 +89,7 @@ describe('MongoStorageProvider', () => {
       doc,
     );
     const result = await provider.update('1', { filename: 'u.png' });
-    expect(result!.filename).toBe('u.png');
+    expect(result.filename).toBe('u.png');
   });
 
   it('should delete', async () => {

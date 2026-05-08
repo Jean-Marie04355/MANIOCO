@@ -67,7 +67,7 @@ describe('FilesService', () => {
       size: 100,
     });
     const result = await service.update('1', data as any);
-    expect(result!.filename).toBe('updated.png');
+    expect(result.filename).toBe('updated.png');
     expect(storageProviderMock.update).toHaveBeenCalledWith('1', data);
   });
 

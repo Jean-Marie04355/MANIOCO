@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-empty-object-type
 export interface IBaseRepository<T> {
   find(options?: object): Promise<T[]>;
   findOne(criteria: object): Promise<T | null>;

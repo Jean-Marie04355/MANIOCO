@@ -14,14 +14,14 @@ export class NotificationsService {
 
   async create(createDto: CreateNotificationDto) {
     const notification = await this.repo.create(createDto);
-    
+
     // Emit real-time event via WebSocket
     if (this.realtimeGateway.server && createDto.userId) {
       this.realtimeGateway.server
         .to(`user_${createDto.userId}`)
         .emit('new_notification', notification);
     }
-    
+
     return notification;
   }
 

@@ -32,7 +32,9 @@ export class ProductCategoriesService {
         const store = await this.storeService.findByOwnerId(user.userId);
         createDto.storeId = store.id;
       } catch (error: any) {
-        throw new ForbiddenException(`Vous devez créer une boutique avant de créer une catégorie: ${error.message}`);
+        throw new ForbiddenException(
+          `Vous devez créer une boutique avant de créer une catégorie: ${error.message}`,
+        );
       }
     }
     const category = await this.repo.create(createDto);
@@ -44,20 +46,20 @@ export class ProductCategoriesService {
   async findAll(storeId?: string) {
     if (storeId) {
       // Retourne les catégories de la boutique PLUS les catégories globales (storeId null)
-      return this.repo.find({ 
-        where: [
-          { storeId },
-          { storeId: null }
-        ]
+      return this.repo.find({
+        where: [{ storeId }, { storeId: null }],
       } as any);
     }
-    
+
     // Check Cache
-    const cached = await this.cache.get<ProductCategory[]>(CATEGORIES_CACHE_KEY);
+    const cached =
+      await this.cache.get<ProductCategory[]>(CATEGORIES_CACHE_KEY);
     if (cached) return cached;
 
     const categories = await this.repo.find();
-    await this.cache.set(CATEGORIES_CACHE_KEY, categories, { ttlSeconds: 3600 });
+    await this.cache.set(CATEGORIES_CACHE_KEY, categories, {
+      ttlSeconds: 3600,
+    });
     return categories;
   }
 

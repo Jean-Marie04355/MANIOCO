@@ -22,7 +22,7 @@ describe('SqlRepository', () => {
     const result = await repository.find({});
     expect(repoMock.find).toHaveBeenCalledWith({
       where: {},
-      withDeleted: false
+      withDeleted: false,
     });
     expect(result).toEqual([]);
   });
@@ -36,7 +36,7 @@ describe('SqlRepository', () => {
       select: undefined,
       take: undefined,
       skip: undefined,
-      withDeleted: false
+      withDeleted: false,
     });
   });
 

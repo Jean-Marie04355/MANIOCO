@@ -126,13 +126,15 @@ describe('ProductsService', () => {
       storageServiceMock.uploadFile.mockResolvedValue('s3-url');
       repoMock.create.mockResolvedValue({ id: '1', ...dto });
       repoMock.findOne.mockResolvedValue({ id: '1', ...dto });
-      
+
       await service.create(dto as any, mockAdmin as any);
-      
+
       expect(storageServiceMock.uploadFile).toHaveBeenCalled();
-      expect(repoMock.create).toHaveBeenCalledWith(expect.objectContaining({
-        image: 's3-url'
-      }));
+      expect(repoMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          image: 's3-url',
+        }),
+      );
     });
   });
 
@@ -164,11 +166,10 @@ describe('ProductsService', () => {
       const vendorUser = { id: 'v1', userId: 'v-1', role: UserRole.VENDEUR };
       repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'other-store' });
       storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
-      
+
       await expect(service.remove('1', vendorUser as any)).rejects.toThrow(
         ForbiddenException,
       );
     });
   });
 });
-

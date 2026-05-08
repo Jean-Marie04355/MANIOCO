@@ -36,10 +36,12 @@ export class PostgresStorageProvider implements IFileStorage {
         try {
           return await this.s3Service.uploadFile(file);
         } catch (s3Error: any) {
-          this.logger.warn(`Échec upload S3 (${s3Error.message}), repli sur le stockage local`);
+          this.logger.warn(
+            `Échec upload S3 (${s3Error.message}), repli sur le stockage local`,
+          );
         }
       }
-      
+
       const uploadsDir = 'uploads';
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
@@ -47,16 +49,18 @@ export class PostgresStorageProvider implements IFileStorage {
 
       const filename = `${Date.now()}-${file.originalname || 'upload.jpg'}`;
       const filePath = `${uploadsDir}/${filename}`;
-      
+
       if (file.buffer) {
         fs.writeFileSync(filePath, file.buffer);
       } else if (file.path) {
         // Si Multer a déjà sauvegardé sur le disque dans un dossier temporaire
         fs.copyFileSync(file.path, filePath);
       } else {
-        throw new Error("Aucun contenu de fichier trouvé (buffer ou path manquant)");
+        throw new Error(
+          'Aucun contenu de fichier trouvé (buffer ou path manquant)',
+        );
       }
-      
+
       return `/uploads/${filename}`;
     } catch (error) {
       throw new Error(`Failed to upload file: ${error.message}`);

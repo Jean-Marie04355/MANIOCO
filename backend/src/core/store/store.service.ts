@@ -66,7 +66,7 @@ export class StoreService {
     }
     const store = await this.storeRepository.create({
       ...createStoreDto,
-      ownerId: owner.id, 
+      ownerId: owner.id,
     });
     await this.cache.del(STORES_CACHE_KEY);
     await this.cache.del(STORES_CITIES_CACHE_KEY);
@@ -91,7 +91,7 @@ export class StoreService {
 
   async findAll(city?: string) {
     let stores: Store[];
-    
+
     // Check Cache for ALL stores
     const cached = await this.cache.get<Store[]>(STORES_CACHE_KEY);
     if (cached) {
@@ -102,9 +102,9 @@ export class StoreService {
     }
 
     if (city) {
-      stores = stores.filter(s => s.city === city);
+      stores = stores.filter((s) => s.city === city);
     }
-    
+
     return stores.map((s) => this.mapToPublic(s));
   }
 
@@ -113,9 +113,13 @@ export class StoreService {
     if (cached) return cached;
 
     const stores = await this.storeRepository.find();
-    const cities = Array.from(new Set(stores.map(s => s.city).filter(Boolean))) as string[];
-    
-    await this.cache.set(STORES_CITIES_CACHE_KEY, cities, { ttlSeconds: 3600 * 24 }); // Cache for 24h
+    const cities = Array.from(
+      new Set(stores.map((s) => s.city).filter(Boolean)),
+    );
+
+    await this.cache.set(STORES_CITIES_CACHE_KEY, cities, {
+      ttlSeconds: 3600 * 24,
+    }); // Cache for 24h
     return cities;
   }
 
@@ -175,7 +179,7 @@ export class StoreService {
 
     const store = await this.storeRepository.findOne({ id } as object);
     if (!store) throw new NotFoundException(`Store with ID ${id} not found`);
-    
+
     await this.cache.set(cacheKey, store, { ttlSeconds: 3600 });
     return store;
   }
@@ -210,7 +214,7 @@ export class StoreService {
       throw new NotFoundException(
         `Store for user with ID ${ownerId} not found.`,
       );
-    
+
     await this.cache.set(cacheKey, store, { ttlSeconds: 3600 });
     return store;
   }

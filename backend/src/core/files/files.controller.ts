@@ -44,7 +44,9 @@ export class FilesController {
   @UseInterceptors(FileInterceptor('file'))
   async uploadFile(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      throw new Error('Aucun fichier reçu. Vérifiez le format de la requête (multipart/form-data).');
+      throw new Error(
+        'Aucun fichier reçu. Vérifiez le format de la requête (multipart/form-data).',
+      );
     }
     // 1. Upload to S3
     const path = await this.filesService.upload(file);

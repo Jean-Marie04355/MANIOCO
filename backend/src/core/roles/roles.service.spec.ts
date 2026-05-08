@@ -88,8 +88,14 @@ describe('RolesService', () => {
     });
 
     it('should throw ForbiddenException if trying to rename a system role', async () => {
-      mockRepo.findOne.mockResolvedValue({ id: '1', name: 'admin', isSystem: true });
-      await expect(service.update('1', { name: 'new-name' })).rejects.toThrow(ForbiddenException);
+      mockRepo.findOne.mockResolvedValue({
+        id: '1',
+        name: 'admin',
+        isSystem: true,
+      });
+      await expect(service.update('1', { name: 'new-name' })).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 

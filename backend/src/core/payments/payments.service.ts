@@ -60,7 +60,9 @@ export class PaymentsService {
 
       this.logger.log(`Using payment callback URL: ${callbackUrl}`);
 
-      const customer = await this.userRepository.findOne({ id: order.customerId });
+      const customer = await this.userRepository.findOne({
+        id: order.customerId,
+      });
 
       // Delegate to external provider
       const paymentResponse = await this.paymentProvider.createTransaction({
@@ -69,12 +71,14 @@ export class PaymentsService {
         callbackUrl,
         sellerPayoutAccountId,
         orderId: order.id,
-        customer: customer ? {
-          firstname: customer.name.split(' ')[0],
-          lastname: customer.name.split(' ').slice(1).join(' ') || 'Client',
-          email: customer.email,
-          phoneNumber: customer.phoneNumber
-        } : undefined
+        customer: customer
+          ? {
+              firstname: customer.name.split(' ')[0],
+              lastname: customer.name.split(' ').slice(1).join(' ') || 'Client',
+              email: customer.email,
+              phoneNumber: customer.phoneNumber,
+            }
+          : undefined,
       });
 
       // Update with external reference
@@ -175,7 +179,7 @@ export class PaymentsService {
    */
   async verifyTransaction(orderId: string): Promise<Order | null> {
     this.logger.log(`Manually verifying payment status for order ${orderId}`);
-    
+
     const transaction = await this.transactionRepository.findOne({ orderId });
     if (!transaction?.externalId) {
       this.logger.warn(`No external transaction ID found for order ${orderId}`);
@@ -185,9 +189,11 @@ export class PaymentsService {
     // In a real production app, we would call FedaPay API here to check the status.
     // For this sandbox/demo, if we are in this method, we assume the user just came back from FedaPay.
     // We will simulate a check that returns 'APPROVED'.
-    
-    this.logger.log(`Simulating successful verification for FedaPay transaction ${transaction.externalId}`);
-    
+
+    this.logger.log(
+      `Simulating successful verification for FedaPay transaction ${transaction.externalId}`,
+    );
+
     await this.transactionRepository.update(transaction.id, {
       status: 'APPROVED',
       paymentMethod: 'manual_verify',

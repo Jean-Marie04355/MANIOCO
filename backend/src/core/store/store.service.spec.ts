@@ -51,7 +51,6 @@ describe('StoreService', () => {
     service = module.get<StoreService>(StoreService);
   });
 
-
   describe('create', () => {
     it('should throw NotFoundException if owner not found', async () => {
       userRepoMock.findOne.mockResolvedValue(null);
@@ -91,7 +90,7 @@ describe('StoreService', () => {
     it('should filter stores by city in-memory', async () => {
       const stores = [
         { id: 's1', city: 'Cotonou', name: 'S1' },
-        { id: 's2', city: 'Porto-Novo', name: 'S2' }
+        { id: 's2', city: 'Porto-Novo', name: 'S2' },
       ];
       cacheServiceMock.get.mockResolvedValue(null);
       storeRepoMock.find.mockResolvedValue(stores);
@@ -100,7 +99,6 @@ describe('StoreService', () => {
       expect(result[0].city).toBe('Cotonou');
       expect(storeRepoMock.find).toHaveBeenCalledWith();
     });
-
   });
 
   describe('findNearby', () => {

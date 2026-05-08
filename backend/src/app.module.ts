@@ -26,7 +26,6 @@ import { NotificationsModule } from './core/notifications/notifications.module';
 import { SupportModule } from './core/support/support.module';
 import { ReportsModule } from './core/reports/reports.module';
 
-
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'node:path';
 

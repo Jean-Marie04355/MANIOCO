@@ -85,14 +85,22 @@ export class OrdersService {
       this.notifyAdminsOfNewOrder(order, validatedTotalAmount);
 
       // Initialize Chat conversation automatically
-      await this.chatService.findOrCreateConversation(order.customerId, store.id);
+      await this.chatService.findOrCreateConversation(
+        order.customerId,
+        store.id,
+      );
     } catch (error: any) {
-      this.logger.error(`Notification/Chat error for order ${order.id}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Notification/Chat error for order ${order.id}: ${error.message}`,
+        error.stack,
+      );
     }
 
     // 5. Update stocks
     for (const item of validatedItems) {
-      const product = await this.productRepository.findOne({ id: item.productId } as object);
+      const product = await this.productRepository.findOne({
+        id: item.productId,
+      } as object);
       await this.productRepository.update(product.id, {
         stock: Number(product.stock) - Number(item.quantity),
       });
@@ -117,11 +125,14 @@ export class OrdersService {
       } catch (rollbackError) {
         this.logger.error(
           `Failed to rollback order ${order.id} after payment initiation error`,
-          rollbackError instanceof Error ? rollbackError.stack : String(rollbackError),
+          rollbackError instanceof Error
+            ? rollbackError.stack
+            : String(rollbackError),
         );
       }
 
-      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
       this.logger.error(
         `Order creation/payment failed for store ${store.id}`,
         error instanceof Error ? error.stack : errorMessage,
@@ -148,30 +159,35 @@ export class OrdersService {
         });
       }
     } catch (error: any) {
-      this.logger.error(`Failed to notify admins of new order ${order.id}: ${error.message}`, error.stack);
+      this.logger.error(
+        `Failed to notify admins of new order ${order.id}: ${error.message}`,
+        error.stack,
+      );
     }
   }
 
   async restoreStock(orderId: string): Promise<void> {
-    const order = await this.orderRepository.findOne({ where: { id: orderId } } as any);
+    const order = await this.orderRepository.findOne({
+      where: { id: orderId },
+    } as any);
     if (!order?.items) return;
 
     const UNIT_FACTORS: Record<string, number> = {
-      'Sac': 50,
+      Sac: 50,
       'Demi-sac': 25,
-      'Kg': 1,
-      'Demi-kg': 0.5
+      Kg: 1,
+      'Demi-kg': 0.5,
     };
 
     for (const item of order.items) {
       const product = await this.productRepository.findOne({
         where: { id: item.productId },
       } as any);
-      
+
       if (product) {
         const factor = UNIT_FACTORS[item.unit] || 1;
         const totalWeightToRestore = item.quantity * factor;
-        
+
         await this.productRepository.update(product.id, {
           stock: Number(product.stock) + totalWeightToRestore,
         });
@@ -186,9 +202,9 @@ export class OrdersService {
     const order = await this.orderRepository.findOne({ where: { id } } as any);
     if (!order || order.status === OrderStatus.CANCELLED) return order;
 
-    await this.orderRepository.update(id, { 
+    await this.orderRepository.update(id, {
       status: OrderStatus.CANCELLED,
-      cancellationReason: reason || 'Non spécifiée'
+      cancellationReason: reason || 'Non spécifiée',
     });
     await this.restoreStock(id);
 
@@ -199,10 +215,16 @@ export class OrdersService {
         type: NotificationType.ORDER,
         title: 'Commande annulée',
         message: `Votre commande #${order.id.split('-')[0]} a été annulée. Motif : ${reason || 'Non spécifié'}.`,
-        metadata: JSON.stringify({ orderId: order.id, status: OrderStatus.CANCELLED }),
+        metadata: JSON.stringify({
+          orderId: order.id,
+          status: OrderStatus.CANCELLED,
+        }),
       });
     } catch (e: any) {
-      this.logger.error(`Failed to notify customer of cancellation for order ${id}: ${e.message}`, e.stack);
+      this.logger.error(
+        `Failed to notify customer of cancellation for order ${id}: ${e.message}`,
+        e.stack,
+      );
     }
 
     return this.orderRepository.findOne({ where: { id } } as any);
@@ -219,28 +241,30 @@ export class OrdersService {
     if (user.role === UserRole.VENDEUR) {
       try {
         const store = await this.storeService.findByOwnerId(user.userId);
-        return this.orderRepository.find({ 
+        return this.orderRepository.find({
           where: { storeId: store.id },
           relations: ['customer'],
-          order: { createdAt: 'DESC' }
+          order: { createdAt: 'DESC' },
         } as any);
       } catch (error: any) {
-        this.logger.warn(`No store found for vendor ${user.userId}, returning empty orders list: ${error.message}`);
+        this.logger.warn(
+          `No store found for vendor ${user.userId}, returning empty orders list: ${error.message}`,
+        );
         return [];
       }
     }
 
-    return this.orderRepository.find({ 
-      where: { customerId: user.userId }, 
+    return this.orderRepository.find({
+      where: { customerId: user.userId },
       relations: ['store'],
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     } as any);
   }
 
   async findOne(id: string, user: AuthenticatedUser): Promise<Order | null> {
-    const order = await this.orderRepository.findOne({ 
-      where: { id }, 
-      relations: ['customer', 'store'] 
+    const order = await this.orderRepository.findOne({
+      where: { id },
+      relations: ['customer', 'store'],
     } as any);
 
     if (!order) {
@@ -255,7 +279,9 @@ export class OrdersService {
     if (user.role === UserRole.VENDEUR) {
       const store = await this.storeService.findByOwnerId(user.userId);
       if (String(order.storeId) !== String(store.id)) {
-        this.logger.warn(`Access denied for vendor ${user.userId} to order ${id}. Order storeId: ${order.storeId}, Vendor storeId: ${store.id}`);
+        this.logger.warn(
+          `Access denied for vendor ${user.userId} to order ${id}. Order storeId: ${order.storeId}, Vendor storeId: ${store.id}`,
+        );
         throw new ForbiddenException('You do not have access to this order');
       }
       return order;
@@ -277,10 +303,10 @@ export class OrdersService {
       user.role === UserRole.SUPER_ADMIN ||
       user.userId === customerId
     ) {
-      return this.orderRepository.find({ 
+      return this.orderRepository.find({
         where: { customerId },
         relations: ['store'],
-        order: { createdAt: 'DESC' }
+        order: { createdAt: 'DESC' },
       } as any);
     }
     throw new ForbiddenException('You do not have access to these orders');
@@ -302,22 +328,29 @@ export class OrdersService {
       return this.orderRepository.find({
         where: { storeId },
         relations: ['customer'],
-        order: { createdAt: 'DESC' }
+        order: { createdAt: 'DESC' },
       } as any);
     }
 
     throw new ForbiddenException('You do not have access to these orders');
   }
 
-  async updateStatus(id: string, status: OrderStatus, user: AuthenticatedUser, reason?: string): Promise<Order | null> {
-    this.logger.log(`Updating status for order ${id} to ${status} by user ${user.userId}`);
-    
+  async updateStatus(
+    id: string,
+    status: OrderStatus,
+    user: AuthenticatedUser,
+    reason?: string,
+  ): Promise<Order | null> {
+    this.logger.log(
+      `Updating status for order ${id} to ${status} by user ${user.userId}`,
+    );
+
     // Check if order exists and user has permission
-    const order = await this.findOne(id, user); 
-    
+    const order = await this.findOne(id, user);
+
     // Only vendors (owners) and admins can update status
     if (user.role === UserRole.CLIENT) {
-        throw new ForbiddenException('Clients cannot update order status');
+      throw new ForbiddenException('Clients cannot update order status');
     }
 
     if (status === OrderStatus.CANCELLED) {
@@ -327,7 +360,7 @@ export class OrdersService {
     try {
       await this.orderRepository.update(id, { status });
       this.logger.log(`Order ${id} status updated successfully to ${status}`);
-      
+
       // Notify the customer about the status update
       try {
         let statusLabel = status.toLowerCase();
@@ -343,14 +376,20 @@ export class OrdersService {
           metadata: JSON.stringify({ orderId: order.id, status }),
         });
       } catch (notifError) {
-        this.logger.error(`Failed to notify customer for order ${id}: ${notifError.message}`);
+        this.logger.error(
+          `Failed to notify customer for order ${id}: ${notifError.message}`,
+        );
       }
 
       // Reload order to return updated version
       return this.findOne(id, user);
     } catch (error) {
-      this.logger.error(`Failed to update order ${id} status: ${error.message}`);
-      throw new BadRequestException(`Erreur lors de la mise à jour du statut: ${error.message}`);
+      this.logger.error(
+        `Failed to update order ${id} status: ${error.message}`,
+      );
+      throw new BadRequestException(
+        `Erreur lors de la mise à jour du statut: ${error.message}`,
+      );
     }
   }
 
@@ -370,7 +409,7 @@ export class OrdersService {
     if (!order) return null;
 
     await this.orderRepository.update(id, { status });
-    
+
     // Notify the customer (Internal system update)
     try {
       let statusLabel = status.toLowerCase();
@@ -386,7 +425,10 @@ export class OrdersService {
         metadata: JSON.stringify({ orderId: order.id, status }),
       });
     } catch (e: any) {
-      this.logger.error(`Failed to send internal status notification for order ${id}: ${e.message}`, e.stack);
+      this.logger.error(
+        `Failed to send internal status notification for order ${id}: ${e.message}`,
+        e.stack,
+      );
     }
 
     return this.orderRepository.findOne({ where: { id } } as any);
@@ -401,28 +443,35 @@ export class OrdersService {
 
     // 1. Total Sales Count (DB Level)
     const totalSalesCount = await this.orderRepository.count({
-      where: paidStatuses.map(status => ({ status })),
+      where: paidStatuses.map((status) => ({ status })),
     } as any);
 
     // 2. Total Revenue
     // Since we don't have a sum() in IBaseRepository, we still load paid orders
     // but we filter them at the DB level to minimize memory usage.
     const paidOrders = await this.orderRepository.find({
-      where: paidStatuses.map(status => ({ status })),
+      where: paidStatuses.map((status) => ({ status })),
       select: ['totalAmount', 'commissionAmount', 'createdAt'],
     } as any);
 
     const totalRevenue = paidOrders.reduce((sum, o) => {
       const amount = Number(o.commissionAmount);
-      const actualCommission = amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
+      const actualCommission =
+        amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
       return sum + actualCommission;
     }, 0);
 
     // 3. User counts (DB Level)
-    const sellersCount = await this.userRepository.count({ where: { role: UserRole.VENDEUR } } as any);
-    const customersCount = await this.userRepository.count({ where: { role: UserRole.CLIENT } } as any);
+    const sellersCount = await this.userRepository.count({
+      where: { role: UserRole.VENDEUR },
+    } as any);
+    const customersCount = await this.userRepository.count({
+      where: { role: UserRole.CLIENT },
+    } as any);
     const totalUsers = await this.userRepository.count();
-    const pendingKycCount = await this.userRepository.count({ where: { kycStatus: 'PENDING' } } as any);
+    const pendingKycCount = await this.userRepository.count({
+      where: { kycStatus: 'PENDING' },
+    } as any);
 
     // 4. Active Tickets
     const activeTicketsCount = await this.supportService.countActiveTickets();
@@ -436,10 +485,13 @@ export class OrdersService {
       const dateStr = targetDate.toISOString().split('T')[0];
 
       const dayRevenue = paidOrders
-        .filter(o => new Date(o.createdAt).toISOString().split('T')[0] === dateStr)
+        .filter(
+          (o) => new Date(o.createdAt).toISOString().split('T')[0] === dateStr,
+        )
         .reduce((sum, o) => {
           const amount = Number(o.commissionAmount);
-          const actualCommission = amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
+          const actualCommission =
+            amount > 0 ? amount : Number(o.totalAmount || 0) * 0.1;
           return sum + actualCommission;
         }, 0);
 
@@ -466,7 +518,9 @@ export class OrdersService {
     return store;
   }
 
-  private async validateAndCalculateItems(createOrderDto: CreateOrderDto): Promise<{
+  private async validateAndCalculateItems(
+    createOrderDto: CreateOrderDto,
+  ): Promise<{
     validatedTotalAmount: number;
     validatedItems: any[];
   }> {
