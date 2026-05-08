@@ -3,8 +3,8 @@ include:
     file: 'svcitemplate.yml'
     ref: 'main'
 
-# On renomme notre job pour correspondre à ce que le template attend
-test_coverage_node:
+# Noms uniques pour éviter tout conflit avec le template
+afrigari-backend-coverage:
   stage: check
   image: node:20-alpine
   tags:
@@ -19,8 +19,7 @@ test_coverage_node:
       - backend/coverage/lcov.info
     expire_in: 1 day
 
-# On garde notre job frontend à part
-frontend-coverage:
+afrigari-frontend-coverage:
   stage: check
   image: node:20-alpine
   tags:
@@ -35,7 +34,7 @@ frontend-coverage:
       - frontend/coverage/lcov.info
     expire_in: 1 day
 
-# On surcharge Sonar en rendant les dépendances manquantes OPTIONNELLES
+# Surcharge de Sonar : on rend TOUT optionnel sauf NOS jobs
 sonarqube-checker:
   needs: 
     - job: svscanners_check
@@ -49,11 +48,13 @@ sonarqube-checker:
     - job: security_check
       optional: true
     - job: test_coverage_node
-      optional: false # Celui-là on le veut absolument !
+      optional: true
     - job: test_coverage_fastapi
       optional: true
-    - job: frontend-coverage
-      optional: false # Celui-là aussi !
+    - job: afrigari-backend-coverage
+      optional: false
+    - job: afrigari-frontend-coverage
+      optional: false
   variables:
     SONAR_SOURCES: "backend/src,frontend/src"
     SONAR_SCANNER_OPTS: "-Xmx4096m"
