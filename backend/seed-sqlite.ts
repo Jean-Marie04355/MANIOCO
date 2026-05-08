@@ -21,7 +21,9 @@ async function seedSqlite() {
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const existing = await userRepository.findOneBy({ email });
-  if (!existing) {
+  if (existing) {
+    console.log('Admin already exists in SQLite.');
+  } else {
     const admin = userRepository.create({
       name: 'Admin Afrigari',
       email,
@@ -30,8 +32,6 @@ async function seedSqlite() {
     });
     await userRepository.save(admin);
     console.log('Admin created successfully in SQLite!');
-  } else {
-    console.log('Admin already exists in SQLite.');
   }
 
   await AppDataSource.destroy();

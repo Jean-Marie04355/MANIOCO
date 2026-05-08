@@ -47,18 +47,19 @@ export class PermissionsGuard implements CanActivate {
 
     // 3. Combinaison des permissions du rôle et des permissions spécifiques
     const userSpecificPermissions = (user.permissions as string[]) || [];
-    const allUserPermissions = [
-      ...new Set([...(role.permissions || []), ...userSpecificPermissions]),
-    ];
+    const allUserPermissions = new Set([
+      ...(role.permissions || []),
+      ...userSpecificPermissions,
+    ]);
 
     // 4. Bypass global (Check '*' permission)
-    if (allUserPermissions.includes(Permission.ALL)) {
+    if (allUserPermissions.has(Permission.ALL as any)) {
       return true;
     }
 
     // 4. Check if all required permissions are met
     const hasPermission = requiredPermissions.every((permission) =>
-      allUserPermissions.includes(permission),
+      allUserPermissions.has(permission),
     );
 
     if (!hasPermission) {

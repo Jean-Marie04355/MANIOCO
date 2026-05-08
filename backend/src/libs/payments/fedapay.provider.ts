@@ -70,9 +70,9 @@ export class FedaPayProvider implements IPaymentProvider {
             : undefined,
           include: 'payouts',
           customer: params.customer ? {
-            firstname: (params.customer.firstname || (params.customer.email ? params.customer.email.split('@')[0] : 'Client')) as string,
-            lastname: (params.customer.lastname || 'Afrigari') as string,
-            email: params.customer.email as string,
+            firstname: params.customer.firstname || (params.customer.email ? params.customer.email.split('@')[0] : 'Client'),
+            lastname: params.customer.lastname || 'Afrigari',
+            email: params.customer.email,
             phone_number: params.customer.phoneNumber ? {
               number: params.customer.phoneNumber.replaceAll(/\D/g, '').replace(/^229/, ''),
               country: 'BJ'

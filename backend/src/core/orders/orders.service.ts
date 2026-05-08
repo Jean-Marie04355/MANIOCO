@@ -13,8 +13,6 @@ import { Order } from './order.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { PaymentsService } from '../payments/payments.service';
 import { Store } from '../store/store.entity';
-import { SupportModule } from '../support/support.module';
-import { ChatModule } from '../chat/chat.module';
 import { Product } from '../products/product.entity';
 import { User } from '../users/user.entity';
 import { OrderStatus } from '../../common/enum/order-status.enum';
@@ -50,90 +48,14 @@ export class OrdersService {
   async create(
     createOrderDto: CreateOrderDto,
   ): Promise<{ order: Order; paymentUrl: string }> {
-    // 1. Check if the store exists and has a payout account
-    const store = await this.storeRepository.findOne({
-      id: createOrderDto.storeId,
-    } as object);
+    const store = await this.validateStore(createOrderDto.storeId);
+    const { validatedTotalAmount, validatedItems } =
+      await this.validateAndCalculateItems(createOrderDto);
 
-    if (!store) {
-      throw new NotFoundException(`Store not found`);
-    }
-
-    /* Bypass pour la démo : On autorise la création même sans compte de paiement 
-    if (!store.payoutAccountId) {
-      throw new BadRequestException(
-        `This store is not yet configured to receive payments. The seller must provide a FedaPay subaccount ID.`,
-      );
-    }
-    */
-
-    // 2. Validate products and recalculate the actual total amount
-    let validatedTotalAmount = 0;
-    const validatedItems: any[] = [];
-
-
-    for (const item of createOrderDto.items) {
-      const product = await this.productRepository.findOne({
-        id: item.productId,
-      } as object);
-
-      if (!product) {
-        throw new BadRequestException(
-          `Product with ID ${item.productId} does not exist.`,
-        );
-      }
-
-      // Check if the product belongs to the store
-      if (String(product.storeId) !== String(createOrderDto.storeId)) {
-        throw new BadRequestException(
-          `The product ${product.name} does not belong to this store.`,
-        );
-      }
-
-      // Stock is handled as the sellable quantity for the selected unit
-      const requestedQuantity = Number(item.quantity);
-
-      if (Number(product.stock) < requestedQuantity) {
-        throw new BadRequestException(
-          `Stock insuffisant pour le produit ${product.name} (Disponible: ${product.stock}, Demandé: ${requestedQuantity})`,
-        );
-      }
-
-      // Calculate price based on the unit conversion
-      const UNIT_FACTORS: Record<string, number> = {
-        'Sac': 50,
-        'Demi-sac': 25,
-        'Kg': 1,
-        'Demi-kg': 0.5,
-      };
-
-      // Determine the price for 1 Kg based on the product's default unit
-      const productReferenceUnit = product.unit || 'Kg';
-      const referenceFactor = UNIT_FACTORS[productReferenceUnit] || 1;
-      const basePricePerKg = Number(product.price) / referenceFactor;
-
-      // Calculate price for the unit requested by the customer
-      const requestedFactor = UNIT_FACTORS[item.unit] || 1;
-      const priceForRequestedUnit = basePricePerKg * requestedFactor;
-      
-      const itemTotalCost = priceForRequestedUnit * requestedQuantity;
-      validatedTotalAmount += itemTotalCost;
-
-      validatedItems.push({
-        ...item,
-        productName: product.name,
-        productImage: product.image,
-        price: priceForRequestedUnit,
-        unit: item.unit,
-      });
-    }
-
-    // 3. Calculate platform commission (default 10%)
-    const DEFAULT_COMMISSION_RATE = 10.0;
+    const DEFAULT_COMMISSION_RATE = 10;
     const commissionAmount =
       (validatedTotalAmount * DEFAULT_COMMISSION_RATE) / 100;
 
-    // 4. Create the order in the database
     const orderData = {
       ...createOrderDto,
       status: OrderStatus.PENDING,
@@ -534,5 +456,73 @@ export class OrdersService {
       totalUsers,
       revenueHistory,
     };
+  }
+
+  private async validateStore(storeId: string): Promise<Store> {
+    const store = await this.storeRepository.findOne({ id: storeId } as object);
+    if (!store) {
+      throw new NotFoundException(`Store not found`);
+    }
+    return store;
+  }
+
+  private async validateAndCalculateItems(createOrderDto: CreateOrderDto): Promise<{
+    validatedTotalAmount: number;
+    validatedItems: any[];
+  }> {
+    let validatedTotalAmount = 0;
+    const validatedItems: any[] = [];
+
+    const UNIT_FACTORS: Record<string, number> = {
+      Sac: 50,
+      'Demi-sac': 25,
+      Kg: 1,
+      'Demi-kg': 0.5,
+    };
+
+    for (const item of createOrderDto.items) {
+      const product = await this.productRepository.findOne({
+        id: item.productId,
+      } as object);
+
+      if (!product) {
+        throw new BadRequestException(
+          `Product with ID ${item.productId} does not exist.`,
+        );
+      }
+
+      if (String(product.storeId) !== String(createOrderDto.storeId)) {
+        throw new BadRequestException(
+          `The product ${product.name} does not belong to this store.`,
+        );
+      }
+
+      const requestedQuantity = Number(item.quantity);
+      if (Number(product.stock) < requestedQuantity) {
+        throw new BadRequestException(
+          `Stock insuffisant pour le produit ${product.name} (Disponible: ${product.stock}, Demandé: ${requestedQuantity})`,
+        );
+      }
+
+      const productReferenceUnit = product.unit || 'Kg';
+      const referenceFactor = UNIT_FACTORS[productReferenceUnit] || 1;
+      const basePricePerKg = Number(product.price) / referenceFactor;
+
+      const requestedFactor = UNIT_FACTORS[item.unit] || 1;
+      const priceForRequestedUnit = basePricePerKg * requestedFactor;
+
+      const itemTotalCost = priceForRequestedUnit * requestedQuantity;
+      validatedTotalAmount += itemTotalCost;
+
+      validatedItems.push({
+        ...item,
+        productName: product.name,
+        productImage: product.image,
+        price: priceForRequestedUnit,
+        unit: item.unit,
+      });
+    }
+
+    return { validatedTotalAmount, validatedItems };
   }
 }

@@ -55,11 +55,12 @@ export class SupportService {
     // Attach messages (simplistic relation loading since IBaseRepository might not support relations directly)
     const messages = await this.ticketMessageRepository.find({ ticketId: id });
 
-    // Sort messages by creation date if needed (assuming DB returns them ordered or we sort here)
-    ticket.messages = messages.sort(
+    // Sort messages by creation date (separate statement to avoid mutation warning)
+    const sortedMessages = [...messages].sort(
       (a: any, b: any) =>
         new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
     );
+    ticket.messages = sortedMessages;
 
     return ticket;
   }
@@ -96,9 +97,9 @@ export class SupportService {
   }
 
   async countActiveTickets(): Promise<number> {
-    const activeStatuses = [TicketStatus.OPEN, TicketStatus.IN_PROGRESS];
+    const activeStatuses = new Set([TicketStatus.OPEN, TicketStatus.IN_PROGRESS]);
     const tickets = await this.ticketRepository.find();
     // On filtre manuellement car le dépôt peut varier (SQL/NoSQL)
-    return tickets.filter((t: any) => activeStatuses.includes(t.status)).length;
+    return tickets.filter((t: any) => activeStatuses.has(t.status)).length;
   }
 }

@@ -5,7 +5,7 @@ import { ConfigService } from '@nestjs/config';
 
 import { UsersService } from '../users/users.service';
 import { IQueueService } from '../../common/interfaces/queue.interface';
-import { comparePassword, hashPassword } from '../../common/helpers/hash.helper';
+import { comparePassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
 import { User } from '../users/user.entity';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -223,7 +223,7 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
     const user = await this.usersService.findByResetToken(token);
     
-    if (!user || !user.resetPasswordExpires || new Date() > user.resetPasswordExpires) {
+    if (user?.resetPasswordExpires == null || new Date() > user.resetPasswordExpires) {
       throw new BadRequestException('Invalid or expired reset token.');
     }
 

@@ -63,8 +63,8 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         await this.s3Client.send(
           new HeadBucketCommand({ Bucket: this.bucketName }),
         );
-      } catch (error) {
-        this.logger.log(`Bucket ${this.bucketName} not found, creating it...`);
+      } catch (error: any) {
+        this.logger.log(`Bucket ${this.bucketName} not found or inaccessible (${error.message}), attempting to create it...`);
         await this.s3Client.send(
           new CreateBucketCommand({ Bucket: this.bucketName }),
         );
@@ -151,8 +151,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
 
       // Return signed URL (valid for 7 days)
       return await this.presignedGetObject(name);
-    } catch (error) {
-      const err = error as any;
+    } catch (err: any) {
       this.logger.error(`Error uploading to S3: ${err.message}`, err.stack);
       console.error('FULL S3 ERROR:', err);
       throw new HttpException(

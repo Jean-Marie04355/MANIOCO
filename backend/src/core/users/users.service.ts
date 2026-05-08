@@ -12,7 +12,6 @@ import { hashPassword } from '../../common/helpers/hash.helper';
 import { UserRole } from '../../common/enum/role.enum';
 import { IBaseRepository } from '../../database/index';
 import { AuditService } from '../audit/audit.service';
-import { AuditAction } from '../audit/audit-log.entity';
 import { NotificationsService } from '../notifications/notifications.service';
 import { NotificationType } from '../notifications/notification.entity';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -70,7 +69,7 @@ export class UsersService {
 
         // Calcul ancienneté (en jours)
         const diffTime = Math.abs(
-          new Date().getTime() - new Date(user.createdAt).getTime(),
+          Date.now() - new Date(user.createdAt).getTime(),
         );
         stats.seniority = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
@@ -179,8 +178,8 @@ export class UsersService {
           metadata: JSON.stringify({ userId: user.id }),
         });
       }
-    } catch (error) {
-      this.logger.error(`Failed to notify admins of new user registration for user ${user.id}`);
+    } catch (error: any) {
+      this.logger.error(`Failed to notify admins of new user registration for user ${user.id}: ${error.message}`);
     }
   }
 
@@ -231,8 +230,7 @@ export class UsersService {
 
     // Handle Base64 profile photo upload to S3
     if (
-      updateUserDto.profilePhoto &&
-      updateUserDto.profilePhoto.startsWith('data:image')
+      updateUserDto.profilePhoto?.startsWith('data:image')
     ) {
       try {
         const base64Data = updateUserDto.profilePhoto.split(',')[1];
@@ -247,8 +245,8 @@ export class UsersService {
         });
 
         updateUserDto.profilePhoto = fileUrl;
-      } catch (error) {
-        this.logger.error(`Erreur lors de l'upload de la photo de profil vers S3 pour l'utilisateur ${id}`);
+      } catch (error: any) {
+        this.logger.error(`Erreur lors de l'upload de la photo de profil vers S3 pour l'utilisateur ${id}: ${error.message}`);
       }
     }
 
@@ -266,7 +264,7 @@ export class UsersService {
     const updatedFields: any = { ...kycData, kycStatus: 'PENDING' };
 
     for (const field of photoFields) {
-      if (kycData[field] && kycData[field].startsWith('data:image')) {
+      if (kycData[field]?.startsWith('data:image')) {
         const base64Data = kycData[field].split(',')[1];
         const mimeType = kycData[field].split(';')[0].split(':')[1];
         const extension = mimeType.split('/')[1];
@@ -306,8 +304,8 @@ export class UsersService {
           metadata: JSON.stringify({ userId: user.id, action: 'KYC_REVIEW' }),
         });
       }
-    } catch (error) {
-      this.logger.error(`Failed to notify admins of KYC submission for user ${user.id}`);
+    } catch (error: any) {
+      this.logger.error(`Failed to notify admins of KYC submission for user ${user.id}: ${error.message}`);
     }
   }
 
