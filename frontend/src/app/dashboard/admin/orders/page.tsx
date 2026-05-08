@@ -37,10 +37,12 @@ export default function AdminOrdersManagement() {
             } catch (err: any) {
                 console.error("Erreur lors du chargement des commandes:");
                 const status = err.response?.status;
-                const message = status === 401 ? "Session expirée (401). Connectez-vous." :
-                               status === 403 ? "Accès refusé (403). Permissions insuffisantes." :
-                               status === 404 ? "Route introuvable (404). Vérifiez le backend." :
-                               "Erreur serveur ou connexion impossible.";
+                const statusMessages: Record<number, string> = {
+                  401: "Session expirée (401). Connectez-vous.",
+                  403: "Accès refusé (403). Permissions insuffisantes.",
+                  404: "Route introuvable (404). Vérifiez le backend."
+                };
+                const message = statusMessages[status as number] || "Erreur serveur ou connexion impossible.";
                 setError(`[${status || 'ERR'}] ${message}`);
             } finally {
                 setLoading(false);
@@ -60,7 +62,9 @@ export default function AdminOrdersManagement() {
             if (!customersMap.has(email)) {
                 customersMap.set(email, {
                     ...order.customer,
-                    avatar: order.customer.firstName ? (order.customer.firstName[0] + (order.customer.lastName ? order.customer.lastName[0] : '')).toUpperCase() : 'U',
+                    avatar: order.customer.firstName 
+                        ? (order.customer.firstName[0] + (order.customer.lastName?.[0] || '')).toUpperCase() 
+                        : 'U',
                     name: `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim(),
                     totalOrders: 0,
                     totalSpent: 0,

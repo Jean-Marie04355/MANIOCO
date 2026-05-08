@@ -1,5 +1,5 @@
 "use client";
-import { ShieldCheck, Lock, Mail, ArrowRight, User, Leaf, Fingerprint, Sparkles, Loader2, ChevronLeft } from 'lucide-react';
+import { ShieldCheck, Lock, ArrowRight, User, Leaf, Sparkles, Loader2, ChevronLeft } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -26,7 +26,7 @@ export default function AdminLoginPage() {
       setIsLoading(true);
 
       try {
-         const res = await api.post('/auth/admin/login', { email, password });
+         await api.post('/auth/admin/login', { email, password });
 
          sessionStorage.setItem('adminLoginEmail', email);
          router.push('/auth/admin/verify');

@@ -1,5 +1,5 @@
 "use client";
-import { ChevronLeft, ArrowRight, ShieldCheck, Timer, RefreshCw, Leaf, Sparkles, Loader2 } from 'lucide-react';
+import { ChevronLeft, ShieldCheck, Timer, RefreshCw, Leaf, Sparkles, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -127,7 +127,7 @@ export default function AdminVerifyPage() {
                <div className="flex justify-between gap-2.5">
                   {otp.map((data, index) => (
                      <input
-                        key={index}
+                        key={`otp-digit-${index}`}
                         type="text"
                         maxLength={1}
                         ref={el => { inputRefs.current[index] = el; }}

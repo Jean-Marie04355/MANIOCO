@@ -1,5 +1,5 @@
 "use client";
-import { Gem, ArrowRight, Mail, Lock, User, Leaf, Globe, Sparkles, ShieldCheck, CheckCircle2, Circle } from 'lucide-react';
+import { ArrowRight, Mail, Lock, User, Leaf, CheckCircle2 } from 'lucide-react';
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -69,11 +69,11 @@ export default function AuthPage() {
           router.push('/auth/pending-validation');
           return;
       }
-      if (!err.response) {
-        setError("Le serveur (backend) est injoignable.");
-      } else {
+      if (err.response) {
         const msg = err.response?.data?.message;
         setError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Identifiants incorrects'));
+      } else {
+        setError("Le serveur (backend) est injoignable.");
       }
     } finally {
       setIsLoading(false);
@@ -101,11 +101,11 @@ export default function AuthPage() {
         setRegisterSuccess(false);
       }, 1500);
     } catch (err: any) {
-      if (!err.response) {
-        setRegisterError("Le serveur (backend) est injoignable. Est-il bien démarré ?");
-      } else {
+      if (err.response) {
         const msg = err.response?.data?.message;
         setRegisterError(Array.isArray(msg) ? msg.join(', ') : (msg || "Erreur lors de l'inscription"));
+      } else {
+        setRegisterError("Le serveur (backend) est injoignable. Est-il bien démarré ?");
       }
     } finally {
       setIsRegistering(false);
@@ -204,7 +204,7 @@ export default function AuthPage() {
          </div>
 
          <div className="absolute top-0 left-1/2 h-full w-1/2 transition-all duration-700">
-            <div className={`h-full flex flex-col items-center justify-center p-12 lg:p-20 transition-all duration-700 ${!isSignIn ? 'opacity-100 scale-100' : 'opacity-0 scale-90 pointer-events-none translate-x-20'}`}>
+            <div className={`h-full flex flex-col items-center justify-center p-12 lg:p-20 transition-all duration-700 ${isSignIn ? 'opacity-0 scale-90 pointer-events-none translate-x-20' : 'opacity-100 scale-100'}`}>
                <div className="flex gap-2 mb-8 items-center">
                   <Leaf size={56} className="text-green-500" fill="currentColor" />
                   <span className="text-3xl font-black italic text-forest-green tracking-tighter">AFRIGARI</span>
