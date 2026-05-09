@@ -124,7 +124,7 @@
       "!**/email/**",
       "!**/cache/**"
     ],
-    "coverageDirectory": "./coverage",
+    "coverageDirectory": "../coverage",
     "testEnvironment": "node"
   },
   "overrides": {
