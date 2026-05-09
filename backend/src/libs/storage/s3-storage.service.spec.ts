@@ -34,6 +34,7 @@ describe('S3StorageService', () => {
     }).compile();
 
     service = module.get<S3StorageService>(S3StorageService);
+    await service.onModuleInit();
   });
 
   afterEach(async () => {

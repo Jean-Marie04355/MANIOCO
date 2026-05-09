@@ -101,6 +101,14 @@ describe('ProductsService', () => {
       expect(result).toEqual(cached);
       expect(repoMock.find).not.toHaveBeenCalled();
     });
+
+    it('should find by storeId', async () => {
+      repoMock.find.mockResolvedValue([]);
+      await service.findAll('store-1');
+      expect(repoMock.find).toHaveBeenCalledWith(expect.objectContaining({
+        where: { storeId: 'store-1' }
+      }));
+    });
   });
 
   describe('findOne', () => {
@@ -134,6 +142,40 @@ describe('ProductsService', () => {
         expect.objectContaining({
           image: 's3-url',
         }),
+      );
+    });
+
+    it('should handle image upload failure gracefully', async () => {
+      const dto = { name: 'Prod', image: 'data:image/png;base64,content' };
+      storageServiceMock.uploadFile.mockRejectedValue(new Error('S3 Down'));
+      repoMock.create.mockResolvedValue({ id: '1', ...dto });
+      repoMock.findOne.mockResolvedValue({ id: '1', ...dto });
+
+      await service.create(dto as any, mockAdmin as any);
+
+      expect(repoMock.create).toHaveBeenCalled(); // Should still create product without image
+    });
+
+    it('should set storeId for vendor user', async () => {
+      const vendorUser = { userId: 'v1', role: UserRole.VENDEUR };
+      const dto = { name: 'Prod' };
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-1' });
+      repoMock.create.mockResolvedValue({ id: '1', ...dto });
+      repoMock.findOne.mockResolvedValue({ id: '1', ...dto });
+
+      await service.create(dto as any, vendorUser as any);
+
+      expect(storeServiceMock.findByOwnerId).toHaveBeenCalledWith('v1');
+      expect(repoMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({ storeId: 'store-1' }),
+      );
+    });
+
+    it('should throw Forbidden if vendor has no store', async () => {
+      const vendorUser = { userId: 'v1', role: UserRole.VENDEUR };
+      storeServiceMock.findByOwnerId.mockRejectedValue(new Error('No store'));
+      await expect(service.create({ name: 'P' } as any, vendorUser as any)).rejects.toThrow(
+        ForbiddenException,
       );
     });
   });

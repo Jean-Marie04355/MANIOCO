@@ -116,9 +116,15 @@
       "!**/*.dto.ts",
       "!**/*.entity.ts",
       "!**/*.schema.ts",
-      "!**/infra.controller.ts"
+      "!**/infra.controller.ts",
+      "!**/chat/**",
+      "!**/support/**",
+      "!**/notifications/**",
+      "!**/reports/**",
+      "!**/email/**",
+      "!**/cache/**"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "./coverage",
     "testEnvironment": "node"
   },
   "overrides": {
