@@ -2,6 +2,14 @@ include:
   - project: 'devopsTeam/devopstemplatefiles'
     file: 'svcitemplate.yml'
     ref: 'main'
+ 
+# Cache global pour accélérer les installations
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - backend/node_modules/
+    - frontend/node_modules/
+  policy: pull-push
 
 # Génération couverture Backend
 afrigari-backend-coverage:
@@ -9,11 +17,12 @@ afrigari-backend-coverage:
   image: node:20-alpine
   tags:
     - easyjob
+  services: [] # Désactive Docker pour gagner du temps
   before_script:
-    - apk add --no-cache python3 make g++
+    - node -v
   script:
     - cd backend
-    - npm install --prefer-offline --legacy-peer-deps
+    - npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps
     - npx jest --coverage --coverageReporters=lcov --coverageReporters=text --coverageDirectory=coverage --passWithNoTests --detectOpenHandles
     - sed -i "s|^SF:|SF:backend/|g" coverage/lcov.info
     - head -n 5 coverage/lcov.info
@@ -30,7 +39,7 @@ afrigari-frontend-coverage:
     - easyjob
   script:
     - cd frontend
-    - npm install --prefer-offline --legacy-peer-deps
+    - npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps
     - npm run test:cov
     - sed -i "s|^SF:|SF:frontend/|g" coverage/lcov.info
     - head -n 5 coverage/lcov.info
