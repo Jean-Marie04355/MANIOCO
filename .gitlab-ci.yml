@@ -15,7 +15,8 @@ afrigari-backend-coverage:
     - cd backend
     - npm install --prefer-offline --legacy-peer-deps
     - npx jest --coverage --coverageReporters=lcov --coverageReporters=text --coverageDirectory=coverage --passWithNoTests --detectOpenHandles
-    - find . -name lcov.info -exec sed -i 's|^SF:|SF:backend/|' {} +
+    - sed -i "s|^SF:|SF:backend/|g" coverage/lcov.info
+    - head -n 5 coverage/lcov.info
   artifacts:
     paths:
       - backend/coverage/lcov.info
@@ -31,7 +32,8 @@ afrigari-frontend-coverage:
     - cd frontend
     - npm install --prefer-offline --legacy-peer-deps
     - npm run test:cov
-    - sed -i 's|^SF:|SF:frontend/|' coverage/lcov.info
+    - sed -i "s|^SF:|SF:frontend/|g" coverage/lcov.info
+    - head -n 5 coverage/lcov.info
   artifacts:
     paths:
       - frontend/coverage/lcov.info
@@ -59,6 +61,5 @@ sonarqube-checker:
     - job: afrigari-frontend-coverage
       optional: false
   variables:
-    SONAR_SOURCES: "backend/src,frontend/src"
     SONAR_SCANNER_OPTS: "-Xmx4096m"
     SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
