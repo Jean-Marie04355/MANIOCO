@@ -109,9 +109,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         );
       }
     } catch (error) {
-      this.logger.error(
-        `Could not ensure bucket existence: ${(error as Error).message}`,
-      );
+      this.logger.error('Could not ensure bucket existence');
     }
   }
 
@@ -162,10 +160,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       // Return signed URL (valid for 7 days)
       return await this.presignedGetObject(name);
     } catch (err: any) {
-      this.logger.error(`Error uploading to S3: ${err.message}`, err.stack);
-      console.error('FULL S3 ERROR:', err);
+      this.logger.error('Error uploading to S3 storage');
       throw new HttpException(
-        `Error uploading file: ${err.message}`,
+        'Error uploading file',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -181,10 +178,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         }),
       );
     } catch (error) {
-      const err = error as Error;
-      this.logger.error(`Error deleting from S3: ${err.message}`);
+      this.logger.error('Error deleting from S3 storage');
       throw new HttpException(
-        `Error deleting file: ${err.message}`,
+        'Error deleting file',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -202,12 +198,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         }),
       );
     } catch (error) {
-      const err = error as Error;
-      this.logger.error(
-        `Error deleting multiple files from S3: ${err.message}`,
-      );
+      this.logger.error('Error deleting multiple files from S3 storage');
       throw new HttpException(
-        `Error deleting files: ${err.message}`,
+        'Error deleting files',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -228,8 +221,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         `${this.endpoint}/${this.bucketName}/${key}`,
       );
     } catch (error) {
-      const err = error as Error;
-      this.logger.error(`Error generating URL: ${err.message}`);
+      this.logger.error('Error generating signed URL');
       return await Promise.resolve(objectName);
     }
   }
@@ -243,10 +235,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       );
       return response.Contents?.map((obj) => obj.Key || '') || [];
     } catch (error) {
-      const err = error as Error;
-      this.logger.error(`Error listing objects: ${err.message}`);
+      this.logger.error('Error listing objects from S3 storage');
       throw new HttpException(
-        `Error listing objects: ${err.message}`,
+        'Error listing objects',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
