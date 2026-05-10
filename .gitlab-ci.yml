@@ -4,6 +4,7 @@ include:
 
 stages:
   - test
+  - post-test
   - deploy
 
 afrigari-backend-coverage:
@@ -14,7 +15,6 @@ afrigari-backend-coverage:
     - npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps
     - npm run test:cov -- --coverageReporters=lcov --coverageReporters=text --passWithNoTests --detectOpenHandles
     - sed -i "s|^SF:|SF:backend/|g" coverage/lcov.info
-    - head -n 5 coverage/lcov.info
   artifacts:
     paths:
       - backend/coverage/lcov.info
@@ -28,28 +28,32 @@ afrigari-frontend-coverage:
     - npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps
     - npm run test:cov
     - sed -i "s|^SF:|SF:frontend/|g" coverage/lcov.info
-    - head -n 5 coverage/lcov.info
   artifacts:
     paths:
       - frontend/coverage/lcov.info
     expire_in: 1 day
 
-sonarqube-checker:
-  stage: deploy
-  dependencies:
+merge-coverage:
+  stage: post-test
+  image: alpine:latest
+  needs:
     - afrigari-backend-coverage
     - afrigari-frontend-coverage
-  before_script:
+  script:
     - mkdir -p coverage
     - |
       if [ -f backend/coverage/lcov.info ]; then
-        cp backend/coverage/lcov.info coverage/lcov.info
+        cat backend/coverage/lcov.info > coverage/lcov.info
         echo "Backend coverage merged"
       fi
       if [ -f frontend/coverage/lcov.info ]; then
         cat frontend/coverage/lcov.info >> coverage/lcov.info
         echo "Frontend coverage merged"
       fi
-  variables:
-    SONAR_SCANNER_OPTS: "-Xmx4096m"
-    SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
+    - ls -lh coverage/lcov.info
+  artifacts:
+    paths:
+      - coverage/lcov.info
+    expire_in: 1 day
+
+# On ne touche plus au job sonarqube-checker, il récupérera l'artefact de merge-coverage automatiquement
