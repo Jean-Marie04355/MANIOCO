@@ -69,6 +69,15 @@ sonarqube-checker:
       optional: false
     - job: afrigari-frontend-coverage
       optional: false
+  before_script:
+    - mkdir -p coverage
+    - |
+      if [ -f backend/coverage/lcov.info ]; then
+        cat backend/coverage/lcov.info > coverage/lcov.info
+      fi
+      if [ -f frontend/coverage/lcov.info ]; then
+        cat frontend/coverage/lcov.info >> coverage/lcov.info
+      fi
   variables:
     SONAR_SCANNER_OPTS: "-Xmx4096m"
     SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
