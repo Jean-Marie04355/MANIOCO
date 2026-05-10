@@ -149,14 +149,16 @@ export class OrdersService {
         where: [{ role: UserRole.ADMIN }, { role: UserRole.SUPER_ADMIN }],
       } as any);
 
-      for (const admin of admins) {
-        await this.notificationsService.create({
-          userId: admin.id,
-          type: NotificationType.ORDER,
-          title: 'Nouvelle vente Afrigari',
-          message: `Une commande de ${amount.toLocaleString()} FCFA vient d'être passée (#${order.id.split('-')[0]}).`,
-          metadata: JSON.stringify({ orderId: order.id }),
-        });
+      if (Array.isArray(admins)) {
+        for (const admin of admins) {
+          await this.notificationsService.create({
+            userId: admin.id,
+            type: NotificationType.ORDER,
+            title: 'Nouvelle vente Afrigari',
+            message: `Une commande de ${amount.toLocaleString()} FCFA vient d'être passée (#${order.id.split('-')[0]}).`,
+            metadata: JSON.stringify({ orderId: order.id }),
+          });
+        }
       }
     } catch (error: any) {
       this.logger.error(
