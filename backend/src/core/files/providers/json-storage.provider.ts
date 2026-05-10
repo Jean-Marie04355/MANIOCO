@@ -43,7 +43,7 @@ export class JsonStorageProvider implements IFileStorage {
           );
         }
       }
-      const uploadsDir = 'uploads';
+      const uploadsDir = path.resolve('uploads');
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
@@ -51,6 +51,11 @@ export class JsonStorageProvider implements IFileStorage {
       const sanitizedOriginalName = file.originalname ? path.basename(file.originalname).replaceAll(/[^a-zA-Z0-9.-]/g, '_') : 'upload.jpg';
       const filename = `${Date.now()}-${sanitizedOriginalName}`;
       const filePath = path.join(uploadsDir, filename);
+
+      // Path traversal protection: ensure the final path is still within uploadsDir
+      if (!filePath.startsWith(uploadsDir)) {
+        throw new Error('Invalid file path');
+      }
 
       if (file.buffer) {
         fs.writeFileSync(filePath, file.buffer);
