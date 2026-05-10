@@ -41,9 +41,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
     );
 
     const region = this.configService.get<string>('S3_REGION', 'us-east-1');
-    this.logger.debug(
-      `Configuring S3 Client - Endpoint: ${this.endpoint}, Region: ${region}`,
-    );
+    this.logger.debug('Configuring S3 Client');
 
     this.s3Client = new S3Client({
       region,
@@ -69,14 +67,14 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         await this.s3Client.send(
           new HeadBucketCommand({ Bucket: this.bucketName }),
         );
-      } catch (error: any) {
+      } catch {
         this.logger.log(
-          `Bucket ${this.bucketName} not found or inaccessible (${error.message}), attempting to create it...`,
+          'Bucket not found or inaccessible, attempting to create it...',
         );
         await this.s3Client.send(
           new CreateBucketCommand({ Bucket: this.bucketName }),
         );
-        this.logger.log(`Bucket ${this.bucketName} created successfully.`);
+        this.logger.log('Bucket created successfully.');
         // Small delay to allow Minio/S3 to propagate bucket creation
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
@@ -100,18 +98,14 @@ export class S3StorageService implements IStorageService, OnModuleInit {
             Policy: JSON.stringify(policy),
           }),
         );
-        this.logger.log(
-          `Public access policy ensured for bucket ${this.bucketName}.`,
-        );
-      } catch (policyError) {
+        this.logger.log('Public access policy ensured for bucket.');
+      } catch {
         this.logger.warn(
-          `Bucket policy could not be set automatically: ${(policyError as Error).message}. You may need to set it manually in your S3 console.`,
+          'Bucket policy could not be set automatically. You may need to set it manually in your S3 console.',
         );
       }
     } catch (error) {
-      this.logger.error(
-        `Could not ensure bucket existence: ${(error as Error).message}`,
-      );
+      this.logger.error('Could not ensure bucket existence');
       throw error;
     }
   }
@@ -147,9 +141,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       }
 
       // Upload
-      this.logger.debug(
-        `Uploading to S3 - Bucket: ${this.bucketName}, Key: ${name}, Endpoint: ${this.endpoint}`,
-      );
+      this.logger.debug('Uploading file to S3');
       await this.s3Client.send(
         new PutObjectCommand({
           Bucket: this.bucketName,
@@ -163,9 +155,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       // Return signed URL (valid for 7 days)
       return await this.presignedGetObject(name);
     } catch (err: any) {
-      this.logger.error(`Error uploading to S3: ${err.message}`, err.stack);
+      this.logger.error('Error uploading to S3');
       throw new HttpException(
-        `Error uploading file: ${err.message}`,
+        'Error uploading file',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -182,9 +174,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       );
     } catch (error) {
       const err = error as any;
-      this.logger.error(`Error deleting from S3: ${err.message}`);
+      this.logger.error('Error deleting from S3');
       throw new HttpException(
-        `Error deleting file: ${err.message}`,
+        'Error deleting file',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -203,11 +195,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       );
     } catch (error) {
       const err = error as any;
-      this.logger.error(
-        `Error deleting multiple files from S3: ${err.message}`,
-      );
+      this.logger.error('Error deleting multiple files from S3');
       throw new HttpException(
-        `Error deleting files: ${err.message}`,
+        'Error deleting files',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -225,11 +215,10 @@ export class S3StorageService implements IStorageService, OnModuleInit {
     try {
       const key = this.extractKey(objectName);
       return `${this.endpoint}/${this.bucketName}/${key}`;
-    } catch (error) {
-      const err = error as Error;
-      this.logger.error(`Error generating URL: ${err.message}`);
+    } catch {
+      this.logger.error('Error generating URL');
       throw new HttpException(
-        `Error generating URL: ${err.message}`,
+        'Error generating URL',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
@@ -245,9 +234,9 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       return response.Contents?.map((obj) => obj.Key || '') || [];
     } catch (error) {
       const err = error as any;
-      this.logger.error(`Error listing objects: ${err.message}`);
+      this.logger.error('Error listing objects');
       throw new HttpException(
-        `Error listing objects: ${err.message}`,
+        'Error listing objects',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

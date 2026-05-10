@@ -48,7 +48,7 @@ export class PaymentsController {
 
       return res.status(HttpStatus.OK).send('OK');
     } catch (error) {
-      this.logger.error(`Webhook Error: ${error.message}`);
+      this.logger.error('Webhook Error');
       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send('Error');
     }
   }

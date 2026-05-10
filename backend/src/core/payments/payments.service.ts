@@ -92,9 +92,9 @@ export class PaymentsService {
       };
     } catch (error) {
       if (error instanceof Error) {
-        this.logger.error(`Payment Initiation Error: ${error.message}`);
+        this.logger.error('Payment Initiation Error');
       } else {
-        this.logger.error(`Payment Initiation Error: ${String(error)}`);
+        this.logger.error('Payment Initiation Error');
       }
       throw error;
     }

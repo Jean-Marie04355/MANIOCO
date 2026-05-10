@@ -4,6 +4,7 @@ import * as crypto from 'node:crypto';
 import { IFileStorage } from '../interfaces/file-storage.interface';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
 import { S3StorageService } from '../../../libs/storage/s3-storage.service';
+import * as path from 'path';
 
 @Injectable()
 export class JsonStorageProvider implements IFileStorage {
@@ -38,7 +39,7 @@ export class JsonStorageProvider implements IFileStorage {
           return await this.s3Service.uploadFile(file);
         } catch (s3Error) {
           this.logger.warn(
-            `Échec upload S3, repli sur le stockage local: ${s3Error.message}`,
+            'Échec upload S3, repli sur le stockage local',
           );
         }
       }
@@ -47,8 +48,9 @@ export class JsonStorageProvider implements IFileStorage {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      const filename = `${Date.now()}-${file.originalname || 'upload.jpg'}`;
-      const filePath = `${uploadsDir}/${filename}`;
+      const sanitizedOriginalName = file.originalname ? path.basename(file.originalname).replace(/[^a-zA-Z0-9.-]/g, '_') : 'upload.jpg';
+      const filename = `${Date.now()}-${sanitizedOriginalName}`;
+      const filePath = path.join(uploadsDir, filename);
 
       if (file.buffer) {
         fs.writeFileSync(filePath, file.buffer);
@@ -60,8 +62,8 @@ export class JsonStorageProvider implements IFileStorage {
 
       return `/uploads/${filename}`;
     } catch (error) {
-      this.logger.error(`Local upload error: ${error.message}`);
-      throw new Error(`Failed to upload file locally: ${error.message}`);
+      this.logger.error('Local upload error');
+      throw new Error('Failed to upload file locally');
     }
   }
 

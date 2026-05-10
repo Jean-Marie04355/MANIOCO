@@ -49,7 +49,7 @@ export class StoreService {
       }
     } catch (_error) {
       if (_error instanceof Error) {
-        this.logger.error(`Error looking for user: ${_error.message}`);
+        this.logger.error('Error looking for user');
       }
       throw new NotFoundException(
         `User with ID ${ownerId} not found or invalid format.`,
