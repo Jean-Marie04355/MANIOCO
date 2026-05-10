@@ -1,6 +1,7 @@
 include:
-  - project: 'sv_devops/ci-templates'
-    file: 'sonarqube-scanner.yml'
+  - project: 'devopsTeam/devopstemplatefiles'
+    file: 'svcitemplate.yml'
+    ref: 'main'
 
 stages:
   - test
