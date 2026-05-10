@@ -91,11 +91,7 @@ export class PaymentsService {
         url: paymentResponse.url,
       };
     } catch (error) {
-      if (error instanceof Error) {
-        this.logger.error('Payment Initiation Error');
-      } else {
-        this.logger.error('Payment Initiation Error');
-      }
+      this.logger.error('Payment Initiation Error');
       throw error;
     }
   }

@@ -48,7 +48,7 @@ export class JsonStorageProvider implements IFileStorage {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      const sanitizedOriginalName = file.originalname ? path.basename(file.originalname).replace(/[^a-zA-Z0-9.-]/g, '_') : 'upload.jpg';
+      const sanitizedOriginalName = file.originalname ? path.basename(file.originalname).replaceAll(/[^a-zA-Z0-9.-]/g, '_') : 'upload.jpg';
       const filename = `${Date.now()}-${sanitizedOriginalName}`;
       const filePath = path.join(uploadsDir, filename);
 
