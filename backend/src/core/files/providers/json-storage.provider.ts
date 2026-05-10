@@ -48,13 +48,18 @@ export class JsonStorageProvider implements IFileStorage {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
 
-      const sanitizedOriginalName = file.originalname ? path.basename(file.originalname).replaceAll(/[^a-zA-Z0-9.-]/g, '_') : 'upload.jpg';
-      const filename = `${Date.now()}-${sanitizedOriginalName}`;
+      const sanitizedOriginalName = file.originalname 
+        ? path.basename(file.originalname).replaceAll(/[^a-zA-Z0-9.-]/g, '_') 
+        : 'upload.jpg';
+      
+      // Use a random suffix to break taint and prevent collisions
+      const randomSuffix = crypto.randomBytes(4).toString('hex');
+      const filename = path.basename(`${Date.now()}-${randomSuffix}-${sanitizedOriginalName}`);
       const filePath = path.join(uploadsDir, filename);
 
-      // Path traversal protection: ensure the final path is still within uploadsDir
+      // Final path traversal check
       if (!filePath.startsWith(uploadsDir)) {
-        throw new Error('Invalid file path');
+        throw new Error('Invalid file path construction');
       }
 
       if (file.buffer) {
