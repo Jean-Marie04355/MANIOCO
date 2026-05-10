@@ -3,40 +3,57 @@ include:
     file: 'svcitemplate.yml'
     ref: 'main'
 
-stages:
-  - test
-  - post-test
-  - deploy
+# Cache global pour accélérer les installations
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - backend/node_modules/
+    - frontend/node_modules/
+  policy: pull-push
 
+# Génération couverture Backend
 afrigari-backend-coverage:
-  stage: test
+  stage: check
   image: node:20-alpine
+  tags:
+    - easyjob
+  services: [] # Désactive Docker pour gagner du temps
+  before_script:
+    - node -v
   script:
     - cd backend
     - npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps
     - npm run test:cov -- --coverageReporters=lcov --coverageReporters=text --passWithNoTests --detectOpenHandles
     - sed -i "s|^SF:|SF:backend/|g" coverage/lcov.info
+    - head -n 5 coverage/lcov.info
   artifacts:
     paths:
       - backend/coverage/lcov.info
     expire_in: 1 day
 
+# Génération couverture Frontend
 afrigari-frontend-coverage:
-  stage: test
+  stage: check
   image: node:20-alpine
+  tags:
+    - easyjob
   script:
     - cd frontend
     - npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps
     - npm run test:cov
     - sed -i "s|^SF:|SF:frontend/|g" coverage/lcov.info
+    - head -n 5 coverage/lcov.info
   artifacts:
     paths:
       - frontend/coverage/lcov.info
     expire_in: 1 day
 
+# Fusion des rapports de couverture pour Sonar
 merge-coverage:
-  stage: post-test
+  stage: check
   image: alpine:latest
+  tags:
+    - easyjob
   needs:
     - afrigari-backend-coverage
     - afrigari-frontend-coverage
@@ -51,8 +68,39 @@ merge-coverage:
         cat frontend/coverage/lcov.info >> coverage/lcov.info
         echo "Frontend coverage merged"
       fi
-    - ls -lh coverage/lcov.info
+    - wc -l coverage/lcov.info
   artifacts:
     paths:
       - coverage/lcov.info
     expire_in: 1 day
+
+# Surcharge de Sonar : on rend TOUT optionnel sauf NOS jobs
+sonarqube-checker:
+  dependencies:
+    - afrigari-backend-coverage
+    - afrigari-frontend-coverage
+    - merge-coverage
+  needs:
+    - job: svscanners_check
+      optional: true
+    - job: dockerfile_conformity_check
+      optional: true
+    - job: others_infra_conformity_check
+      optional: true
+    - job: initial_security_checkpoint
+      optional: true
+    - job: security_check
+      optional: true
+    - job: test_coverage_node
+      optional: true
+    - job: test_coverage_fastapi
+      optional: true
+    - job: afrigari-backend-coverage
+      optional: false
+    - job: afrigari-frontend-coverage
+      optional: false
+    - job: merge-coverage
+      optional: false
+  variables:
+    SONAR_SCANNER_OPTS: "-Xmx4096m"
+    SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
