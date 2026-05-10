@@ -1,25 +1,14 @@
 include:
-  - project: 'devopsTeam/devopstemplatefiles'
-    file: 'svcitemplate.yml'
-    ref: 'main'
- 
-# Cache global pour accélérer les installations
-cache:
-  key: ${CI_COMMIT_REF_SLUG}
-  paths:
-    - backend/node_modules/
-    - frontend/node_modules/
-  policy: pull-push
+  - project: 'devops/ci-templates'
+    file: 'sonarqube-scanner.yml'
 
-# Génération couverture Backend
+stages:
+  - test
+  - deploy
+
 afrigari-backend-coverage:
-  stage: check
+  stage: test
   image: node:20-alpine
-  tags:
-    - easyjob
-  services: [] # Désactive Docker pour gagner du temps
-  before_script:
-    - node -v
   script:
     - cd backend
     - npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps
@@ -31,12 +20,9 @@ afrigari-backend-coverage:
       - backend/coverage/lcov.info
     expire_in: 1 day
 
-# Génération couverture Frontend
 afrigari-frontend-coverage:
-  stage: check
+  stage: test
   image: node:20-alpine
-  tags:
-    - easyjob
   script:
     - cd frontend
     - npm install --no-audit --no-fund --prefer-offline --legacy-peer-deps
@@ -48,36 +34,35 @@ afrigari-frontend-coverage:
       - frontend/coverage/lcov.info
     expire_in: 1 day
 
-# Surcharge de Sonar : on rend TOUT optionnel sauf NOS jobs
 sonarqube-checker:
-  needs: 
-    - job: svscanners_check
-      optional: true
-    - job: dockerfile_conformity_check
-      optional: true
+  needs:
     - job: others_infra_conformity_check
       optional: true
     - job: initial_security_checkpoint
       optional: true
-    - job: security_check
-      optional: true
-    - job: test_coverage_node
-      optional: true
-    - job: test_coverage_fastapi
+    - job: svscanners_check
       optional: true
     - job: afrigari-backend-coverage
-      optional: false
+      artifacts: true
     - job: afrigari-frontend-coverage
-      optional: false
+      artifacts: true
+  dependencies:
+    - afrigari-backend-coverage
+    - afrigari-frontend-coverage
   before_script:
     - mkdir -p coverage
+    - ls -R backend/coverage || echo "No backend coverage found"
+    - ls -R frontend/coverage || echo "No frontend coverage found"
     - |
       if [ -f backend/coverage/lcov.info ]; then
-        cat backend/coverage/lcov.info > coverage/lcov.info
+        cp backend/coverage/lcov.info coverage/lcov.info
+        echo "Backend coverage added"
       fi
       if [ -f frontend/coverage/lcov.info ]; then
         cat frontend/coverage/lcov.info >> coverage/lcov.info
+        echo "Frontend coverage added"
       fi
+    - ls -lh coverage/lcov.info || echo "Merged lcov file not found!"
   variables:
     SONAR_SCANNER_OPTS: "-Xmx4096m"
     SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
