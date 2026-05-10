@@ -1,5 +1,5 @@
 include:
-  - project: 'devops/ci-templates'
+  - project: 'sv_devops/ci-templates'
     file: 'sonarqube-scanner.yml'
 
 stages:
@@ -55,5 +55,3 @@ merge-coverage:
     paths:
       - coverage/lcov.info
     expire_in: 1 day
-
-# On ne touche plus au job sonarqube-checker, il récupérera l'artefact de merge-coverage automatiquement
