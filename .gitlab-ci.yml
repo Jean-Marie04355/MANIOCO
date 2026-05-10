@@ -35,34 +35,21 @@ afrigari-frontend-coverage:
     expire_in: 1 day
 
 sonarqube-checker:
-  needs:
-    - job: others_infra_conformity_check
-      optional: true
-    - job: initial_security_checkpoint
-      optional: true
-    - job: svscanners_check
-      optional: true
-    - job: afrigari-backend-coverage
-      artifacts: true
-    - job: afrigari-frontend-coverage
-      artifacts: true
+  stage: deploy
   dependencies:
     - afrigari-backend-coverage
     - afrigari-frontend-coverage
   before_script:
     - mkdir -p coverage
-    - ls -R backend/coverage || echo "No backend coverage found"
-    - ls -R frontend/coverage || echo "No frontend coverage found"
     - |
       if [ -f backend/coverage/lcov.info ]; then
         cp backend/coverage/lcov.info coverage/lcov.info
-        echo "Backend coverage added"
+        echo "Backend coverage merged"
       fi
       if [ -f frontend/coverage/lcov.info ]; then
         cat frontend/coverage/lcov.info >> coverage/lcov.info
-        echo "Frontend coverage added"
+        echo "Frontend coverage merged"
       fi
-    - ls -lh coverage/lcov.info || echo "Merged lcov file not found!"
   variables:
     SONAR_SCANNER_OPTS: "-Xmx4096m"
     SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
