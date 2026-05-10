@@ -18,6 +18,22 @@ import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 
+function constantTimeCompare(a: string, b: string) {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= (a.codePointAt(i) || 0) ^ (b.codePointAt(i) || 0);
+  }
+  return result === 0;
+}
+
+function ProfilePhoto({ data }: { readonly data: any }) {
+  if (data.profilePhoto) {
+    return <img src={data.profilePhoto} alt="Profil" className="w-full h-full object-cover" />;
+  }
+  return <span className="text-[#1a2e22]/20">{data.name.charAt(0) || 'U'}</span>;
+}
+
 export default function ClientSettings() {
   const { user, logout } = useAuth();
   const router = useRouter();
@@ -55,7 +71,7 @@ export default function ClientSettings() {
           phoneNumber: res.data.phoneNumber || ''
         });
       } catch (err) {
-        console.error("Erreur chargement profil");
+        console.error("Erreur chargement profil:", err);
       } finally {
         setIsLoading(false);
       }
@@ -95,6 +111,7 @@ export default function ClientSettings() {
       setTimeout(() => setSuccessMessage(''), 3000);
       // Optional: force reload or update context
     } catch (err: any) {
+      console.error("Erreur mise à jour profil:", err);
       const msg = err.response?.data?.message;
       setProfileError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Erreur lors de la mise à jour'));
     } finally {
@@ -108,15 +125,6 @@ export default function ClientSettings() {
     setSuccessMessage('');
 
     let isValid = true;
-    const constantTimeCompare = (a: string, b: string) => {
-      if (a.length !== b.length) return false;
-      let result = 0;
-      for (let i = 0; i < a.length; i++) {
-        result |= (a.codePointAt(i) || 0) ^ (b.codePointAt(i) || 0);
-      }
-      return result === 0;
-    };
-
     const mismatch = !constantTimeCompare(passwordData.newPassword, passwordData.confirmPassword);
     const tooShort = passwordData.newPassword.length < 6;
 
@@ -139,6 +147,7 @@ export default function ClientSettings() {
         setPasswordData({ newPassword: '', confirmPassword: '' });
         setTimeout(() => setSuccessMessage(''), 3000);
       } catch (err: any) {
+        console.error("Erreur changement mot de passe:", err);
         const msg = err.response?.data?.message;
         setPasswordError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Erreur lors du changement'));
       } finally {
@@ -202,11 +211,7 @@ export default function ClientSettings() {
               <div className="flex flex-col md:flex-row items-center gap-10 pb-10 border-b border-[#1a2e22]/5">
                 <div className="relative group">
                   <div className="w-32 h-32 rounded-full border-4 border-white shadow-2xl overflow-hidden bg-[#1a2e22]/5 flex items-center justify-center text-4xl font-black">
-                    {profileData.profilePhoto ? (
-                      <img src={profileData.profilePhoto} alt="Profil" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-[#1a2e22]/20">{profileData.name.charAt(0) || 'U'}</span>
-                    )}
+                    <ProfilePhoto data={profileData} />
                   </div>
                   <label className="absolute bottom-1 right-1 w-10 h-10 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center border-4 border-white cursor-pointer hover:scale-110 transition-all shadow-xl">
                     <Camera size={18} />

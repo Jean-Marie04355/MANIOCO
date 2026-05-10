@@ -53,7 +53,7 @@ export default function ShopsExplorer() {
 
         setStores(enrichedStores);
       } catch (error) {
-        console.error("Erreur de chargement des boutiques");
+        console.error("Erreur de chargement des boutiques:", error);
       } finally {
         setIsLoading(false);
       }
@@ -100,11 +100,7 @@ export default function ShopsExplorer() {
 
             <div className="flex items-center gap-4">
                 <div className="w-10 h-10 rounded-full bg-forest-green text-white flex items-center justify-center font-black text-xs shadow-xl uppercase overflow-hidden relative border-2 border-white">
-                   {user?.profilePhoto ? (
-                      <img src={getRealInternetLink(user.profilePhoto)} alt="Profil" className="w-full h-full object-cover" />
-                   ) : (
-                      <span>{user?.name?.[0] || user?.email?.[0] || 'U'}</span>
-                   )}
+                   <UserAvatar user={user} getImageUrl={getRealInternetLink} />
                 </div>
             </div>
          </div>
@@ -170,13 +166,8 @@ function ShopCard({ shop, delay, getImageUrl }: any) {
            <div className="px-8 pb-10 relative">
               {/* Profile Logo */}
               <div className="w-20 h-20 bg-white p-2 rounded-3xl shadow-xl absolute -top-10 left-8 ring-4 ring-white overflow-hidden flex items-center justify-center text-forest-green font-black text-2xl uppercase">
-                 {shop.profilePhoto ? (
-                    <img src={getImageUrl(shop.profilePhoto, shop.name)} alt={`Logo ${shop.name}`} className="w-full h-full object-contain rounded-2xl" />
-                 ) : (
-                    <span>{shop.name[0]}</span>
-                 )}
+                 <ShopLogo shop={shop} getImageUrl={getImageUrl} />
               </div>
-
               <div className="pt-14">
                  <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-xl font-black tracking-tight uppercase truncate">{shop.name}</h3>
@@ -204,6 +195,20 @@ function ShopCard({ shop, delay, getImageUrl }: any) {
            </div>
         </div>
     );
+}
+
+function UserAvatar({ user, getImageUrl }: { readonly user: any, readonly getImageUrl: any }) {
+    if (user?.profilePhoto) {
+        return <img src={getImageUrl(user.profilePhoto)} alt="Profil" className="w-full h-full object-cover" />;
+    }
+    return <span>{user?.name?.[0] || user?.email?.[0] || 'U'}</span>;
+}
+
+function ShopLogo({ shop, getImageUrl }: { readonly shop: any, readonly getImageUrl: any }) {
+    if (shop.profilePhoto) {
+        return <img src={getImageUrl(shop.profilePhoto, shop.name)} alt={`Logo ${shop.name}`} className="w-full h-full object-contain rounded-2xl" />;
+    }
+    return <span>{shop.name[0]}</span>;
 }
 
 const CheckIcon = ({ size, color }: any) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="4" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5"/></svg>;

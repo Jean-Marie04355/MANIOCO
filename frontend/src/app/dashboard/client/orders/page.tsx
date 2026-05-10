@@ -36,7 +36,7 @@ export default function ClientOrders() {
       setReportDescription('');
       alert("Signalement envoyé avec succès. Notre équipe va l'examiner.");
     } catch (error) {
-      console.error("Erreur");
+      console.error("Erreur lors de l'envoi du signalement:", error);
       alert("Erreur lors de l'envoi du signalement.");
     } finally {
       setIsSubmittingReport(false);
@@ -52,7 +52,7 @@ export default function ClientOrders() {
         const res = await api.get('/orders');
         setOrders(res.data);
       } catch (error) {
-        console.error("Erreur chargement commandes");
+        console.error("Erreur chargement commandes:", error);
       } finally {
         setIsLoading(false);
       }
@@ -104,11 +104,7 @@ export default function ClientOrders() {
             </div>
 
             <div className="w-10 h-10 rounded-full border-2 border-white shadow-xl overflow-hidden relative bg-forest-green/5 flex items-center justify-center text-forest-green font-bold uppercase">
-               {user?.profilePhoto ? (
-                  <img src={user.profilePhoto} alt="Profil" className="w-full h-full object-cover" />
-               ) : (
-                  <span>{user?.name?.[0] || 'U'}</span>
-               )}
+               <UserProfilePhoto user={user} />
             </div>
          </div>
       </nav>
@@ -137,7 +133,7 @@ export default function ClientOrders() {
             <div className="space-y-6">
                {orders.map((order) => (
                   <div key={order.id} className="bg-white rounded-[32px] p-6 shadow-xl border border-forest-green/5 hover:border-forest-green/20 transition-all group animate-reveal">
-                     <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-4 border-b border-forest-green/5">
+                     <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-4 pb-4 border-b border-forest-green/5">
                         <div className="flex items-center gap-4">
                            <div className="w-12 h-12 rounded-2xl bg-forest-green/5 flex items-center justify-center text-forest-green">
                               <Package size={20} />
@@ -286,3 +282,9 @@ export default function ClientOrders() {
   );
 }
 
+function UserProfilePhoto({ user }: { readonly user: any }) {
+    if (user?.profilePhoto) {
+        return <img src={user.profilePhoto} alt="Profil" className="w-full h-full object-cover" />;
+    }
+    return <span>{user?.name?.[0] || 'U'}</span>;
+}

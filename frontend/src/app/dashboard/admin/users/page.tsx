@@ -23,7 +23,6 @@ export default function AdminUsersManagement() {
     // Suspension state
     const [isSuspending, setIsSuspending] = useState(false);
     const [suspensionDays, setSuspensionDays] = useState(1);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [isKycOpen, setIsKycOpen] = useState(false);
 
     useEffect(() => {
@@ -41,7 +40,7 @@ export default function AdminUsersManagement() {
                 setSelectedUser(firstPending || data[0]);
             }
         } catch (err) {
-            console.error("Erreur lors du chargement des utilisateurs:");
+            console.error("Erreur lors du chargement des utilisateurs:", err);
         } finally {
             setLoading(false);
         }
@@ -61,41 +60,47 @@ export default function AdminUsersManagement() {
         if (confirmationMsg && !confirm(confirmationMsg)) return;
 
         try {
-            switch (action) {
-                case 'validate':
-                    await api.patch(`/users/${selectedUser.id}`, { isVerified: true });
-                    break;
-                case 'delete':
-                    await api.delete(`/users/${selectedUser.id}/permanent`);
-                    setSelectedUser(null);
-                    break;
-                case 'restore':
-                    await api.patch(`/users/${selectedUser.id}/restore`);
-                    break;
-                case 'suspend':
-                    const until = new Date();
-                    until.setDate(until.getDate() + suspensionDays);
-                    await api.patch(`/users/${selectedUser.id}`, { suspensionUntil: until });
-                    setIsSuspending(false);
-                    break;
-            }
-
-            // Rafraîchir la liste et mettre à jour l'utilisateur sélectionné
-            const res = await api.get('/users');
-            const data = res.data.filter((u: any) => u.role !== 'super_admin' && u.role !== 'admin');
-            setUsers(data);
-            
-            if (action !== 'delete') {
-               const updatedUser = data.find((u: any) => u.id === selectedUser.id);
-               setSelectedUser(updatedUser);
-               alert("✅ Action effectuée avec succès !");
-            } else {
-               alert("🗑️ Compte supprimé définitivement.");
-            }
-
+            await performAction(action);
+            await refreshUserList(action);
         } catch (err) {
-            console.error(`Erreur lors de l'action [VAR]:`);
+            console.error(`Erreur lors de l'action ${action}:`, err);
             alert("❌ Une erreur est survenue lors de l'opération.");
+        }
+    };
+
+    const performAction = async (action: string) => {
+        switch (action) {
+            case 'validate':
+                await api.patch(`/users/${selectedUser.id}`, { isVerified: true });
+                break;
+            case 'delete':
+                await api.delete(`/users/${selectedUser.id}/permanent`);
+                setSelectedUser(null);
+                break;
+            case 'restore':
+                await api.patch(`/users/${selectedUser.id}/restore`);
+                break;
+            case 'suspend': {
+                const until = new Date();
+                until.setDate(until.getDate() + suspensionDays);
+                await api.patch(`/users/${selectedUser.id}`, { suspensionUntil: until });
+                setIsSuspending(false);
+                break;
+            }
+        }
+    };
+
+    const refreshUserList = async (action: string) => {
+        const res = await api.get('/users');
+        const data = res.data.filter((u: any) => u.role !== 'super_admin' && u.role !== 'admin');
+        setUsers(data);
+        
+        if (action === 'delete') {
+            alert("🗑️ Compte supprimé définitivement.");
+        } else {
+            const updatedUser = data.find((u: any) => u.id === selectedUser.id);
+            setSelectedUser(updatedUser);
+            alert("✅ Action effectuée avec succès !");
         }
     };
 
@@ -244,22 +249,10 @@ export default function AdminUsersManagement() {
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-3 mb-1">
                                                         <h3 className="text-lg font-black text-amber-700 leading-tight">Dossier KYC</h3>
-                                                        <span className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
-                                                            selectedUser.kycStatus === 'PENDING' ? 'bg-amber-100 text-amber-600 animate-pulse' : 
-                                                            selectedUser.kycStatus === 'REJECTED' ? 'bg-rose-100 text-rose-600' :
-                                                            'bg-slate-100 text-slate-400'
-                                                        }`}>
-                                                            {selectedUser.kycStatus === 'PENDING' ? 'Soumis pour examen' : 
-                                                             selectedUser.kycStatus === 'REJECTED' ? 'Rejeté - En attente de correction' :
-                                                             'Non Soumis'}
-                                                        </span>
+                                                        <KycStatusBadge status={selectedUser.kycStatus} />
                                                     </div>
                                                     <p className="text-sm text-amber-600/80 font-medium italic mb-6">
-                                                        {selectedUser.kycStatus === 'PENDING' 
-                                                            ? 'Le vendeur a soumis ses documents. Veuillez les examiner pour valider son compte.' 
-                                                            : selectedUser.kycStatus === 'REJECTED'
-                                                            ? 'Vous avez rejeté ce dossier. Le vendeur doit corriger ses informations avant que vous ne puissiez l\'examiner à nouveau.'
-                                                            : 'Le vendeur n\'a pas encore commencé sa soumission d\'identité.'}
+                                                        <KycStatusText status={selectedUser.kycStatus} />
                                                     </p>
                                                     <div className="flex gap-4">
                                                         {selectedUser.isVerified ? (
@@ -350,7 +343,7 @@ export default function AdminUsersManagement() {
                                                                 suspensionDays === d ? 'bg-white text-slate-900 border-white' : 'border-white/20 text-white/50'
                                                             }`}
                                                         >
-                                                            {d === 1 ? '1J' : d === 7 ? '1S' : d === 30 ? '1M' : d === 365 ? '1A' : `${d}J`}
+                                                            <SuspensionLabel days={d} />
                                                         </button>
                                                     ))}
                                                 </div>
@@ -413,8 +406,7 @@ export default function AdminUsersManagement() {
     );
 }
 
-function KycReviewModal({ user, onClose, onUpdate }: { user: any, onClose: () => void, onUpdate: () => void }) {
-    // Initialisation des motifs avec les données déjà présentes en base
+function KycReviewModal({ user, onClose, onUpdate }: { readonly user: any, readonly onClose: () => void, readonly onUpdate: () => void }) {
     const [rejectionReasons, setRejectionReasons] = useState<any>(() => {
         try {
             return user.kycRejectionReasons ? JSON.parse(user.kycRejectionReasons) : {};
@@ -455,7 +447,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { user: any, onClose: () =>
             onClose();
             alert(`✅ Dossier ${status === 'APPROVED' ? 'approvré' : 'rejeté'} avec succès.`);
         } catch (error) {
-            console.error("Erreur review KYC:");
+            console.error("Erreur review KYC:", error);
             alert("❌ Erreur lors de la soumission de la revue.");
         } finally {
             setLoading(false);
@@ -473,7 +465,12 @@ function KycReviewModal({ user, onClose, onUpdate }: { user: any, onClose: () =>
 
     return (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
-            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} role="presentation" onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}></div>
+            <button 
+                className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm cursor-default border-none" 
+                onClick={onClose} 
+                onKeyDown={(e) => { if (e.key === 'Escape') onClose(); }}
+                aria-label="Fermer la modal"
+            ></button>
             <div className="relative bg-white w-full max-w-5xl h-[90vh] rounded-[3rem] shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-300">
                 
                 {/* Header */}
@@ -580,13 +577,42 @@ function TabSmall({ active, label, onClick, alert }: any) {
     );
 }
 
-function MiniStat({ label, value }: { label: string, value: string }) {
+function MiniStat({ label, value }: { readonly label: string, readonly value: string }) {
     return (
         <div className="flex justify-between items-end border-b border-slate-200/50 pb-3">
             <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">{label}</span>
             <span className="text-sm font-black text-slate-900 tracking-tighter">{value}</span>
         </div>
     );
+}
+
+function KycStatusBadge({ status }: { readonly status: string }) {
+    switch (status) {
+        case 'PENDING':
+            return <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-amber-100 text-amber-600 animate-pulse">Soumis pour examen</span>;
+        case 'REJECTED':
+            return <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-rose-100 text-rose-600">Rejeté - En attente de correction</span>;
+        default:
+            return <span className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest bg-slate-100 text-slate-400">Non Soumis</span>;
+    }
+}
+
+function KycStatusText({ status }: { readonly status: string }) {
+    if (status === 'PENDING') {
+        return <>Le vendeur a soumis ses documents. Veuillez les examiner pour valider son compte.</>;
+    }
+    if (status === 'REJECTED') {
+        return <>Vous avez rejeté ce dossier. Le vendeur doit corriger ses informations avant que vous ne puissiez l'examiner à nouveau.</>;
+    }
+    return <>Le vendeur n'a pas encore commencé sa soumission d'identité.</>;
+}
+
+function SuspensionLabel({ days }: { readonly days: number }) {
+    if (days === 1) return <>1J</>;
+    if (days === 7) return <>1S</>;
+    if (days === 30) return <>1M</>;
+    if (days === 365) return <>1A</>;
+    return <>{days}J</>;
 }
 
 function ActionCard({ icon: Icon, label, desc, onClick, variant }: any) {

@@ -39,7 +39,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
         const currentUserId = user.id || (user as any).userId;
         const myStore = res.data.find((s: any) => s.ownerId === currentUserId);
         if (myStore) setStoreId(myStore.id);
-      }).catch(err => console.error("Erreur identification boutique"));
+      }).catch(err => console.error("Erreur identification boutique:", err));
     }
   }, [user, mode, storeId]);
 
@@ -73,7 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
         setChatCount(chatRes.data > 0 ? chatRes.data : null);
       }
     } catch (error) {
-      console.error("Erreur badges sidebar");
+      console.error("Erreur badges sidebar:", error);
     }
   };
 
@@ -162,8 +162,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
   const isAdminOrSuper = mode === 'admin' || mode === 'super-admin';
 
   return (
-    <aside className={`w-64 h-screen fixed left-0 top-0 flex flex-col border-r transition-colors duration-300 ${isAdminOrSuper ? (mode === 'admin' ? 'bg-slate-900' : 'bg-[#0f111a]') : 'bg-white'
-      } border-slate-200 dark:border-slate-800`}>
+    <aside className={`w-64 h-screen fixed left-0 top-0 flex flex-col border-r transition-colors duration-300 ${getSidebarBackground(mode, isAdminOrSuper)} border-slate-200 dark:border-slate-800`}>
       <div className="p-6 flex items-center gap-3">
         <div className="relative w-10 h-10 flex items-center justify-center">
           <Leaf className="text-green-500 fill-green-500 absolute -rotate-12 translate-x-[-4px] translate-y-[2px]" size={22} />
@@ -210,13 +209,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
             <Link
               key={index}
               href={item.href || "#"}
-              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${isItemActive
-                ? (mode === 'client' ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' :
-                  mode === 'seller' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' :
-                    mode === 'admin' ? 'bg-green-500 text-white shadow-lg shadow-green-500/20' :
-                      'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20')
-                : (isAdminOrSuper ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50')
-                }`}
+              className={`flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${getMenuItemStyles(mode, isItemActive, isAdminOrSuper)}`}
             >
               <div className="flex items-center gap-3">
                 <item.icon size={18} />
@@ -244,5 +237,24 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
     </aside>
   );
 };
+
+function getSidebarBackground(mode: string, isAdminOrSuper: boolean) {
+  if (isAdminOrSuper) {
+    return mode === 'admin' ? 'bg-slate-900' : 'bg-[#0f111a]';
+  }
+  return 'bg-white';
+}
+
+function getMenuItemStyles(mode: string, isItemActive: boolean, isAdminOrSuper: boolean) {
+  if (isItemActive) {
+    switch (mode) {
+      case 'client': return 'bg-green-500 text-white shadow-lg shadow-green-500/20';
+      case 'seller': return 'bg-orange-500 text-white shadow-lg shadow-orange-500/20';
+      case 'admin': return 'bg-green-500 text-white shadow-lg shadow-green-500/20';
+      default: return 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20';
+    }
+  }
+  return isAdminOrSuper ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50';
+}
 
 export default Sidebar;

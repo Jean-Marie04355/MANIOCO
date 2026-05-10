@@ -5,7 +5,7 @@ import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
 import { 
   Search, MessageSquare, Clock, 
-  CheckCircle2, AlertCircle, Loader2, 
+  CheckCircle2, Loader2, 
   User as UserIcon, Calendar, ArrowRight,
   Inbox, Zap
 } from 'lucide-react';
@@ -71,6 +71,16 @@ export default function AdminSupportHub() {
     }
   };
 
+  const getFilterLabel = (f: 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'CLOSED') => {
+    const labels = {
+      ALL: 'Tous',
+      OPEN: 'Urgents',
+      IN_PROGRESS: 'Saisie',
+      CLOSED: 'Résolus'
+    };
+    return labels[f];
+  };
+
   if (isLoading) {
     return (
       <div className="flex bg-slate-50 min-h-screen">
@@ -108,8 +118,8 @@ export default function AdminSupportHub() {
                   {[
                       { label: 'Urgents', value: stats.open, color: 'text-red-500', bg: 'bg-red-50' },
                       { label: 'Encours', value: stats.inProgress, color: 'text-blue-500', bg: 'bg-blue-50' }
-                  ].map((s, i) => (
-                      <div key={i} className={`${s.bg} px-6 py-3 rounded-2xl border border-white/50 shadow-sm flex flex-col items-center min-w-[100px]`}>
+                  ].map((s) => (
+                      <div key={s.label} className={`${s.bg} px-6 py-3 rounded-2xl border border-white/50 shadow-sm flex flex-col items-center min-w-[100px]`}>
                           <span className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">{s.label}</span>
                           <span className={`text-xl font-black ${s.color}`}>{s.value}</span>
                       </div>
@@ -141,7 +151,7 @@ export default function AdminSupportHub() {
                       : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
                     }`}
                   >
-                    {f === 'ALL' ? 'Tous' : f === 'OPEN' ? 'Urgents' : f === 'IN_PROGRESS' ? 'Saisie' : 'Résolus'}
+                    {getFilterLabel(f)}
                   </button>
                 ))}
               </div>

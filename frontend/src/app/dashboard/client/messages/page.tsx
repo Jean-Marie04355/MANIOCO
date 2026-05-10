@@ -37,7 +37,6 @@ function ClientMessagesContent() {
     }
     
     const finalUrl = `${apiUrl}${finalPath}`;
-    console.log("Rendering image URL:");
     return finalUrl;
   };
 
@@ -52,7 +51,7 @@ function ClientMessagesContent() {
               const initRes = await api.post('/chat/conversations/init', { storeId: targetSellerId });
               initialConvId = initRes.data.id;
            } catch (e) {
-              console.error("Erreur initiation conversation");
+              console.error("Erreur initiation conversation:", e);
            }
         }
 
@@ -66,7 +65,7 @@ function ClientMessagesContent() {
            }
         }
       } catch (error) {
-        console.error("Erreur chargement conversations");
+        console.error("Erreur chargement conversations:", error);
       } finally {
         setIsLoading(false);
       }
@@ -82,7 +81,7 @@ function ClientMessagesContent() {
           setMessages(res.data || []);
           setTimeout(scrollToBottom, 100);
         } catch (error) {
-          console.error("Erreur chargement messages");
+          console.error("Erreur chargement messages:", error);
         }
       };
       fetchMessages();
@@ -146,7 +145,8 @@ function ClientMessagesContent() {
       const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
       setMessages(res.data);
     } catch (error) {
-      console.error("Erreur envoi");
+      console.error("Erreur envoi:", error);
+      alert("Erreur lors de l'envoi du message.");
     } finally {
       setIsSending(false);
       setTimeout(scrollToBottom, 50);
@@ -175,7 +175,7 @@ function ClientMessagesContent() {
       setMessages(res.data);
       setTimeout(scrollToBottom, 50);
     } catch (error) {
-      console.error("Erreur envoi image");
+      console.error("Erreur envoi image:", error);
       alert("Erreur lors de l'envoi de l'image");
     } finally {
       setIsSending(false);
@@ -235,29 +235,27 @@ function ClientMessagesContent() {
                    </div>
                 ) : (
                    conversations.map((c) => {
-                      const storeName = c.store?.name || c.store?.owner?.name || 'Artisan Afrigari';
+                      const storeName = getStoreName(c);
+                      const isActive = activeConv?.id === c.id;
                       return (
-                        <div 
+                        <button 
                            key={c.id} 
                            onClick={() => setActiveConv(c)}
-                           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveConv(c); }}
-                           role="button"
-                           tabIndex={0}
-                           className={`p-5 rounded-[32px] flex items-center gap-4 cursor-pointer transition-all duration-500 ${activeConv?.id === c.id ? 'bg-[#1a2e22] text-white shadow-2xl scale-[1.02]' : 'hover:bg-[#1a2e22]/5'}`}
+                           className={`p-5 rounded-[32px] flex items-center gap-4 cursor-pointer transition-all duration-500 text-left w-full border-none ${isActive ? 'bg-[#1a2e22] text-white shadow-2xl scale-[1.02]' : 'hover:bg-[#1a2e22]/5 bg-transparent'}`}
                         >
                            <div className="w-14 h-14 rounded-2xl bg-[#f4f1ea] overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
                               <img src={getImageUrl(c.store?.profilePhoto)} alt={storeName} className="w-full h-full object-cover" />
                            </div>
                            <div className="flex-1 min-w-0">
                               <div className="flex justify-between items-start mb-1">
-                                 <h4 className={`text-sm font-black truncate uppercase ${activeConv?.id === c.id ? 'text-white' : 'text-[#1a2e22]'}`}>{storeName}</h4>
-                                 <span className={`text-[8px] font-black uppercase opacity-40 ${activeConv?.id === c.id ? 'text-[#c5a059]' : ''}`}>
+                                 <h4 className={`text-sm font-black truncate uppercase ${isActive ? 'text-white' : 'text-[#1a2e22]'}`}>{storeName}</h4>
+                                 <span className={`text-[8px] font-black uppercase opacity-40 ${isActive ? 'text-[#c5a059]' : ''}`}>
                                     {c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
                                  </span>
                               </div>
-                              <p className={`text-[10px] truncate font-medium ${activeConv?.id === c.id ? 'text-white/60' : 'text-slate-400'}`}>{c.lastMessageText || 'Commencez la discussion...'}</p>
+                              <p className={`text-[10px] truncate font-medium ${isActive ? 'text-white/60' : 'text-slate-400'}`}>{c.lastMessageText || 'Commencez la discussion...'}</p>
                            </div>
-                        </div>
+                        </button>
                       );
                    })
                 )}
@@ -310,10 +308,7 @@ function ClientMessagesContent() {
                 {/* Messages List Area */}
                 <div ref={scrollRef} className="flex-1 overflow-y-auto p-10 space-y-8 scroll-smooth relative z-10">
                     {messages.map((m) => {
-                      const myId = String(user?.id || (user as any)?.userId || "");
-                      // Récupération de l'ID de l'expéditeur qu'il soit un objet ou une chaîne
-                      const msgSenderId = m.senderId && typeof m.senderId === 'object' ? (m.senderId as any).id : (m.sender?.id || m.senderId);
-                      const isMe = String(msgSenderId) === myId;
+                      const isMe = checkIsMe(m, user);
                       
                       return (
                         <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-reveal`}>
@@ -386,6 +381,16 @@ function ClientMessagesContent() {
       </div>
     </div>
   );
+}
+
+function getStoreName(c: any) {
+  return c.store?.name || c.store?.owner?.name || 'Artisan Afrigari';
+}
+
+function checkIsMe(m: any, user: any) {
+  const myId = String(user?.id || (user as any)?.userId || "");
+  const msgSenderId = m.senderId && typeof m.senderId === 'object' ? (m.senderId as any).id : (m.sender?.id || m.senderId);
+  return String(msgSenderId) === myId;
 }
 
 export default function ClientMessages() {

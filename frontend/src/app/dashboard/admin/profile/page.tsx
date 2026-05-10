@@ -30,7 +30,7 @@ export default function AdminProfilePage() {
                 // Sort by date desc
                 logs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 setRecentLogs(logs.slice(0, 3));
-            }).catch(err => console.error("Could not fetch user logs:"));
+            }).catch(err => console.error("Could not fetch user logs:", err));
         }
     }, [isLoading, user, router]);
 
@@ -72,7 +72,7 @@ export default function AdminProfilePage() {
             // Refresh context
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur lors de l'upload:");
+            console.error("Erreur lors de l'upload:", error);
             alert("Erreur lors de l'envoi de la photo.");
         } finally {
             setIsUploading(false);
@@ -86,7 +86,8 @@ export default function AdminProfilePage() {
             await api.patch(`/users/${user.id}`, { profilePhoto: null });
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur de suppression:");
+            console.error("Erreur de suppression:", error);
+            alert("Erreur lors de la suppression de la photo.");
         } finally {
             setIsUploading(false);
         }
@@ -101,7 +102,7 @@ export default function AdminProfilePage() {
             setIsEditing(false);
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur de sauvegarde:");
+            console.error("Erreur de sauvegarde:", error);
             alert("Erreur lors de la sauvegarde du profil.");
         }
     };
@@ -317,7 +318,7 @@ export default function AdminProfilePage() {
     );
 }
 
-function ProfileInfoItem({ icon: Icon, label, value }: any) {
+function ProfileInfoItem({ icon: Icon, label, value }: { readonly icon: any, readonly label: string, readonly value: string | null | undefined }) {
     return (
         <div className="flex items-center gap-4 text-left group">
             <div className="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center border border-slate-100 group-hover:bg-emerald-500 group-hover:text-white transition-all">
@@ -331,7 +332,7 @@ function ProfileInfoItem({ icon: Icon, label, value }: any) {
     );
 }
 
-function PowerBar({ label, percent }: any) {
+function PowerBar({ label, percent }: { readonly label: string, readonly percent: number }) {
     return (
         <div>
             <div className="flex justify-between items-center mb-2">

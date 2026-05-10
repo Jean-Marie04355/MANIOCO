@@ -25,7 +25,8 @@ export default function AdminNotificationsPage() {
             const response = await api.get('/notifications');
             setNotifications(response.data);
         } catch (err) {
-            console.error("Erreur chargement notifications:");
+            console.error("Erreur chargement notifications:", err);
+            alert("Erreur lors du chargement des notifications.");
         } finally {
             setLoading(false);
         }
@@ -36,7 +37,8 @@ export default function AdminNotificationsPage() {
             await api.patch(`/notifications/${id}/read`);
             setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
         } catch (err) {
-            console.error("Erreur marquage lecture:");
+            console.error("Erreur marquage lecture:", err);
+            alert("Impossible de marquer la notification comme lue.");
         }
     };
 
@@ -45,7 +47,8 @@ export default function AdminNotificationsPage() {
             await api.patch('/notifications/read-all');
             setNotifications(notifications.map(n => ({ ...n, isRead: true })));
         } catch (err) {
-            console.error("Erreur marquage global:");
+            console.error("Erreur marquage global:", err);
+            alert("Impossible de marquer toutes les notifications comme lues.");
         }
     };
 
@@ -54,7 +57,8 @@ export default function AdminNotificationsPage() {
             await api.delete(`/notifications/${id}`);
             setNotifications(notifications.filter(n => n.id !== id));
         } catch (err) {
-            console.error("Erreur suppression:");
+            console.error("Erreur suppression:", err);
+            alert("Impossible de supprimer la notification.");
         }
     };
 
@@ -134,7 +138,7 @@ export default function AdminNotificationsPage() {
     );
 }
 
-function FilterBtn({ active, label, onClick }: any) {
+function FilterBtn({ active, label, onClick }: { readonly active: boolean, readonly label: string, readonly onClick: () => void }) {
     return (
         <button 
             onClick={onClick}
@@ -145,7 +149,7 @@ function FilterBtn({ active, label, onClick }: any) {
     );
 }
 
-function NotificationItem({ notification, onRead, onDelete }: any) {
+function NotificationItem({ notification, onRead, onDelete }: { readonly notification: any, readonly onRead: () => void, readonly onDelete: () => void }) {
     const isUnread = !notification.isRead;
     
     // Config based on type

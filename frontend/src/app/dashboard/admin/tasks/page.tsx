@@ -18,7 +18,6 @@ import TopNav from '../../components/TopNav';
 import api from '@/lib/axios';
 
 export default function AdminTasksPage() {
-    const router = useRouter();
     const [tasks, setTasks] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -71,7 +70,7 @@ export default function AdminTasksPage() {
 
                 setTasks(newTasks);
             } catch (error) {
-                console.error("Erreur lors du chargement des tâches admin:");
+                console.error("Erreur lors du chargement des tâches admin:", error);
             } finally {
                 setIsLoading(false);
             }
@@ -152,14 +151,8 @@ export default function AdminTasksPage() {
                                 className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6"
                             >
                                 <div className="flex items-start gap-6">
-                                    <div className={`w-14 h-14 rounded-3xl flex items-center justify-center border-2 transition-all group-hover:scale-110 ${
-                                        task.color === 'amber' ? 'bg-amber-50 border-amber-100 text-amber-500' :
-                                        task.color === 'rose' ? 'bg-rose-50 border-rose-100 text-rose-500' :
-                                        'bg-blue-50 border-blue-100 text-blue-500'
-                                    }`}>
-                                        {task.type === 'KYC' && <Clock size={24} />}
-                                        {task.type === 'SECURITY' && <ShieldAlert size={24} />}
-                                        {task.type === 'SUPPORT' && <MessageSquare size={24} />}
+                                    <div className={`w-14 h-14 rounded-3xl flex items-center justify-center border-2 transition-all group-hover:scale-110 ${getTaskColorStyles(task.color)}`}>
+                                        <TaskIcon type={task.type} />
                                     </div>
                                     <div>
                                         <h3 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-emerald-500 transition-colors uppercase italic">{task.title}</h3>
@@ -169,13 +162,7 @@ export default function AdminTasksPage() {
 
                                 <div className="flex items-center justify-between md:justify-end gap-10">
                                     <div className="text-right">
-                                        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                                            task.status === 'Critique' ? 'bg-rose-500 text-white' :
-                                            task.status === 'Urgent' ? 'bg-amber-500 text-white' :
-                                            'bg-blue-500 text-white'
-                                        }`}>
-                                            {task.status}
-                                        </span>
+                                        <TaskStatusBadge status={task.status} />
                                         <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-2">{task.time}</p>
                                     </div>
                                     <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
@@ -192,7 +179,36 @@ export default function AdminTasksPage() {
     );
 }
 
-function TaskStatCard({ icon, label, count, color }: any) {
+function getTaskColorStyles(color: string) {
+    switch (color) {
+        case 'amber': return 'bg-amber-50 border-amber-100 text-amber-500';
+        case 'rose': return 'bg-rose-50 border-rose-100 text-rose-500';
+        default: return 'bg-blue-50 border-blue-100 text-blue-500';
+    }
+}
+
+function TaskIcon({ type }: { readonly type: string }) {
+    switch (type) {
+        case 'KYC': return <Clock size={24} />;
+        case 'SECURITY': return <ShieldAlert size={24} />;
+        case 'SUPPORT': return <MessageSquare size={24} />;
+        default: return null;
+    }
+}
+
+function TaskStatusBadge({ status }: { readonly status: string }) {
+    let classes = 'bg-blue-500 text-white';
+    if (status === 'Critique') classes = 'bg-rose-500 text-white';
+    if (status === 'Urgent') classes = 'bg-amber-500 text-white';
+    
+    return (
+        <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${classes}`}>
+            {status}
+        </span>
+    );
+}
+
+function TaskStatCard({ icon, label, count, color }: { readonly icon: React.ReactNode, readonly label: string, readonly count: number, readonly color: string }) {
     const colorClasses = {
         amber: "bg-amber-50/50 shadow-amber-100",
         rose: "bg-rose-50/50 shadow-rose-100",

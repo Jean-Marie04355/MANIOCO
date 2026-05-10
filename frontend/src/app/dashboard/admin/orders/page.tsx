@@ -217,7 +217,7 @@ export default function AdminOrdersManagement() {
 }
 
 // Subcomponents
-function StatCard({ icon: Icon, label, value, color, highlight }: any) {
+function StatCard({ icon: Icon, label, value, color, highlight }: { readonly icon: any, readonly label: string, readonly value: string | number, readonly color: string, readonly highlight?: boolean }) {
     const colors: any = { emerald: 'text-emerald-500 bg-emerald-50', amber: 'text-amber-500 bg-amber-50', blue: 'text-blue-500 bg-blue-50' };
     return (
         <div className="flex items-center gap-4 group">
@@ -232,7 +232,7 @@ function StatCard({ icon: Icon, label, value, color, highlight }: any) {
     );
 }
 
-function ModeToggle({ active, label, onClick }: any) {
+function ModeToggle({ active, label, onClick }: { readonly active: boolean, readonly label: string, readonly onClick: () => void }) {
     return (
         <button 
             onClick={onClick}
@@ -243,7 +243,7 @@ function ModeToggle({ active, label, onClick }: any) {
     );
 }
 
-function FilterTab({ active, label, count, onClick, alert }: any) {
+function FilterTab({ active, label, count, onClick, alert }: { readonly active: boolean, readonly label: string, readonly count: number, readonly onClick: () => void, readonly alert?: boolean }) {
     return (
         <button 
             onClick={onClick}
@@ -251,11 +251,7 @@ function FilterTab({ active, label, count, onClick, alert }: any) {
         >
             {label}
             {count > 0 && (
-                <span className={`px-2 py-0.5 rounded-md text-[8px] ${
-                    active 
-                        ? (alert ? 'bg-rose-500 text-white animate-pulse' : 'bg-emerald-500 text-white shadow-xl') 
-                        : 'bg-slate-200 text-slate-500'
-                }`}>
+                <span className={`px-2 py-0.5 rounded-md text-[8px] ${getFilterBadgeStyles(active, alert)}`}>
                     {count}
                 </span>
             )}
@@ -263,9 +259,9 @@ function FilterTab({ active, label, count, onClick, alert }: any) {
     );
 }
 
-function OrderCardItem({ order, active, onClick }: any) {
+function OrderCardItem({ order, active, onClick }: { readonly order: any, readonly active: boolean, readonly onClick: () => void }) {
     const statusLabels: any = { PENDING: 'Attente', PAID: 'Payé', SHIPPED: 'Transit', DELIVERED: 'Livré', CANCELLED: 'Annulé' };
-    const avatar = order.customer?.firstName ? (order.customer.firstName[0] + (order.customer.lastName ? order.customer.lastName[0] : '')).toUpperCase() : 'U';
+    const avatar = getOrderAvatar(order);
     const date = new Date(order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 
     return (
@@ -291,7 +287,20 @@ function OrderCardItem({ order, active, onClick }: any) {
     );
 }
 
-function CustomerCardItem({ customer, active, onClick }: any) {
+function getFilterBadgeStyles(active: boolean, alert?: boolean) {
+    if (!active) return 'bg-slate-200 text-slate-500';
+    if (alert) return 'bg-rose-500 text-white animate-pulse';
+    return 'bg-emerald-500 text-white shadow-xl';
+}
+
+function getOrderAvatar(order: any) {
+    if (!order.customer?.firstName) return 'U';
+    const first = order.customer.firstName[0];
+    const last = order.customer.lastName ? order.customer.lastName[0] : '';
+    return (first + last).toUpperCase();
+}
+
+function CustomerCardItem({ customer, active, onClick }: { readonly customer: any, readonly active: boolean, readonly onClick: () => void }) {
     return (
         <button 
             onClick={onClick}
@@ -309,7 +318,7 @@ function CustomerCardItem({ customer, active, onClick }: any) {
     );
 }
 
-function OrderDisplay({ order }: any) {
+function OrderDisplay({ order }: { readonly order: any }) {
     const statusLabels: any = { PENDING: 'Attente', PAID: 'Payé', SHIPPED: 'Expédié', DELIVERED: 'Livré', CANCELLED: 'Annulé' };
     const date = new Date(order.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
     
@@ -370,7 +379,7 @@ function OrderDisplay({ order }: any) {
     );
 }
 
-function CustomerDisplay({ customer }: any) {
+function CustomerDisplay({ customer }: { readonly customer: any }) {
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
             <div className="p-12 border-b border-slate-50 bg-emerald-50/20">
@@ -418,7 +427,7 @@ function CustomerDisplay({ customer }: any) {
     );
 }
 
-function PartyBox({ title, name, sub, icon: Icon, color }: any) {
+function PartyBox({ title, name, sub, icon: Icon, color }: { readonly title: string, readonly name: string, readonly sub: string, readonly icon: any, readonly color: string }) {
     const styles: any = { slate: 'bg-slate-50 border-slate-100 text-slate-800', emerald: 'bg-emerald-50 border-emerald-100 text-emerald-800 shadow-sm' };
     return (
         <div className={`p-8 rounded-[2.5rem] border ${styles[color]} relative group hover:shadow-md transition-all`}>
@@ -431,7 +440,7 @@ function PartyBox({ title, name, sub, icon: Icon, color }: any) {
     );
 }
 
-function KpiBox({ label, value, sub, color }: any) {
+function KpiBox({ label, value, sub, color }: { readonly label: string, readonly value: string | number, readonly sub: string, readonly color: string }) {
     const colors: any = { emerald: 'bg-emerald-50 text-emerald-600', slate: 'bg-slate-900 text-white shadow-xl' };
     return (
         <div className={`p-10 rounded-[2.5rem] ${colors[color]} flex flex-col items-center justify-center transition-transform hover:scale-105`}>
@@ -442,7 +451,7 @@ function KpiBox({ label, value, sub, color }: any) {
     );
 }
 
-function DetailAction({ icon: Icon, label, color, onClick }: any) {
+function DetailAction({ icon: Icon, label, color, onClick }: { readonly icon: any, readonly label?: string, readonly color?: string, readonly onClick: () => void }) {
     return (
         <button 
             onClick={onClick}
