@@ -51,7 +51,7 @@ function ClientMessagesContent() {
               const initRes = await api.post('/chat/conversations/init', { storeId: targetSellerId });
               initialConvId = initRes.data.id;
            } catch (e) {
-              console.error("Erreur initiation conversation:", e);
+              console.error("Erreur initiation conversation");
            }
         }
 
@@ -64,8 +64,8 @@ function ClientMessagesContent() {
               setActiveConv(found);
            }
         }
-      } catch (error) {
-        console.error("Erreur chargement conversations:", error);
+      } catch {
+        console.error("Erreur chargement conversations");
       } finally {
         setIsLoading(false);
       }
@@ -80,8 +80,8 @@ function ClientMessagesContent() {
           const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
           setMessages(res.data || []);
           setTimeout(scrollToBottom, 100);
-        } catch (error) {
-          console.error("Erreur chargement messages:", error);
+        } catch {
+          console.error("Erreur chargement messages");
         }
       };
       fetchMessages();
@@ -116,7 +116,7 @@ function ClientMessagesContent() {
   useEffect(() => {
     if (activeConv) {
        // Marquer comme lu
-       api.patch(`/chat/conversations/${activeConv.id}/read`).catch(console.error);
+       api.patch(`/chat/conversations/${activeConv.id}/read`).catch(() => { /* error handled silently */ });
     }
   }, [activeConv?.id]);
 
@@ -144,8 +144,8 @@ function ClientMessagesContent() {
       // Rafraîchir les messages
       const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
       setMessages(res.data);
-    } catch (error) {
-      console.error("Erreur envoi:", error);
+    } catch {
+      console.error("Erreur envoi");
       alert("Erreur lors de l'envoi du message.");
     } finally {
       setIsSending(false);
@@ -174,8 +174,8 @@ function ClientMessagesContent() {
       const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
       setMessages(res.data);
       setTimeout(scrollToBottom, 50);
-    } catch (error) {
-      console.error("Erreur envoi image:", error);
+    } catch {
+      console.error("Erreur envoi image");
       alert("Erreur lors de l'envoi de l'image");
     } finally {
       setIsSending(false);

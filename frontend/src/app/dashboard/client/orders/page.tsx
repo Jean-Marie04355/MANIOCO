@@ -35,8 +35,8 @@ export default function ClientOrders() {
       setIsReportModalOpen(false);
       setReportDescription('');
       alert("Signalement envoyé avec succès. Notre équipe va l'examiner.");
-    } catch (error) {
-      console.error("Erreur lors de l'envoi du signalement:", error);
+    } catch {
+      console.error("Erreur lors de l'envoi du signalement");
       alert("Erreur lors de l'envoi du signalement.");
     } finally {
       setIsSubmittingReport(false);
@@ -51,8 +51,8 @@ export default function ClientOrders() {
       try {
         const res = await api.get('/orders');
         setOrders(res.data);
-      } catch (error) {
-        console.error("Erreur chargement commandes:", error);
+      } catch {
+        console.error("Erreur chargement commandes");
       } finally {
         setIsLoading(false);
       }

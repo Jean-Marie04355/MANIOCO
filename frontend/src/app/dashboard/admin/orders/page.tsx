@@ -35,7 +35,7 @@ export default function AdminOrdersManagement() {
                 }
                 setError(null);
             } catch (err: any) {
-                console.error("Erreur lors du chargement des commandes:");
+                console.error("Erreur lors du chargement des commandes");
                 const status = err.response?.status;
                 const statusMessages: Record<number, string> = {
                   401: "Session expirée (401). Connectez-vous.",

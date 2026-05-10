@@ -30,7 +30,7 @@ export default function AdminProfilePage() {
                 // Sort by date desc
                 logs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 setRecentLogs(logs.slice(0, 3));
-            }).catch(err => console.error("Could not fetch user logs:", err));
+            }).catch(err => console.error("Could not fetch user logs"));
         }
     }, [isLoading, user, router]);
 
@@ -71,8 +71,8 @@ export default function AdminProfilePage() {
             
             // Refresh context
             if (fetchUser) await fetchUser();
-        } catch (error) {
-            console.error("Erreur lors de l'upload:", error);
+        } catch {
+            console.error("Erreur lors de l'upload");
             alert("Erreur lors de l'envoi de la photo.");
         } finally {
             setIsUploading(false);
@@ -85,8 +85,8 @@ export default function AdminProfilePage() {
         try {
             await api.patch(`/users/${user.id}`, { profilePhoto: null });
             if (fetchUser) await fetchUser();
-        } catch (error) {
-            console.error("Erreur de suppression:", error);
+        } catch {
+            console.error("Erreur de suppression");
             alert("Erreur lors de la suppression de la photo.");
         } finally {
             setIsUploading(false);
@@ -101,8 +101,8 @@ export default function AdminProfilePage() {
             });
             setIsEditing(false);
             if (fetchUser) await fetchUser();
-        } catch (error) {
-            console.error("Erreur de sauvegarde:", error);
+        } catch {
+            console.error("Erreur de sauvegarde");
             alert("Erreur lors de la sauvegarde du profil.");
         }
     };

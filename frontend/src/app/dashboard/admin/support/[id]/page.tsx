@@ -52,7 +52,7 @@ export default function AdminTicketDetail() {
             setIsLoading(false);
             setTimeout(scrollToBottom, 300);
         } catch (error) {
-            console.error("Erreur lors du chargement des détails du ticket:");
+            console.error("Erreur lors du chargement des détails du ticket");
             setIsLoading(false);
         }
     };
@@ -77,7 +77,7 @@ export default function AdminTicketDetail() {
             setNewMessage('');
             fetchTicketDetails();
         } catch (error) {
-            console.error("Erreur lors de l'envoi du message:");
+            console.error("Erreur lors de l'envoi du message");
         } finally {
             setIsSending(false);
         }
@@ -89,7 +89,7 @@ export default function AdminTicketDetail() {
             await api.patch(`/support/tickets/${id}/status`, { status });
             fetchTicketDetails();
         } catch (error) {
-            console.error("Erreur lors de la mise à jour du statut:");
+            console.error("Erreur lors de la mise à jour du statut");
         } finally {
             setIsUpdatingStatus(false);
         }

@@ -39,8 +39,8 @@ export default function AdminUsersManagement() {
                 const firstPending = data.find((u: any) => u.role === 'vendeur' && !u.isVerified);
                 setSelectedUser(firstPending || data[0]);
             }
-        } catch (err) {
-            console.error("Erreur lors du chargement des utilisateurs:", err);
+        } catch {
+            console.error("Erreur lors du chargement des utilisateurs");
         } finally {
             setLoading(false);
         }
@@ -62,8 +62,8 @@ export default function AdminUsersManagement() {
         try {
             await performAction(action);
             await refreshUserList(action);
-        } catch (err) {
-            console.error(`Erreur lors de l'action ${action}:`, err);
+        } catch {
+            console.error('Erreur lors de execution action');
             alert("❌ Une erreur est survenue lors de l'opération.");
         }
     };
@@ -446,8 +446,8 @@ function KycReviewModal({ user, onClose, onUpdate }: { readonly user: any, reado
             onUpdate();
             onClose();
             alert(`✅ Dossier ${status === 'APPROVED' ? 'approvré' : 'rejeté'} avec succès.`);
-        } catch (error) {
-            console.error("Erreur review KYC:", error);
+        } catch {
+            console.error("Erreur review KYC");
             alert("❌ Erreur lors de la soumission de la revue.");
         } finally {
             setLoading(false);

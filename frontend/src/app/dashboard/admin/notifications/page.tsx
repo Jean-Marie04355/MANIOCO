@@ -24,8 +24,8 @@ export default function AdminNotificationsPage() {
             setLoading(true);
             const response = await api.get('/notifications');
             setNotifications(response.data);
-        } catch (err) {
-            console.error("Erreur chargement notifications:", err);
+        } catch {
+            console.error("Erreur chargement notifications");
             alert("Erreur lors du chargement des notifications.");
         } finally {
             setLoading(false);
@@ -36,8 +36,8 @@ export default function AdminNotificationsPage() {
         try {
             await api.patch(`/notifications/${id}/read`);
             setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
-        } catch (err) {
-            console.error("Erreur marquage lecture:", err);
+        } catch {
+            console.error("Erreur marquage lecture");
             alert("Impossible de marquer la notification comme lue.");
         }
     };
@@ -46,8 +46,8 @@ export default function AdminNotificationsPage() {
         try {
             await api.patch('/notifications/read-all');
             setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-        } catch (err) {
-            console.error("Erreur marquage global:", err);
+        } catch {
+            console.error("Erreur marquage global");
             alert("Impossible de marquer toutes les notifications comme lues.");
         }
     };
@@ -56,8 +56,8 @@ export default function AdminNotificationsPage() {
         try {
             await api.delete(`/notifications/${id}`);
             setNotifications(notifications.filter(n => n.id !== id));
-        } catch (err) {
-            console.error("Erreur suppression:", err);
+        } catch {
+            console.error("Erreur suppression");
             alert("Impossible de supprimer la notification.");
         }
     };

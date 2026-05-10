@@ -69,8 +69,8 @@ export default function AdminTasksPage() {
                 });
 
                 setTasks(newTasks);
-            } catch (error) {
-                console.error("Erreur lors du chargement des tâches admin:", error);
+            } catch {
+                console.error("Erreur lors du chargement des tâches admin");
             } finally {
                 setIsLoading(false);
             }
