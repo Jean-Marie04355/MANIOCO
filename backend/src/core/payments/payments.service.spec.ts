@@ -239,4 +239,35 @@ describe('PaymentsService', () => {
       expect(transactionRepoMock.findOne).not.toHaveBeenCalled();
     });
   });
+
+  describe('verifyTransaction', () => {
+    it('should return null if transaction has no externalId', async () => {
+      transactionRepoMock.findOne.mockResolvedValue({ id: 'tx-1', externalId: null });
+      const result = await service.verifyTransaction('order-1');
+      expect(result).toBeNull();
+    });
+
+    it('should update transaction to APPROVED and return order', async () => {
+      transactionRepoMock.findOne.mockResolvedValue({ id: 'tx-1', externalId: 'ext-1' });
+      ordersServiceMock.updateStatusInternal.mockResolvedValue({ id: 'order-1', status: 'PAID' });
+      
+      const result = await service.verifyTransaction('order-1');
+      expect(result.status).toBe('PAID');
+      expect(transactionRepoMock.update).toHaveBeenCalledWith('tx-1', expect.objectContaining({ status: 'APPROVED' }));
+    });
+  });
+
+  describe('getFrontendBaseUrl', () => {
+    it('should return default if config is empty', () => {
+      configServiceMock.get.mockReturnValue('');
+      const url = (service as any).getFrontendBaseUrl();
+      expect(url).toBe('http://localhost:3000');
+    });
+
+    it('should return first URL from comma-separated list', () => {
+      configServiceMock.get.mockReturnValue(' http://a.com , http://b.com ');
+      const url = (service as any).getFrontendBaseUrl();
+      expect(url).toBe('http://a.com');
+    });
+  });
 });

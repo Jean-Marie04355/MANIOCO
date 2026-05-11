@@ -52,8 +52,8 @@ export default function ShopsExplorer() {
         }));
 
         setStores(enrichedStores);
-      } catch {
-        console.error("Erreur de chargement des boutiques");
+      } catch (error) {
+        console.error("Erreur de chargement des boutiques", error);
       } finally {
         setIsLoading(false);
       }

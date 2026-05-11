@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Sidebar from '../../components/Sidebar';
 import {
     User, Mail, Phone, ShieldCheck, MapPin,
@@ -31,7 +31,7 @@ export default function ProfessionalProfilePage() {
                 // Sort by date desc
                 logs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 setRecentLogs(logs.slice(0, 3));
-            }).catch(err => console.error("Could not fetch user logs"));
+            }).catch(err => console.error("Could not fetch user logs", err));
         }
     }, [isLoading, user, router]);
 
@@ -72,7 +72,7 @@ export default function ProfessionalProfilePage() {
             // Refresh context
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur lors de l'upload");
+            console.error("Erreur lors de l'upload", error);
             alert("Erreur lors de l'envoi de la photo.");
         } finally {
             setIsUploading(false);
@@ -86,7 +86,7 @@ export default function ProfessionalProfilePage() {
             await api.patch(`/users/${user.id}`, { profilePhoto: null });
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur de suppression");
+            console.error("Erreur de suppression", error);
         } finally {
             setIsUploading(false);
         }
@@ -101,7 +101,7 @@ export default function ProfessionalProfilePage() {
             setIsEditing(false);
             if (fetchUser) await fetchUser();
         } catch (error) {
-            console.error("Erreur de sauvegarde");
+            console.error("Erreur de sauvegarde", error);
             alert("Erreur lors de la sauvegarde du profil.");
         }
     };

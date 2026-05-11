@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
@@ -65,7 +65,7 @@ export default function SellerRevenues() {
           setTransactions(mappedTransactions);
         }
       } catch (error) {
-        console.error("Erreur chargement revenus");
+        console.error("Erreur chargement revenus", error);
       } finally {
         setIsLoading(false);
       }

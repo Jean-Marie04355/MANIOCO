@@ -70,8 +70,8 @@ export default function ClientSettings() {
           profilePhoto: res.data.profilePhoto || '',
           phoneNumber: res.data.phoneNumber || ''
         });
-      } catch {
-        console.error("Erreur chargement profil");
+      } catch (error) {
+        console.error("Erreur chargement profil", error);
       } finally {
         setIsLoading(false);
       }
@@ -110,8 +110,8 @@ export default function ClientSettings() {
       setSuccessMessage('Profil mis à jour avec succès !');
       setTimeout(() => setSuccessMessage(''), 3000);
       // Optional: force reload or update context
-    } catch {
-      console.error("Erreur mise à jour profil");
+    } catch (error) {
+      console.error("Erreur mise à jour profil", error);
       const msg = err.response?.data?.message;
       setProfileError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Erreur lors de la mise à jour'));
     } finally {
@@ -146,8 +146,8 @@ export default function ClientSettings() {
         setSuccessMessage('Mot de passe modifié avec succès !');
         setPasswordData({ newPassword: '', confirmPassword: '' });
         setTimeout(() => setSuccessMessage(''), 3000);
-      } catch {
-        console.error("Erreur changement mot de passe");
+      } catch (error) {
+        console.error("Erreur changement mot de passe", error);
         const msg = err.response?.data?.message;
         setPasswordError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Erreur lors du changement'));
       } finally {

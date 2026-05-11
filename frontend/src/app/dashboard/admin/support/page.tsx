@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Sidebar from '../../components/Sidebar';
@@ -35,7 +35,7 @@ export default function AdminSupportHub() {
       const res = await api.get('/support/tickets/all');
       setTickets(res.data);
     } catch (error) {
-      console.error("Erreur récupération tickets admin");
+      console.error("Erreur récupération tickets admin", error);
     } finally {
       setIsLoading(false);
     }

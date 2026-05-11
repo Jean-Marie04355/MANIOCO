@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
@@ -49,7 +49,7 @@ export default function SellerCategories() {
           setHasStore(false);
         }
       } catch (error) {
-        console.error("Error fetching categories");
+        console.error("Error fetching categories", error);
       } finally {
         setIsLoading(false);
       }

@@ -40,7 +40,7 @@ export default function SellerSupport() {
       const res = await api.get('/support/tickets/my-tickets');
       setTickets(res.data);
     } catch (error) {
-      console.error("Erreur lors de la récupération des tickets");
+      console.error("Erreur lors de la récupération des tickets", error);
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +66,7 @@ export default function SellerSupport() {
       setMessage('');
       fetchTickets(); // Refresh list
     } catch (error) {
-      console.error("Erreur création ticket");
+      console.error("Erreur création ticket", error);
       alert("Une erreur est survenue lors de l'envoi du ticket.");
     } finally {
       setIsSubmitting(false);
@@ -145,12 +145,10 @@ export default function SellerSupport() {
               ) : (
                 <div className="divide-y divide-slate-50">
                   {tickets.map(ticket => (
-                    <div 
+                    <button 
+                      type="button"
                       key={ticket.id} 
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); window.location.href = `/dashboard/seller/support/${ticket.id}`; } }}
-                      className="p-6 hover:bg-slate-50/50 transition-colors flex items-center justify-between group cursor-pointer" 
+                      className="w-full text-left p-6 hover:bg-slate-50/50 transition-colors flex items-center justify-between group cursor-pointer" 
                       onClick={() => window.location.href = `/dashboard/seller/support/${ticket.id}`}
                     >
                       <div className="flex gap-4 items-center">
@@ -174,7 +172,7 @@ export default function SellerSupport() {
                       <div className="text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity">
                          <span className="text-xs font-black uppercase tracking-widest">Voir</span>
                       </div>
-                    </div>
+                    </button>
                   ))}
                 </div>
               )}
@@ -189,7 +187,6 @@ export default function SellerSupport() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
-             role="presentation"
              onClick={() => !isSubmitting && setIsModalOpen(false)}
            ></div>
           <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in fade-in duration-300">

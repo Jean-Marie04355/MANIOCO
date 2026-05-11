@@ -39,8 +39,8 @@ export default function AdminUsersManagement() {
                 const firstPending = data.find((u: any) => u.role === 'vendeur' && !u.isVerified);
                 setSelectedUser(firstPending || data[0]);
             }
-        } catch {
-            console.error("Erreur lors du chargement des utilisateurs");
+        } catch (error) {
+            console.error("Erreur lors du chargement des utilisateurs", error);
         } finally {
             setLoading(false);
         }
@@ -62,7 +62,7 @@ export default function AdminUsersManagement() {
         try {
             await performAction(action);
             await refreshUserList(action);
-        } catch {
+        } catch (error) {
             console.error('Erreur lors de execution action');
             alert("❌ Une erreur est survenue lors de l'opération.");
         }
@@ -410,7 +410,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { readonly user: any, reado
     const [rejectionReasons, setRejectionReasons] = useState<any>(() => {
         try {
             return user.kycRejectionReasons ? JSON.parse(user.kycRejectionReasons) : {};
-        } catch { return {}; }
+        } catch (error) { return {}; }
     });
     const [reviewedFields, setReviewedFields] = useState<any>(() => {
         try {
@@ -418,7 +418,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { readonly user: any, reado
             const reviewed: any = {};
             Object.keys(reasons).forEach(k => reviewed[k] = 'REJECTED');
             return reviewed;
-        } catch { return {}; }
+        } catch (error) { return {}; }
     });
     const [loading, setLoading] = useState(false);
 
@@ -446,8 +446,8 @@ function KycReviewModal({ user, onClose, onUpdate }: { readonly user: any, reado
             onUpdate();
             onClose();
             alert(`✅ Dossier ${status === 'APPROVED' ? 'approvré' : 'rejeté'} avec succès.`);
-        } catch {
-            console.error("Erreur review KYC");
+        } catch (error) {
+            console.error("Erreur review KYC", error);
             alert("❌ Erreur lors de la soumission de la revue.");
         } finally {
             setLoading(false);

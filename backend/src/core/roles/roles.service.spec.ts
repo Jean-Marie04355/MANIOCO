@@ -127,9 +127,20 @@ describe('RolesService', () => {
     });
 
     it('should not initialize system roles if they already exist', async () => {
-      mockRepo.findOne.mockResolvedValue({ name: 'existing' });
+      mockRepo.findOne.mockResolvedValue({ name: 'existing', isSystem: true, permissions: [] });
       await service.initializeSystemRoles();
-      expect(mockRepo.create).not.toHaveBeenCalled();
+      // It should call update for permissions because roleData permissions are not empty for some roles
+      expect(mockRepo.update).toHaveBeenCalled();
+    });
+
+    it('should skip update if permissions match', async () => {
+      mockRepo.findOne.mockImplementation((query: any) => {
+        if (query.name === 'client') return { name: 'client', isSystem: true, permissions: [] };
+        return null;
+      });
+      await service.initializeSystemRoles();
+      // Should create 4 and skip client update
+      expect(mockRepo.create).toHaveBeenCalledTimes(4);
     });
   });
 });

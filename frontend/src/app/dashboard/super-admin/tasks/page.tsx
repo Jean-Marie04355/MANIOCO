@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Sidebar from '../../components/Sidebar';
 import { 
   Zap, Clock, CheckCircle2, AlertCircle, 
@@ -26,7 +26,7 @@ export default function SimpleTasksPage() {
         setQueues(data);
         setLastSync(new Date());
       }
-    } catch (err) { console.error("Erreur"); }
+    } catch (err) { console.error("Erreur", err); }
     finally { setLoading(false); }
   };
 

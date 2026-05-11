@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Sidebar from '../components/Sidebar';
 import { 
     Users, Shield, Activity, TrendingUp, Bell, Search, 
@@ -60,7 +60,7 @@ export default function ProfessionalSuperAdminDashboard() {
 
       const logs = logRes.data;
       setRecentLogs(logs.slice(0, 6));
-    } catch (err) { console.error("Erreur"); }
+    } catch (err) { console.error("Erreur", err); }
     finally { setLoading(false); }
   };
 

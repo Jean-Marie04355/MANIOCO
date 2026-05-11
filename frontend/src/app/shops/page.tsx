@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { Search, ArrowRight, Star, ShoppingBag, ChevronLeft, Loader2, Leaf } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -51,7 +51,7 @@ export default function PublicShopsPage() {
 
         setStores(enrichedStores);
       } catch (error) {
-        console.error("Erreur de chargement des boutiques");
+        console.error("Erreur de chargement des boutiques", error);
       } finally {
         setIsLoading(false);
       }

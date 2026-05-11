@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Sidebar from '../../components/Sidebar';
 import {
   Users, UserCheck, Shield, Plus, Search,
@@ -39,7 +39,7 @@ export default function StylishAdminsPage() {
           return role.includes('admin');
         }));
       }
-    } catch (err) { console.error("Erreur"); }
+    } catch (err) { console.error("Erreur", err); }
     finally { setLoading(false); }
   };
 
@@ -88,7 +88,7 @@ export default function StylishAdminsPage() {
         method
       });
       if (res.status === 200) fetchAdmins();
-    } catch (err) { console.error("Erreur"); }
+    } catch (err) { console.error("Erreur", err); }
   };
 
   const permanentlyDelete = async (admin: any) => {
@@ -99,7 +99,7 @@ export default function StylishAdminsPage() {
     try {
       const res = await api.delete(`/users/${admin.id}/permanent`);
       if (res.status === 200) fetchAdmins();
-    } catch (err) { console.error("Erreur"); }
+    } catch (err) { console.error("Erreur", err); }
   };
 
   const openEdit = (admin: any) => {

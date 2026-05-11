@@ -88,7 +88,7 @@ export default function AdminReports() {
       try {
         const res = await api.get('/reports');
         setReports(res.data);
-      } catch {
+      } catch (error) {
         // Route pas encore créée → on utilise les données de démo
         setReports(MOCK_REPORTS);
       } finally {

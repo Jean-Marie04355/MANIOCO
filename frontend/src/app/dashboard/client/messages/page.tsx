@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -51,7 +51,7 @@ function ClientMessagesContent() {
               const initRes = await api.post('/chat/conversations/init', { storeId: targetSellerId });
               initialConvId = initRes.data.id;
            } catch (e) {
-              console.error("Erreur initiation conversation");
+              console.error("Erreur initiation conversation", e);
            }
         }
 
@@ -64,8 +64,8 @@ function ClientMessagesContent() {
               setActiveConv(found);
            }
         }
-      } catch {
-        console.error("Erreur chargement conversations");
+      } catch (error) {
+        console.error("Erreur chargement conversations", error);
       } finally {
         setIsLoading(false);
       }
@@ -80,8 +80,8 @@ function ClientMessagesContent() {
           const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
           setMessages(res.data || []);
           setTimeout(scrollToBottom, 100);
-        } catch {
-          console.error("Erreur chargement messages");
+        } catch (error) {
+          console.error("Erreur chargement messages", error);
         }
       };
       fetchMessages();
@@ -144,8 +144,8 @@ function ClientMessagesContent() {
       // Rafraîchir les messages
       const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
       setMessages(res.data);
-    } catch {
-      console.error("Erreur envoi");
+    } catch (error) {
+      console.error("Erreur envoi", error);
       alert("Erreur lors de l'envoi du message.");
     } finally {
       setIsSending(false);
@@ -174,8 +174,8 @@ function ClientMessagesContent() {
       const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
       setMessages(res.data);
       setTimeout(scrollToBottom, 50);
-    } catch {
-      console.error("Erreur envoi image");
+    } catch (error) {
+      console.error("Erreur envoi image", error);
       alert("Erreur lors de l'envoi de l'image");
     } finally {
       setIsSending(false);

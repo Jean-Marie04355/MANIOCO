@@ -122,7 +122,7 @@ export default function ChatWindow() {
           setActiveConv(convs[0]);
         }
       } catch (error) {
-        console.error("Erreur chargement données chat");
+        console.error("Erreur chargement données chat", error);
       } finally {
         setIsLoading(false);
       }
@@ -180,7 +180,7 @@ export default function ChatWindow() {
           }
           setTimeout(scrollToBottom, 100);
         } catch (error) {
-          console.error("Erreur chargement messages");
+          console.error("Erreur chargement messages", error);
         }
       };
       fetchMessages();
@@ -233,7 +233,7 @@ export default function ChatWindow() {
             : c
         ));
       }
-    } catch (e) { console.error("Erreur suppression"); }
+    } catch (e) { console.error("Erreur suppression", e); }
   };
 
   const handleCopyMessage = (text: string) => {
@@ -308,7 +308,7 @@ export default function ChatWindow() {
          ));
       }
     } catch (error) {
-      console.error("Erreur envoi message");
+      console.error("Erreur envoi message", error);
       setMessages(prev => prev.filter(m => m.id !== tempMsg.id));
       setInputText(tempMsg.text);
     } finally {
@@ -362,11 +362,9 @@ export default function ChatWindow() {
                     .map(client => {
                        const existingConv = conversations.find(conv => conv.customerId === client.id);
                        return (
-                          <div 
+                          <button 
+                             type="button"
                              key={client.id}
-                             role="button"
-                             tabIndex={0}
-                             onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.currentTarget.click(); } }}
                              onClick={() => {
                                 if (existingConv) {
                                    setActiveConv(existingConv);
@@ -384,7 +382,7 @@ export default function ChatWindow() {
                                 }
                                 setSearchTerm('');
                              }}
-                             className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors"
+                             className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors text-left"
                           >
                              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500 uppercase">
                                 {client.displayName?.[0] || 'C'}
@@ -393,7 +391,7 @@ export default function ChatWindow() {
                                 <p className="text-xs font-bold text-slate-800 truncate">{client.displayName}</p>
                                 <p className="text-[9px] text-slate-400 font-bold uppercase">{existingConv ? 'Discussion ouverte' : 'Nouveau message'}</p>
                              </div>
-                          </div>
+                          </button>
                        );
                     })
                    }
@@ -415,13 +413,11 @@ export default function ChatWindow() {
             <div className="p-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">Aucune discussion</div>
           ) : (
             conversations.map((c) => (
-              <div 
+              <button 
+                type="button"
                 key={c.id} 
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveConv(c); } }}
                 onClick={() => setActiveConv(c)}
-                className={`p-4 flex gap-3 cursor-pointer transition-colors ${activeConv?.id === c.id ? 'bg-orange-50/50 border-r-4 border-orange-500' : 'hover:bg-slate-50'}`}
+                className={`w-full text-left p-4 flex gap-3 cursor-pointer transition-colors ${activeConv?.id === c.id ? 'bg-orange-50/50 border-r-4 border-orange-500' : 'hover:bg-slate-50'}`}
               >
                 <div className="relative">
                    <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black uppercase">
@@ -437,7 +433,7 @@ export default function ChatWindow() {
                   </div>
                   <p className="text-xs text-slate-500 truncate">{c.lastMessageText || 'Nouvelle conversation'}</p>
                 </div>
-              </div>
+              </button>
             ))
           )}
         </div>
@@ -491,7 +487,7 @@ export default function ChatWindow() {
                           await api.patch(`/chat/conversations/${activeConv.id}/unread`);
                           // Optional: fetch unread count again
                         } catch (e) {
-                          console.error("Erreur");
+                          console.error("Erreur marquage non lu", e);
                         }
                       }}
                       className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
@@ -508,7 +504,7 @@ export default function ChatWindow() {
                             setActiveConv(null);
                             setConversations(prev => prev.filter(c => c.id !== activeConv.id));
                           } catch (e) {
-                            console.error("Erreur");
+                            console.error("Erreur suppression conversation", e);
                           }
                         }
                       }}
@@ -525,7 +521,6 @@ export default function ChatWindow() {
             <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
-              role="presentation"
               onClick={() => setContextMenu(null)}
             >
               {messages.map((m) => (
@@ -534,9 +529,6 @@ export default function ChatWindow() {
                   className={`flex ${m.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openContextMenu(e as any, m); } }}
                     className={`rounded-[2rem] p-3 cursor-pointer select-none
                       ${m.senderId === currentUserId
                         ? 'bg-orange-500 text-white rounded-tr-none'
@@ -630,7 +622,6 @@ export default function ChatWindow() {
         <div
           className="fixed z-50"
           style={{ top: contextMenu.y, left: contextMenu.x }}
-          role="presentation"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150">

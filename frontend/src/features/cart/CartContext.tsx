@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
@@ -47,7 +47,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       try {
         setItems(JSON.parse(savedCart));
       } catch (e) {
-        console.error("Erreur chargement panier");
+        console.error("Erreur chargement panier", e);
         setItems([]);
       }
     } else {

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TopNav from '../components/TopNav';
@@ -113,7 +113,7 @@ export default function SellerDashboard() {
           setChartData(last6Months);
         }
       } catch (error) {
-        console.error("Erreur chargement dashboard vendeur");
+        console.error("Erreur chargement dashboard vendeur", error);
       } finally {
         setIsLoading(false);
       }

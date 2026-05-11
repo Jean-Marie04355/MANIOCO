@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../../../components/Sidebar';
 import TopNav from '../../../components/TopNav';
@@ -47,7 +47,7 @@ export default function AccountSettings() {
           profilePhoto: res.data.profilePhoto || ''
         });
       } catch (err) {
-        console.error("Erreur chargement profil");
+        console.error("Erreur chargement profil", err);
       } finally {
         setIsLoading(false);
       }

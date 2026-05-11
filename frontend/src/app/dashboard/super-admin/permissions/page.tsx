@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Sidebar from '../../components/Sidebar';
 import {
   Shield, User, CheckCircle2, XCircle, RefreshCcw,
@@ -74,7 +74,7 @@ export default function LuxuryPermissionsPage() {
         const data = Array.isArray(res.data) ? res.data : [];
         setAdmins(data.filter((u: any) => (u.role === 'admin' || u.role === 'super_admin') && !u.deletedAt));
       }
-    } catch (err) { console.error("Erreur"); }
+    } catch (err) { console.error("Erreur", err); }
     finally { setLoading(false); }
   };
 
@@ -88,7 +88,7 @@ export default function LuxuryPermissionsPage() {
     try {
       await api.patch(`/users/${adminId}`, { permissions: newPerms });
       setAdmins(prev => prev.map(a => a.id === adminId ? { ...a, permissions: newPerms } : a));
-    } catch (err) { console.error("Erreur"); }
+    } catch (err) { console.error("Erreur", err); }
     finally { setTimeout(() => setUpdatingId(null), 500); }
   };
 

@@ -4,7 +4,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { NotificationsService } from '../notifications/notifications.service';
-import { UnauthorizedException } from '@nestjs/common';
+import { UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
 import { UserRole } from '../../common/enum/role.enum';
 import * as hashHelper from '../../common/helpers/hash.helper';
 
@@ -18,6 +18,8 @@ describe('AuthService', () => {
   beforeEach(async () => {
     usersServiceMock = {
       findByEmail: jest.fn(),
+      findByResetToken: jest.fn(),
+      findOne: jest.fn(),
       update: jest.fn(),
     };
     jwtServiceMock = {
@@ -85,6 +87,31 @@ describe('AuthService', () => {
       const result = await service.login('test@test.com', 'pwd');
       expect(result.accessToken).toBe('token');
       expect(result.user.email).toBe(user.email);
+    });
+
+    it('should throw UnauthorizedException if account is suspended', async () => {
+      const suspensionUntil = new Date(Date.now() + 100000);
+      usersServiceMock.findByEmail.mockResolvedValue({
+        id: '1',
+        email: 'test@test.com',
+        password: 'hashed',
+        suspensionUntil,
+      });
+      jest.spyOn(hashHelper, 'comparePassword').mockResolvedValue(true);
+      
+      await expect(service.login('test@test.com', 'pwd')).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw UnauthorizedException if admin tries to login via regular portal', async () => {
+      usersServiceMock.findByEmail.mockResolvedValue({
+        id: '1',
+        email: 'admin@test.com',
+        password: 'hashed',
+        role: UserRole.ADMIN,
+      });
+      jest.spyOn(hashHelper, 'comparePassword').mockResolvedValue(true);
+      
+      await expect(service.login('admin@test.com', 'pwd')).rejects.toThrow(UnauthorizedException);
     });
   });
 
@@ -226,6 +253,49 @@ describe('AuthService', () => {
       const result = await service.me(user as any);
       expect(result.email).toBe('test@test.com');
       expect(result.role).toBe(UserRole.CLIENT);
+    });
+
+    it('should throw NotFoundException if user not found', async () => {
+      usersServiceMock.findOne.mockResolvedValue(null);
+      const user = { userId: 'unknown' };
+      await expect(service.me(user as any)).rejects.toThrow(NotFoundException);
+    });
+  });
+
+  describe('forgotPassword', () => {
+    it('should return generic message even if user not found', async () => {
+      usersServiceMock.findByEmail.mockResolvedValue(null);
+      const result = await service.forgotPassword('unknown@test.com');
+      expect(result.message).toContain('If this email is registered');
+    });
+
+    it('should update user and add job to queue if user found', async () => {
+      const user = { id: '1', email: 'test@test.com' };
+      usersServiceMock.findByEmail.mockResolvedValue(user);
+      
+      const result = await service.forgotPassword('test@test.com');
+      expect(result.message).toContain('If this email is registered');
+      expect(usersServiceMock.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('resetPassword', () => {
+    it('should throw BadRequestException if token is invalid or expired', async () => {
+      usersServiceMock.findByResetToken.mockResolvedValue(null);
+      await expect(service.resetPassword('invalid', 'newPwd')).rejects.toThrow(BadRequestException);
+      
+      const expiredUser = { id: '1', resetPasswordExpires: new Date(Date.now() - 1000) };
+      usersServiceMock.findByResetToken.mockResolvedValue(expiredUser);
+      await expect(service.resetPassword('expired', 'newPwd')).rejects.toThrow(BadRequestException);
+    });
+
+    it('should update password and notify user on success', async () => {
+      const user = { id: '1', resetPasswordExpires: new Date(Date.now() + 10000) };
+      usersServiceMock.findByResetToken.mockResolvedValue(user);
+      
+      const result = await service.resetPassword('valid', 'newPwd');
+      expect(result.message).toContain('successfully reset');
+      expect(usersServiceMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ password: 'newPwd' }));
     });
   });
 });

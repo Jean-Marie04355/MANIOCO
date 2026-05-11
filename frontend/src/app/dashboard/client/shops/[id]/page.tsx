@@ -56,7 +56,7 @@ export default function ShopDetails() {
         await api.post('/chat/conversations/init', { storeId: id });
         router.push('/dashboard/client/messages');
      } catch (error) {
-        console.error("Erreur initiation chat");
+        console.error("Erreur initiation chat", error);
         alert("Erreur lors de la mise en relation avec le vendeur.");
      } finally {
         setIsStartingChat(false);
@@ -76,7 +76,7 @@ export default function ShopDetails() {
         setStore(storeRes.data);
         setProducts(productsRes.data || []);
       } catch (error) {
-        console.error("Erreur de chargement de la boutique");
+        console.error("Erreur de chargement de la boutique", error);
       } finally {
         setIsLoading(false);
       }
@@ -121,11 +121,9 @@ export default function ShopDetails() {
             </Link>
 
             <div className="flex items-center gap-10">
-               <div 
+               <button 
+                  type="button"
                   onClick={() => setIsCartOpen(true)}
-                  onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setIsCartOpen(true); }}
-                  role="button"
-                  tabIndex={0}
                   className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
                   aria-label="Voir le panier"
                >
@@ -135,7 +133,7 @@ export default function ShopDetails() {
                         {totalItems}
                      </span>
                   )}
-               </div>
+               </button>
                 <div className="w-12 h-12 rounded-full border-2 border-white shadow-2xl overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
                    {user?.profilePhoto ? (
                       <img src={getRealInternetLink({name: 'user', image: user.profilePhoto})} alt="Profil" className="w-full h-full object-cover" />
@@ -317,16 +315,15 @@ function ProductCard({ product, addToCart, getImageUrl, isOwner }: any) {
              <div className="flex justify-between items-center bg-[#1a2e22]/5 p-3 rounded-[32px] group-hover:bg-[#1a2e22] group-hover:text-white transition-all duration-700 shadow-sm border border-[#1a2e22]/5">
                 <span className="text-2xl font-black ml-4 tracking-tighter">{Number(product.price).toLocaleString('fr-FR')} FCFA</span>
                 {!isOwner && (
-                   <div 
+                   <button 
+                      type="button"
                       onClick={(e) => { e.preventDefault(); addToCart(product); }}
-                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); addToCart(product); } }}
-                      role="button"
                       tabIndex={0}
                       aria-label={`Ajouter ${product.name} au panier`}
                       className="w-14 h-14 rounded-2xl bg-white text-[#1a2e22] flex items-center justify-center group-hover:bg-[#c5a059] group-hover:text-white transition-all shadow-xl cursor-pointer"
                    >
                       <ShoppingCart size={20} />
-                   </div>
+                   </button>
                 )}
              </div>
          </div>

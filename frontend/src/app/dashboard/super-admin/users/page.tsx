@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Sidebar from '../../components/Sidebar';
 import {
     Users, Search, Filter, Activity,
@@ -25,7 +25,7 @@ export default function StylishUsersPage() {
                 // On garde tout sauf le super_admin pour la liste générale
                 setUsers(data.filter((u: any) => u.role !== 'super_admin'));
             }
-        } catch (err) { console.error("Erreur"); }
+        } catch (err) { console.error("Erreur", err); }
         finally { setLoading(false); }
     };
 

@@ -42,7 +42,7 @@ export default function AdminChatView() {
         
         setTimeout(scrollToBottom, 100);
       } catch (error) {
-        console.error("Erreur chargement chat admin");
+        console.error("Erreur chargement chat admin", error);
       } finally {
         setIsLoading(false);
       }

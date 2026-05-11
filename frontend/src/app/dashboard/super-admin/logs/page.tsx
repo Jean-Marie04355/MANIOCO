@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import Sidebar from '../../components/Sidebar';
 import {
     Database, Search, Filter, Calendar,
@@ -28,7 +28,7 @@ export default function LuxuryLogsPage() {
                 const data = res.data;
                 setLogs(data);
             }
-        } catch (err) { console.error("Erreur"); }
+        } catch (err) { console.error("Erreur", err); }
         finally {
             setLoading(false);
             if (isRef) setIsRefreshing(false);

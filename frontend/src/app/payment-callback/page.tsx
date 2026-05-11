@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -18,7 +18,7 @@ function PaymentCallbackContent() {
           await api.get(`/payments/verify/${orderId}`);
           console.log("Paiement vérifié avec succès");
         } catch (error) {
-          console.error("Erreur lors de la vérification du paiement");
+          console.error("Erreur lors de la vérification du paiement", error);
         }
       }
     };

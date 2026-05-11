@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import { Product } from '@/types/product';
 import Sidebar from '../../components/Sidebar';
@@ -50,7 +50,7 @@ export default function SellerProducts() {
           localStorage.removeItem('afrigari_has_store');
         }
       } catch (error) {
-        console.error("Erreur d'initialisation");
+        console.error("Erreur d'initialisation", error);
       } finally {
         setIsLoading(false);
       }

@@ -97,7 +97,7 @@ export default function StoreSettings() {
           });
         }
       } catch (error) {
-        console.error("Erreur lors de la récupération de la boutique");
+        console.error("Erreur lors de la récupération de la boutique", error);
       }
     };
     fetchStore();
@@ -141,7 +141,7 @@ export default function StoreSettings() {
       }
       setTimeout(() => setIsSaved(false), 3000);
     } catch (error: any) {
-      console.error("Erreur de sauvegarde");
+      console.error("Erreur de sauvegarde", error);
       const msg = error.response?.data?.message;
       alert(Array.isArray(msg) ? msg.join(", ") : (msg || "Erreur lors de la sauvegarde"));
     } finally {
@@ -294,7 +294,11 @@ export default function StoreSettings() {
               <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
                 <div className="flex items-center gap-6">
                   <div className="relative group">
-                    <div className="w-24 h-24 rounded-3xl bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-all overflow-hidden shadow-sm" role="button" tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInputRef.current?.click(); } }} onClick={() => fileInputRef.current?.click()}>
+                    <button 
+                      type="button"
+                      className="w-24 h-24 rounded-3xl bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-all overflow-hidden shadow-sm" 
+                      onClick={() => fileInputRef.current?.click()}
+                    >
                       {logoPreview ? (
                         <Image src={logoPreview} alt="Logo de la boutique" fill className="object-cover" />
                       ) : (
@@ -303,7 +307,7 @@ export default function StoreSettings() {
                           <span className="text-[10px] font-black text-slate-400 uppercase">Logo</span>
                         </>
                       )}
-                    </div>
+                    </button>
                     <input type="file" ref={fileInputRef} onChange={handleLogoChange} accept="image/*" className="hidden" />
                   </div>
                   <div>

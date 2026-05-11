@@ -156,7 +156,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
       // Return signed URL (valid for 7 days)
       return await this.presignedGetObject(name);
     } catch (err: any) {
-      this.logger.error('Error uploading to S3');
+      this.logger.error('Error uploading to S3', err instanceof Error ? err.stack : err);
       throw new HttpException(
         'Error uploading file',
         err.status || HttpStatus.INTERNAL_SERVER_ERROR,

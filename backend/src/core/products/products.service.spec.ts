@@ -178,6 +178,16 @@ describe('ProductsService', () => {
         ForbiddenException,
       );
     });
+
+    it('should log error but continue if image upload fails', async () => {
+      const dto = { name: 'Prod', image: 'data:image/png;base64,content' };
+      storageServiceMock.uploadFile.mockRejectedValue(new Error('S3 Error'));
+      repoMock.create.mockResolvedValue({ id: '1', ...dto });
+      repoMock.findOne.mockResolvedValue({ id: '1', ...dto });
+
+      await service.create(dto as any, mockAdmin as any);
+      expect(repoMock.create).toHaveBeenCalled();
+    });
   });
 
   describe('update', () => {
@@ -193,6 +203,25 @@ describe('ProductsService', () => {
       await expect(service.update('1', {}, mockAdmin as any)).rejects.toThrow(
         NotFoundException,
       );
+    });
+
+    it('should throw ForbiddenException if vendor updates other product', async () => {
+      const vendorUser = { userId: 'v1', role: UserRole.VENDEUR };
+      repoMock.findOne.mockResolvedValue({ id: '1', storeId: 'other-store' });
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-v1' });
+
+      await expect(service.update('1', {}, vendorUser as any)).rejects.toThrow(
+        ForbiddenException,
+      );
+    });
+
+    it('should handle image update and its failure', async () => {
+      const dto = { image: 'data:image/png;base64,new' };
+      repoMock.findOne.mockResolvedValue({ id: '1', storeId: 's1' });
+      storageServiceMock.uploadFile.mockRejectedValue(new Error('S3 fail'));
+      
+      await service.update('1', dto as any, mockAdmin as any);
+      expect(repoMock.save).toHaveBeenCalled();
     });
   });
 
@@ -212,6 +241,13 @@ describe('ProductsService', () => {
       await expect(service.remove('1', vendorUser as any)).rejects.toThrow(
         ForbiddenException,
       );
+    });
+
+    it('should handle broadcast edge case when server is null', async () => {
+      realtimeGatewayMock.server = null;
+      repoMock.findOne.mockResolvedValue({ id: '1', storeId: 's1' });
+      await service.remove('1', mockAdmin as any);
+      // Should not throw
     });
   });
 });

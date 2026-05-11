@@ -104,7 +104,7 @@ export default function HomeView() {
             setCategories((catRes?.data || []) as Category[]);
             setStores((storeRes?.data || []).slice(0, 4));
          } catch (error) {
-            console.error("Erreur de chargement");
+            console.error("Erreur de chargement", error);
          } finally {
             setIsLoading(false);
          }
@@ -126,7 +126,7 @@ export default function HomeView() {
                 setUnreadCount(typeof unreadNotifRes.data === 'object' ? unreadNotifRes.data.count : unreadNotifRes.data);
                 setUnreadMessages(typeof unreadChatRes.data === 'object' ? unreadChatRes.data.count : unreadChatRes.data);
              } catch (error) {
-                console.error("Erreur lors du chargement initial des données");
+                console.error("Erreur lors du chargement initial des données", error);
              } finally {
                 setIsNotificationLoading(false);
              }
@@ -170,7 +170,7 @@ export default function HomeView() {
          setNotifications(notifications.map(n => ({ ...n, isRead: true })));
          setUnreadCount(0);
       } catch (error) {
-         console.error("Erreur lors du marquage des notifications");
+         console.error("Erreur lors du marquage des notifications", error);
       }
    };
 
@@ -180,7 +180,7 @@ export default function HomeView() {
          setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
          setUnreadCount(prev => Math.max(0, prev - 1));
       } catch (error) {
-         console.error("Erreur lors du marquage de la notification");
+         console.error("Erreur lors du marquage de la notification", error);
       }
    };
 
@@ -286,10 +286,8 @@ export default function HomeView() {
 
                            {/* Notifications */}
                            <div className="relative" ref={notificationsRef}>
-                              <div
-                                 role="button"
-                                 tabIndex={0}
-                                 onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsNotificationsOpen(!isNotificationsOpen); } }}
+                              <button
+                                 type="button"
                                  onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
                                  className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
                               >
@@ -299,7 +297,7 @@ export default function HomeView() {
                                        {unreadCount > 9 ? '9+' : unreadCount}
                                     </span>
                                  )}
-                              </div>
+                              </button>
 
                               {isNotificationsOpen && (
                                  <div className="absolute right-0 mt-4 w-80 bg-white rounded-[2rem] shadow-2xl border border-[#1a2e22]/5 py-6 z-[300] animate-reveal overflow-hidden">
@@ -316,20 +314,18 @@ export default function HomeView() {
                                           <div className="px-8 py-8 text-center text-[#1a2e22]/40 text-[10px] font-black uppercase tracking-widest">Aucune notification</div>
                                        ) : (
                                           notifications.map((notif) => (
-                                             <div 
+                                             <button 
+                                                type="button"
                                                 key={notif.id} 
-                                                role="button"
-                                                tabIndex={0}
-                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); markAsRead(notif.id); } }}
                                                 onClick={() => markAsRead(notif.id)}
-                                                className={`px-8 py-5 hover:bg-[#1a2e22]/5 transition-colors cursor-pointer border-b border-[#1a2e22]/5 last:border-0 ${!notif.isRead ? 'bg-[#c5a059]/5' : ''}`}
+                                                className={`w-full text-left px-8 py-5 hover:bg-[#1a2e22]/5 transition-colors cursor-pointer border-b border-[#1a2e22]/5 last:border-0 ${!notif.isRead ? 'bg-[#c5a059]/5' : ''}`}
                                              >
                                                 <div className="flex justify-between items-start mb-1">
                                                    <p className={`text-[11px] font-black uppercase tracking-tight ${!notif.isRead ? 'text-[#1a2e22]' : 'text-[#1a2e22]/40'}`}>{notif.title}</p>
                                                    <span className="text-[9px] font-black text-[#c5a059]">{timeAgo(notif.createdAt)}</span>
                                                 </div>
                                                 <p className={`text-[12px] font-medium leading-relaxed ${!notif.isRead ? 'text-[#1a2e22]/70' : 'text-[#1a2e22]/30'}`}>{notif.message}</p>
-                                             </div>
+                                             </button>
                                           ))
                                        )}
                                     </div>
@@ -346,10 +342,8 @@ export default function HomeView() {
                               )}
                            </div>
 
-                           <div
-                              role="button"
-                              tabIndex={0}
-                              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsCartOpen(true); } }}
+                           <button
+                              type="button"
                               onClick={() => setIsCartOpen(true)}
                               className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
                            >
@@ -359,7 +353,7 @@ export default function HomeView() {
                                     {totalItems}
                                  </span>
                               )}
-                           </div>
+                           </button>
                         </>
                      ) : (
                         <Link href="/auth/login" className="flex items-center gap-4 bg-[#1a2e22] text-[#c5a059] px-8 py-3 rounded-full hover:bg-[#c5a059] hover:text-[#1a2e22] transition-all group shadow-lg">
@@ -477,28 +471,17 @@ export default function HomeView() {
                </div>
                
                <div className="flex flex-wrap justify-center gap-8 md:gap-12">
-                  <div 
-                     role="button"
-                     tabIndex={0}
-                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setActiveCategoryId(null); } }}
+                  <button 
+                     type="button"
                      onClick={() => setActiveCategoryId(null)} 
                      className="cursor-pointer"
                   >
                      <LuxuryCategoryBubble label="Tout" active={activeCategoryId === null} icon="🌍" />
-                  </div>
+                  </button>
                   {categories.slice(0, isExploreOpen ? categories.length : 8).map(cat => (
-                      <div 
+                      <button 
+                         type="button"
                          key={cat.id} 
-                         role="button"
-                         tabIndex={0}
-                         onKeyDown={(e) => { 
-                           if (e.key === 'Enter' || e.key === ' ') { 
-                             e.preventDefault(); 
-                             const categoryId = String(cat.id);
-                             setActiveCategoryId(categoryId === activeCategoryId ? null : categoryId);
-                             document.getElementById('arrivages')?.scrollIntoView({ behavior: 'smooth' });
-                           } 
-                         }}
                          onClick={() => {
                             const categoryId = String(cat.id);
                             setActiveCategoryId(categoryId === activeCategoryId ? null : categoryId);
@@ -511,7 +494,7 @@ export default function HomeView() {
                            active={activeCategoryId === String(cat.id)} 
                            icon={cat.name.toLowerCase().includes('manioc') ? '🥔' : cat.name.toLowerCase().includes('maïs') ? '🌽' : '🌾'} 
                         />
-                     </div>
+                     </button>
                   ))}
                </div>
 

@@ -51,6 +51,7 @@ describe('ProductCategoriesService', () => {
     }).compile();
 
     service = module.get<ProductCategoriesService>(ProductCategoriesService);
+    (service as any).realtimeGateway.server = { emit: jest.fn() };
   });
 
   afterEach(() => {
@@ -83,6 +84,31 @@ describe('ProductCategoriesService', () => {
     const result = await service.findAll();
     expect(result).toEqual([]);
     expect(mockRepo.find).toHaveBeenCalled();
+  });
+
+  it('should filter by storeId in findAll', async () => {
+    mockRepo.find.mockResolvedValue([]);
+    await service.findAll('s-1');
+    expect(mockRepo.find).toHaveBeenCalledWith(expect.objectContaining({
+      where: [{ storeId: 's-1' }, { storeId: null }]
+    }));
+  });
+
+  it('should filter by storeId in findAll', async () => {
+    mockRepo.find.mockResolvedValue([]);
+    await service.findAll('s-1');
+    expect(mockRepo.find).toHaveBeenCalledWith(expect.objectContaining({
+      where: [{ storeId: 's-1' }, { storeId: null }]
+    }));
+  });
+
+  it('should return cached categories in findAll', async () => {
+    const cached = [{ id: 'c1' }];
+    const cacheService = (service as any).cache;
+    cacheService.get.mockResolvedValue(cached);
+    const result = await service.findAll();
+    expect(result).toEqual(cached);
+    expect(mockRepo.find).not.toHaveBeenCalled();
   });
 
   it('should find one category', async () => {

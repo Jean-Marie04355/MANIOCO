@@ -149,7 +149,6 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
                           <>
                             <div 
                               className="fixed inset-0 z-[60]" 
-                              role="presentation"
                               onClick={() => setActiveMenu(null)}
                             ></div>
                             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
@@ -181,7 +180,6 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
-            role="presentation"
             onClick={() => setSelectedOrder(null)}
           ></div>
           <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in fade-in duration-300">

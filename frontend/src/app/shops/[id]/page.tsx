@@ -50,7 +50,7 @@ export default function PublicShopPreview() {
         setStore(storeRes.data);
         setProducts(productsRes.data || []);
       } catch (error) {
-        console.error("Erreur de chargement de la boutique");
+        console.error("Erreur de chargement de la boutique", error);
       } finally {
         setIsLoading(false);
       }

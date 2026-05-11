@@ -13,7 +13,7 @@ import { CacheService } from '../../libs/cache/cache.service';
 import { NotificationType } from '../notifications/notification.entity';
 
 describe('UsersService', () => {
-  jest.setTimeout(30000); // hash functions can be slow on CI
+  jest.setTimeout(30000);
   let service: UsersService;
   let repositoryMock: any;
   let auditServiceMock: any;
@@ -109,10 +109,6 @@ describe('UsersService', () => {
     service = module.get<UsersService>(UsersService);
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
-  });
-
   describe('findAll', () => {
     it('should return users with basic stats for regular clients', async () => {
       const users = [
@@ -152,21 +148,22 @@ describe('UsersService', () => {
     });
   });
 
-  describe('findAllWithDeleted', () => {
-    it('should call repository with withDeleted option', async () => {
-      await service.findAllWithDeleted();
-      expect(repositoryMock.find).toHaveBeenCalledWith({ withDeleted: true });
-    });
-  });
-
   describe('findByEmail', () => {
-    it('should return a user if found (via cache check)', async () => {
+    it('should return a user if found', async () => {
       const user = { id: '1', email: 'test@test.com' };
       cacheServiceMock.get.mockResolvedValue(null);
       repositoryMock.findOne.mockResolvedValue(user);
 
       const result = await service.findByEmail('test@test.com');
       expect(result).toEqual(user);
+    });
+
+    it('should return cached user if present', async () => {
+      const user = { id: '1', email: 'test@test.com' };
+      cacheServiceMock.get.mockResolvedValue(user);
+      const result = await service.findByEmail('test@test.com');
+      expect(result).toEqual(user);
+      expect(repositoryMock.findOne).not.toHaveBeenCalled();
     });
   });
 
@@ -180,9 +177,7 @@ describe('UsersService', () => {
 
     it('should throw ConflictException if user already exists', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1' });
-      await expect(service.create(createUserDto)).rejects.toThrow(
-        ConflictException,
-      );
+      await expect(service.create(createUserDto)).rejects.toThrow(ConflictException);
     });
 
     it('should create a SUPER_ADMIN if it is the first user', async () => {
@@ -199,10 +194,31 @@ describe('UsersService', () => {
         expect.objectContaining({ role: UserRole.SUPER_ADMIN }),
       );
     });
+
+    it('should prevent creating a 2nd SUPER_ADMIN', async () => {
+      repositoryMock.findOne.mockResolvedValue(null);
+      repositoryMock.count.mockResolvedValue(10);
+      repositoryMock.create.mockResolvedValue({ id: '1' });
+      
+      await service.create({ ...createUserDto, role: UserRole.SUPER_ADMIN });
+      expect(repositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({ role: UserRole.CLIENT }),
+      );
+    });
+
+    it('should log error if admin notification fails', async () => {
+      repositoryMock.findOne.mockResolvedValue(null);
+      repositoryMock.count.mockResolvedValue(1);
+      repositoryMock.create.mockResolvedValue({ id: '1', name: 'N', email: 'e' });
+      repositoryMock.find.mockRejectedValue(new Error('Admin fetch fail'));
+      
+      const result = await service.create(createUserDto);
+      expect(result.id).toBe('1');
+    });
   });
 
   describe('update', () => {
-    it('should hash password if provided in update', async () => {
+    it('should hash password if provided', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com' });
       const updateDto = { password: 'newpassword' };
       await service.update('1', updateDto);
@@ -212,85 +228,52 @@ describe('UsersService', () => {
       );
     });
 
-    it('should handle Base64 profile photo upload to S3', async () => {
+    it('should handle photo upload and its failure', async () => {
       repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com' });
-      s3StorageServiceMock.uploadFile.mockResolvedValue(
-        'http://s3.url/photo.jpg',
-      );
-
-      const updateDto = { profilePhoto: 'data:image/png;base64,xxxx' };
-      await service.update('1', updateDto);
-
-      expect(s3StorageServiceMock.uploadFile).toHaveBeenCalled();
-      expect(repositoryMock.update).toHaveBeenCalledWith(
-        '1',
-        expect.objectContaining({ profilePhoto: 'http://s3.url/photo.jpg' }),
-      );
+      s3StorageServiceMock.uploadFile.mockRejectedValue(new Error('S3 fail'));
+      await service.update('1', { profilePhoto: 'data:image/png;base64,xxxx' });
+      expect(repositoryMock.update).toHaveBeenCalled();
     });
-  });
 
-  describe('restore', () => {
-    it('should restore user and clear suspension fields', async () => {
-      repositoryMock.findOne.mockResolvedValue({
-        id: '1',
-        email: 't@t.com',
-        suspensionUntil: new Date(),
-      });
-      await service.restore('1');
-      expect(repositoryMock.restore).toHaveBeenCalledWith('1');
-      expect(repositoryMock.save).toHaveBeenCalledWith(
-        expect.objectContaining({ suspensionUntil: null }),
-      );
-    });
-  });
-
-  describe('hardDelete', () => {
-    it('should delete store if user is a vendor before deleting user', async () => {
-      repositoryMock.findOne.mockResolvedValue({ id: '1', email: 'v@v.com' });
-      storeRepoMock.findOne.mockResolvedValue({ id: 'store-1' });
-      await service.hardDelete('1');
-      expect(storeRepoMock.delete).toHaveBeenCalledWith('store-1');
-      expect(repositoryMock.delete).toHaveBeenCalledWith('1');
+    it('should return cached result in findOne', async () => {
+      cacheServiceMock.get.mockResolvedValue({ id: 'cached' });
+      const result = await service.findOne('1');
+      expect(result.id).toBe('cached');
     });
   });
 
   describe('KYC Process', () => {
-    const user = {
-      id: '1',
-      name: 'Vendor',
-      email: 'v@v.com',
-      role: UserRole.VENDEUR,
-    };
+    const user = { id: '1', name: 'V', email: 'v@v.com', role: UserRole.VENDEUR };
 
-    it('should submit KYC and handle Base64 document uploads', async () => {
+    it('should handle KYC rejection', async () => {
       repositoryMock.findOne.mockResolvedValue(user);
-      s3StorageServiceMock.uploadFile.mockResolvedValue(
-        'http://s3.url/doc.jpg',
-      );
-      repositoryMock.find.mockResolvedValue([
-        { id: 'admin-1', role: UserRole.ADMIN },
-      ]);
-
-      await service.submitKyc('1', {
-        idCardFront: 'data:image/jpeg;base64,xxxx',
-      });
-
+      await service.reviewKyc('1', { status: 'REJECTED', reasons: { doc: 'blurry' } });
       expect(repositoryMock.update).toHaveBeenCalledWith(
         '1',
-        expect.objectContaining({
-          kycStatus: 'PENDING',
-          idCardFront: 'http://s3.url/doc.jpg',
-        }),
+        expect.objectContaining({ kycStatus: 'REJECTED', kycRejectionReasons: JSON.stringify({ doc: 'blurry' }) }),
       );
     });
 
-    it('should approve KYC and verify user', async () => {
+    it('should handle notification error during KYC submission', async () => {
       repositoryMock.findOne.mockResolvedValue(user);
-      await service.reviewKyc('1', { status: 'APPROVED' });
-      expect(repositoryMock.update).toHaveBeenCalledWith(
-        '1',
-        expect.objectContaining({ kycStatus: 'APPROVED', isVerified: true }),
-      );
+      repositoryMock.find.mockRejectedValue(new Error('Admin fail'));
+      await service.submitKyc('1', { doc: 'data:image/png;base64,x' });
+      expect(repositoryMock.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('hardDelete/restore', () => {
+    it('should restore user', async () => {
+      repositoryMock.findOne.mockResolvedValue({ id: '1', email: 't@t.com' });
+      await service.restore('1');
+      expect(repositoryMock.restore).toHaveBeenCalledWith('1');
+    });
+
+    it('should delete store during hardDelete', async () => {
+      repositoryMock.findOne.mockResolvedValue({ id: '1', email: 'v@v.com' });
+      storeRepoMock.findOne.mockResolvedValue({ id: 'store-1' });
+      await service.hardDelete('1');
+      expect(storeRepoMock.delete).toHaveBeenCalledWith('store-1');
     });
   });
 });

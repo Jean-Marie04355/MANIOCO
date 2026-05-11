@@ -75,6 +75,18 @@ describe('StoreService', () => {
       } as any);
       expect(result.id).toBe('s1');
     });
+
+    it('should handle MongoDB object ID conversion if DB_TYPE is mongodb', async () => {
+      configServiceMock.get.mockReturnValue('mongodb');
+      userRepoMock.findOne.mockResolvedValue({ id: '1', role: 'vendeur' });
+      await service.create({ ownerId: '60d5ec49eb39c223c896585d', name: 'Store' } as any);
+      expect(userRepoMock.findOne).toHaveBeenCalled();
+    });
+
+    it('should log error and throw if user repo fails', async () => {
+      userRepoMock.findOne.mockRejectedValue(new Error('DB Error'));
+      await expect(service.create({ ownerId: '1', name: 'S' } as any)).rejects.toThrow(NotFoundException);
+    });
   });
 
   describe('findAll', () => {
@@ -98,6 +110,33 @@ describe('StoreService', () => {
       expect(result.length).toBe(1);
       expect(result[0].city).toBe('Cotonou');
       expect(storeRepoMock.find).toHaveBeenCalledWith();
+    });
+
+    it('should return cached stores if present', async () => {
+      const stores = [{ id: 's1', name: 'Cached' }];
+      cacheServiceMock.get.mockResolvedValue(stores);
+      const result = await service.findAll();
+      expect(result[0].name).toBe('Cached');
+      expect(storeRepoMock.find).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('findUniqueCities', () => {
+    it('should return unique cities and cache them', async () => {
+      const stores = [{ city: 'C1' }, { city: 'C2' }, { city: 'C1' }, { city: null }];
+      cacheServiceMock.get.mockResolvedValue(null);
+      storeRepoMock.find.mockResolvedValue(stores);
+      
+      const result = await service.findUniqueCities();
+      expect(result).toEqual(['C1', 'C2']);
+      expect(cacheServiceMock.set).toHaveBeenCalled();
+    });
+
+    it('should return cached cities if present', async () => {
+      cacheServiceMock.get.mockResolvedValue(['C1']);
+      const result = await service.findUniqueCities();
+      expect(result).toEqual(['C1']);
+      expect(storeRepoMock.find).not.toHaveBeenCalled();
     });
   });
 
@@ -161,9 +200,16 @@ describe('StoreService', () => {
     });
 
     it('should remove store', async () => {
-      storeRepoMock.findOne.mockResolvedValue({ id: 's1' });
+      storeRepoMock.findOne.mockResolvedValue({ id: 's1', ownerId: 'u1' });
       await service.remove('s1');
       expect(storeRepoMock.delete).toHaveBeenCalled();
+      expect(cacheServiceMock.del).toHaveBeenCalled();
+    });
+
+    it('should return cached store in findOne', async () => {
+      cacheServiceMock.get.mockResolvedValue({ id: 'cached' });
+      const result = await service.findOne('1');
+      expect(result.id).toBe('cached');
     });
   });
 

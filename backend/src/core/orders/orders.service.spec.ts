@@ -50,6 +50,7 @@ describe('OrdersService', () => {
       findOne: jest.fn(),
       create: jest.fn(),
       update: jest.fn(),
+      count: jest.fn(),
     };
     storeRepoMock = {
       findOne: jest.fn(),
@@ -61,6 +62,7 @@ describe('OrdersService', () => {
     userRepoMock = {
       find: jest.fn(),
       findOne: jest.fn(),
+      count: jest.fn(),
     };
     paymentsServiceMock = {
       createTransaction: jest.fn(),
@@ -247,6 +249,40 @@ describe('OrdersService', () => {
         /String Error/,
       );
     });
+
+    it('should log error if notification or chat creation fails but continue', async () => {
+      const store = { id: 'store-1', payoutAccountId: 'payout-1' };
+      const product = { id: 'prod-1', stock: 10, price: 100, storeId: 'store-1' };
+      const order = { id: 'order-1', totalAmount: 200 };
+      
+      storeRepoMock.findOne.mockResolvedValue(store);
+      productRepoMock.findOne.mockResolvedValue(product);
+      orderRepoMock.create.mockResolvedValue(order);
+      orderRepoMock.findOne.mockResolvedValue(order);
+      paymentsServiceMock.createTransaction.mockResolvedValue({ url: 'url' });
+      notificationsServiceMock.create.mockRejectedValue(new Error('Notif fail'));
+      chatServiceMock.findOrCreateConversation.mockRejectedValue(new Error('Chat fail'));
+
+      const result = await service.create(createOrderDto as any);
+      expect(result.order).toBeDefined();
+    });
+
+    it('should log rollback error if cancelOrder fails during rollback', async () => {
+      const store = { id: 'store-1', payoutAccountId: 'payout-1' };
+      const product = { id: 'prod-1', stock: 10, price: 100, storeId: 'store-1' };
+      const order = { id: 'order-1', totalAmount: 200 };
+      
+      storeRepoMock.findOne.mockResolvedValue(store);
+      productRepoMock.findOne.mockResolvedValue(product);
+      orderRepoMock.create.mockResolvedValue(order);
+      orderRepoMock.findOne.mockResolvedValue(order);
+      paymentsServiceMock.createTransaction.mockRejectedValue(new Error('Pay fail'));
+      
+      // Mock cancelOrder to throw
+      jest.spyOn(service, 'cancelOrder').mockRejectedValue(new Error('Rollback fail'));
+
+      await expect(service.create(createOrderDto as any)).rejects.toThrow(/Pay fail/);
+    });
   });
 
   describe('restoreStock', () => {
@@ -283,6 +319,21 @@ describe('OrdersService', () => {
 
       await service.restoreStock('order-1');
       expect(productRepoMock.update).not.toHaveBeenCalled();
+    });
+
+    it('should handle different units in restoreStock', async () => {
+      const order = {
+        id: 'order-1',
+        items: [{ productId: 'prod-1', quantity: 2, unit: 'Sac' }],
+      };
+      const product = { id: 'prod-1', stock: 10 };
+      orderRepoMock.findOne.mockResolvedValue(order);
+      productRepoMock.findOne.mockResolvedValue(product);
+
+      await service.restoreStock('order-1');
+      expect(productRepoMock.update).toHaveBeenCalledWith('prod-1', {
+        stock: 110, // 10 + 2*50
+      });
     });
   });
 
@@ -344,6 +395,12 @@ describe('OrdersService', () => {
           order: { createdAt: 'DESC' },
         }),
       );
+    });
+
+    it('vendeur should return empty list if findByOwnerId fails', async () => {
+      storeServiceMock.findByOwnerId.mockRejectedValue(new Error('No store'));
+      const result = await service.findAll(vendeurUser as any);
+      expect(result).toEqual([]);
     });
   });
 
@@ -500,6 +557,24 @@ describe('OrdersService', () => {
       orderRepoMock.findOne.mockResolvedValue(order);
       const result = await service.findById('1');
       expect(result).toEqual(order);
+    });
+  });
+
+  describe('getAdminDashboardStats', () => {
+    it('should calculate stats correctly', async () => {
+      orderRepoMock.count.mockResolvedValue(10);
+      orderRepoMock.find.mockResolvedValue([
+        { totalAmount: 1000, commissionAmount: 100, createdAt: new Date() },
+        { totalAmount: 2000, commissionAmount: 0, createdAt: new Date() }, // should use 10% default
+      ]);
+      userRepoMock.count.mockResolvedValue(5);
+      supportServiceMock.countActiveTickets.mockResolvedValue(3);
+
+      const stats = await service.getAdminDashboardStats();
+      expect(stats.totalSalesCount).toBe(10);
+      expect(stats.totalRevenue).toBe(300); // 100 + 10% of 2000
+      expect(stats.activeTicketsCount).toBe(3);
+      expect(stats.revenueHistory).toHaveLength(15);
     });
   });
 });

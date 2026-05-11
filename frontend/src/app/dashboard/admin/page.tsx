@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TopNav from '../components/TopNav';
@@ -29,7 +29,7 @@ export default function AdminDashboard() {
         const res = await api.get('/orders/stats/admin');
         setStats(res.data);
       } catch (error) {
-        console.error("Erreur lors de la récupération des stats admin");
+        console.error("Erreur lors de la récupération des stats admin", error);
       } finally {
         setIsLoading(false);
       }
