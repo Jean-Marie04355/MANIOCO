@@ -521,8 +521,6 @@ export default function ChatWindow() {
             <div
               ref={scrollRef}
               className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
-              onClick={() => setContextMenu(null)}
-              onKeyDown={(e) => { if (e.key === 'Escape') setContextMenu(null); }}
             >
               {messages.map((m) => (
                 <div
@@ -622,14 +620,21 @@ export default function ChatWindow() {
 
       {/* ─── Context Menu flottant ──────────────────────────────────────── */}
       {contextMenu && (
-        <div
-          role="menu"
-          tabIndex={-1}
-          className="fixed z-50"
-          style={{ top: contextMenu.y, left: contextMenu.x }}
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => { if (e.key === 'Escape') setContextMenu(null); }}
-        >
+        <>
+          <button
+            type="button"
+            aria-label="Fermer le menu"
+            className="fixed inset-0 z-40 bg-transparent border-none w-full h-full cursor-default"
+            onClick={() => setContextMenu(null)}
+          ></button>
+          <div
+            role="menu"
+            tabIndex={-1}
+            className="fixed z-50"
+            style={{ top: contextMenu.y, left: contextMenu.x }}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => { if (e.key === 'Escape') setContextMenu(null); }}
+          >
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150">
             {/* Répondre — disponible pour tous les messages */}
             <button
@@ -666,6 +671,7 @@ export default function ChatWindow() {
             )}
           </div>
         </div>
+        </>
       )}
     </div>
   );
