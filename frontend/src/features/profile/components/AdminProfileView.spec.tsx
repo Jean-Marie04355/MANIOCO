@@ -1,7 +1,8 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AdminProfileView from './AdminProfileView';
 import api from '@/lib/axios';
+import { useAuth } from '@/features/auth/AuthContext';
 
 // Mocks
 vi.mock('@/lib/axios', () => ({
@@ -20,6 +21,10 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/app/dashboard/components/Sidebar', () => ({
   default: () => <div data-testid="sidebar" />,
+}));
+
+vi.mock('@/features/auth/AuthContext', () => ({
+  useAuth: vi.fn(),
 }));
 
 describe('AdminProfileView', () => {
@@ -45,7 +50,7 @@ describe('AdminProfileView', () => {
   };
 
   it('devrait afficher les informations de l\'utilisateur', async () => {
-    vi.mocked(require('@/features/auth/AuthContext').useAuth).mockReturnValue({
+    (useAuth as any).mockReturnValue({
       user: mockUser,
       isLoading: false,
       logout: vi.fn(),
@@ -65,12 +70,32 @@ describe('AdminProfileView', () => {
     render(<AdminProfileView {...defaultProps} />);
     expect(screen.getByText(/Puissance d'Accès/i)).toBeInTheDocument();
   });
-});
 
-// Mock AuthContext at the end or top
-vi.mock('@/features/auth/AuthContext', () => ({
-  useAuth: vi.fn(() => ({
-    user: { id: 'admin-1', name: 'Super Admin', email: 'admin@afrigari.com', role: 'super_admin' },
-    isLoading: false,
-  })),
-}));
+  it('devrait passer en mode édition lors du clic sur le bouton', async () => {
+    (useAuth as any).mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+      logout: vi.fn(),
+      fetchUser: vi.fn(),
+    });
+    render(<AdminProfileView {...defaultProps} />);
+    
+    const editBtn = screen.getByText(/Modifier les informations/i);
+    fireEvent.click(editBtn);
+    
+    expect(screen.getByPlaceholderText('Votre Nom')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Votre Email')).toBeInTheDocument();
+    expect(screen.getByText('Enregistrer')).toBeInTheDocument();
+  });
+
+  it('devrait afficher la barre de puissance', async () => {
+    (useAuth as any).mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+      logout: vi.fn(),
+      fetchUser: vi.fn(),
+    });
+    render(<AdminProfileView {...defaultProps} />);
+    expect(screen.getByText(/Puissance d'Accès/i)).toBeInTheDocument();
+  });
+});

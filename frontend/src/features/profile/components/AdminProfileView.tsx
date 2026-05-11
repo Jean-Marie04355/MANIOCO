@@ -35,10 +35,13 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
     const { user, isLoading, logout, fetchUser } = useAuth();
     const router = useRouter();
 
+    const initialized = React.useRef(false);
+
     React.useEffect(() => {
         if (!isLoading && !user) {
             router.push(mode === 'super-admin' ? '/auth/admin/login' : '/auth/login');
-        } else if (user) {
+        } else if (user && !initialized.current) {
+            initialized.current = true;
             setEditForm({ name: user.name || '', email: user.email || '' });
             api.get('/audit-logs').then(res => {
                 const logs = res.data.filter((l: AuditLog) => l.userId === user.id);
