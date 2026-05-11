@@ -25,7 +25,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // Enable Global CORS with restricted origins
-  const frontendUrls = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
+  const frontendUrls = configService.get<string>('FRONTEND_URL', 'https://afrigaridev.svodoozlabs.com,http://localhost:3000');
   const origins = frontendUrls.split(',').map((url) => url.trim());
   
   app.enableCors({
@@ -33,6 +33,9 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
+
+  // Set global prefix for all routes
+  app.setGlobalPrefix('api');
 
   // Swagger Configuration
   const config = new DocumentBuilder()
@@ -49,7 +52,7 @@ async function bootstrap() {
   const swaggerPassword = configService.getOrThrow<string>('SWAGGER_PASSWORD');
 
   app.use(
-    ['/api', '/api-json'],
+    ['/api-docs', '/api-docs-json'],
     basicAuth({
       challenge: true,
       users: {
@@ -59,7 +62,7 @@ async function bootstrap() {
   );
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('api-docs', app, document);
 
   // Auto-seed admin account on startup
   const adminSeeder = app.get(AdminSeeder);
