@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import AdminProfileView from './AdminProfileView';
 import api from '@/lib/axios';
@@ -145,6 +145,7 @@ describe('AdminProfileView', () => {
       fetchUser: vi.fn(),
     });
     (api.patch as any).mockResolvedValue({ data: {} });
+    (api.post as any).mockResolvedValue({ data: { path: 'new-photo.jpg' } });
 
     render(<AdminProfileView {...defaultProps} />);
     
@@ -171,7 +172,7 @@ describe('AdminProfileView', () => {
 
     render(<AdminProfileView {...defaultProps} />);
     
-    const logoutBtn = screen.getByText(/Déconnexion/i);
+    const logoutBtn = screen.getByRole('button', { name: /Déconnexion/i });
     fireEvent.click(logoutBtn);
 
     expect(mockLogout).toHaveBeenCalled();
