@@ -206,6 +206,18 @@ describe('UsersService', () => {
       );
     });
 
+    it('should create a regular client if not the first user', async () => {
+      repositoryMock.findOne.mockResolvedValue(null);
+      repositoryMock.count.mockResolvedValue(1);
+      repositoryMock.create.mockResolvedValue({ ...createUserDto, id: '1', role: UserRole.CLIENT });
+      
+      const result = await service.create(createUserDto);
+      expect(result.id).toBe('1');
+      expect(repositoryMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({ role: UserRole.CLIENT }),
+      );
+    });
+
     it('should log error if admin notification fails', async () => {
       repositoryMock.findOne.mockResolvedValue(null);
       repositoryMock.count.mockResolvedValue(1);

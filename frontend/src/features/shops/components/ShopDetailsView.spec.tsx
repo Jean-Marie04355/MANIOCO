@@ -160,6 +160,34 @@ describe('ShopDetailsView', () => {
       });
     });
   });
+
+  it('devrait retourner des liens Unsplash basés sur le nom du produit', async () => {
+    const mockProducts = [
+      { id: 'p1', name: 'iPhone 15', price: 1000 },
+      { id: 'p2', name: 'Nike Air', price: 2000 },
+      { id: 'p3', name: 'Parfum Luxe', price: 3000 },
+      { id: 'p4', name: 'Rolex Watch', price: 4000 },
+      { id: 'p5', name: 'Tomate', price: 50, image: 'custom.jpg' },
+    ];
+    (api.get as any).mockImplementation((url: string) => {
+      if (url.includes('/stores/')) return Promise.resolve({ data: storeData });
+      if (url.includes('/products')) return Promise.resolve({ data: mockProducts });
+      return Promise.resolve({ data: {} });
+    });
+
+    (useAuth as any).mockReturnValue({ user: { id: 'u1' }, isLoading: false });
+    render(<ShopDetailsView isPublic={true} />);
+
+    await waitFor(() => {
+      const images = document.querySelectorAll('img');
+      const srcList = Array.from(images).map(img => img.src);
+      expect(srcList.some(src => src.includes('photo-1510557880182-3d4d3cba35a5'))).toBe(true); // iPhone
+      expect(srcList.some(src => src.includes('photo-1542291026-7eec264c27ff'))).toBe(true); // Nike
+      expect(srcList.some(src => src.includes('photo-1556228578-0d85b1a4d571'))).toBe(true); // Parfum
+      expect(srcList.some(src => src.includes('photo-1523275335684-37898b6baf30'))).toBe(true); // Watch
+      expect(srcList.some(src => src.includes('custom.jpg'))).toBe(true); // Default
+    });
+  });
 });
 
 

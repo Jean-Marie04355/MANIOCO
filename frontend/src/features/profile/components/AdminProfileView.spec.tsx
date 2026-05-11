@@ -39,7 +39,11 @@ describe('AdminProfileView', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (api.get as any).mockResolvedValue({ data: [] });
+    (api.get as any).mockResolvedValue({ 
+      data: [
+        { id: 'l1', userId: 'admin-1', action: 'LOGIN', device: 'Chrome / Windows', ip: '127.0.0.1', createdAt: new Date().toISOString() }
+      ] 
+    });
   });
 
   const defaultProps = {
@@ -131,5 +135,45 @@ describe('AdminProfileView', () => {
     await waitFor(() => {
       expect(api.patch).toHaveBeenCalledWith(`/users/${mockUser.id}`, { profilePhoto: null });
     });
+  });
+
+  it('devrait gérer l\'upload de photo', async () => {
+    (useAuth as any).mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+      logout: vi.fn(),
+      fetchUser: vi.fn(),
+    });
+    (api.patch as any).mockResolvedValue({ data: {} });
+
+    render(<AdminProfileView {...defaultProps} />);
+    
+    const file = new File(['hello'], 'hello.png', { type: 'image/png' });
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    
+    if (input) {
+      fireEvent.change(input, { target: { files: [file] } });
+    }
+
+    await waitFor(() => {
+      expect(api.patch).toHaveBeenCalled();
+    });
+  });
+
+  it('devrait appeler logout lors du clic sur le bouton de déconnexion', async () => {
+    const mockLogout = vi.fn();
+    (useAuth as any).mockReturnValue({
+      user: mockUser,
+      isLoading: false,
+      logout: mockLogout,
+      fetchUser: vi.fn(),
+    });
+
+    render(<AdminProfileView {...defaultProps} />);
+    
+    const logoutBtn = screen.getByText(/Déconnexion/i);
+    fireEvent.click(logoutBtn);
+
+    expect(mockLogout).toHaveBeenCalled();
   });
 });
