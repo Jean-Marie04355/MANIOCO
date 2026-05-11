@@ -13,7 +13,7 @@ interface CitadelLayoutProps {
     icon: ReactNode;
 }
 
-export default function CitadelLayout({ children, title, subtitle, backUrl, backLabel, icon }: CitadelLayoutProps) {
+export default function CitadelLayout({ children, title, subtitle, backUrl, backLabel, icon }: Readonly<CitadelLayoutProps>) {
     const [mounted, setMounted] = useState(false);
     useEffect(() => setMounted(true), []);
 

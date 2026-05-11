@@ -33,7 +33,7 @@ interface ShopDetailsViewProps {
     isPublic?: boolean;
 }
 
-export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewProps) {
+export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetailsViewProps>) {
   const { id } = useParams();
   const { user } = useAuth();
   const cartContext = useCart();
@@ -241,7 +241,12 @@ export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewPro
                   <ContactItem 
                     icon={MapPin} 
                     label="Localisation" 
-                    value={store.address ? `${store.address}${store.city ? `, ${store.city}` : ''}` : (store.city || "Abidjan, Côte d'Ivoire")} 
+                    value={(() => {
+                        if (store.address) {
+                            return `${store.address}${store.city ? `, ${store.city}` : ''}`;
+                        }
+                        return store.city || "Abidjan, Côte d'Ivoire";
+                    })()} 
                   />
                   <ContactItem 
                     icon={Phone} 
@@ -274,7 +279,10 @@ export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewPro
                     className="bg-white text-[#1a2e22] px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest relative z-10 hover:bg-[#c5a059] hover:text-white transition-all disabled:opacity-50 flex items-center gap-4 group"
                  >
                     <MessageSquare size={16} />
-                    {isOwner ? "Votre Boutique" : (isStartingChat ? "Connexion..." : "Ouvrir le Chat")}
+                    {(() => {
+                        if (isOwner) return "Votre Boutique";
+                        return isStartingChat ? "Connexion..." : "Ouvrir le Chat";
+                    })()}
                  </button>
                  <TrendingUp size={120} className="absolute -right-10 -bottom-10 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-1000" />
               </div>
@@ -317,7 +325,7 @@ export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewPro
   );
 }
 
-function ContactItem({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
+function ContactItem({ icon: Icon, label, value }: Readonly<{ icon: LucideIcon; label: string; value: string }>) {
    return (
       <div className="flex gap-6 items-start">
          <div className="mt-1 text-[#c5a059] bg-[#c5a059]/5 p-2 rounded-xl shadow-inner"><Icon size={20} /></div>
@@ -329,7 +337,7 @@ function ContactItem({ icon: Icon, label, value }: { icon: LucideIcon; label: st
    );
 }
 
-function ProductCard({ product, addToCart, getImageUrl, isOwner, isPublic }: { product: Product; addToCart: ((p: Product) => void) | undefined; getImageUrl: () => string; isOwner: boolean | null; isPublic: boolean }) {
+function ProductCard({ product, addToCart, getImageUrl, isOwner, isPublic }: Readonly<{ product: Product; addToCart: ((p: Product) => void) | undefined; getImageUrl: () => string; isOwner: boolean | null; isPublic: boolean }>) {
    return (
       <div className="group bg-white rounded-[70px] overflow-hidden border border-[#1a2e22]/5 shadow-2xl hover:shadow-3xl hover:-translate-y-4 transition-all duration-1000 p-6 ring-1 ring-slate-50 border-[10px] border-white">
          <div className="relative aspect-[4/3] rounded-[56px] overflow-hidden mb-8 bg-slate-50">

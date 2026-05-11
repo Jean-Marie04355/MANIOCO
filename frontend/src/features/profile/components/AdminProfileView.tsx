@@ -26,7 +26,7 @@ interface AdminProfileViewProps {
     identityTag: string;
 }
 
-export default function AdminProfileView({ mode, themeColor, accentColor, identityTag }: AdminProfileViewProps) {
+export default function AdminProfileView({ mode, themeColor, accentColor, identityTag }: Readonly<AdminProfileViewProps>) {
     const [showPass, setShowPass] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
@@ -148,133 +148,31 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-reveal">
                     <div className="space-y-8">
-                        <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm flex flex-col items-center text-center">
-                            <div className="relative mb-6">
-                                <div className={`w-32 h-32 rounded-[40px] bg-gradient-to-br from-${accentColor}-400 to-${accentColor}-600 p-1`}>
-                                    {user.profilePhoto ? (
-                                        <img src={user.profilePhoto} alt={user.name} className="w-full h-full rounded-[38px] object-cover" />
-                                    ) : (
-                                        <div className={`w-full h-full rounded-[38px] bg-white flex items-center justify-center text-4xl font-black text-${themeColor} italic`}>
-                                            {getInitials(user.name)}
-                                        </div>
-                                    )}
-                                </div>
-                                {user.profilePhoto && (
-                                    <button 
-                                        onClick={handlePhotoDelete}
-                                        disabled={isUploading}
-                                        className="absolute -top-2 -right-2 p-2.5 bg-white border border-rose-100 rounded-xl shadow-xl text-rose-500 hover:scale-110 hover:bg-rose-50 transition-transform z-10"
-                                        title="Supprimer la photo"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
-                                )}
-                                <label className={`absolute -bottom-2 -right-2 p-3 bg-white border border-slate-100 rounded-2xl shadow-xl text-${themeColor} hover:scale-110 transition-transform cursor-pointer z-10`}>
-                                    {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
-                                    <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={isUploading} />
-                                </label>
-                            </div>
-                            
-                            {isEditing ? (
-                                <div className="w-full space-y-3 mb-6 px-4">
-                                    <input 
-                                        type="text" 
-                                        value={editForm.name} 
-                                        onChange={e => setEditForm({...editForm, name: e.target.value})}
-                                        className={`w-full text-center text-lg font-black text-slate-900 italic border-b-2 border-${accentColor}-200 focus:border-${themeColor} outline-none bg-transparent pb-1`}
-                                        placeholder="Votre Nom"
-                                    />
-                                    <input 
-                                        type="email" 
-                                        value={editForm.email} 
-                                        onChange={e => setEditForm({...editForm, email: e.target.value})}
-                                        className={`w-full text-center text-xs font-bold text-slate-500 border-b-2 border-${accentColor}-200 focus:border-${themeColor} outline-none bg-transparent pb-1`}
-                                        placeholder="Votre Email"
-                                    />
-                                </div>
-                            ) : (
-                                <>
-                                    <h2 className="text-2xl font-black text-slate-900 italic tracking-tighter uppercase mb-2">{user.name || 'Administrateur'}</h2>
-                                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">{formattedRole}</p>
-                                </>
-                            )}
-
-                            <div className="flex gap-2 mb-8">
-                                <span className={`px-3 py-1 bg-${accentColor}-50 text-${themeColor} rounded-lg text-[9px] font-black uppercase tracking-widest border border-${accentColor}-100 italic`}>{mode === 'super-admin' ? 'Niveau 10' : 'Plateforme'}</span>
-                                <span className={`px-3 py-1 bg-${accentColor}-50 text-${themeColor} rounded-lg text-[9px] font-black uppercase tracking-widest border border-${accentColor}-100 italic`}>Vérifié</span>
-                            </div>
-
-                            <div className="w-full border-t border-slate-50 pt-8 space-y-4">
-                                <ProfileInfoItem icon={Mail} label="Email Primaire" value={user.email} themeColor={themeColor} />
-                                <ProfileInfoItem icon={Calendar} label="Création de compte" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Inconnu'} themeColor={themeColor} />
-                            </div>
-                        </div>
-
-                        <div className="bg-slate-900 rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden group">
-                            <div className="relative z-10">
-                                <div className="flex items-center gap-3 mb-6">
-                                    <div className={`w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-${accentColor}-400`}>
-                                        <Award size={18} />
-                                    </div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest italic">Puissance d'Accès</span>
-                                </div>
-                                <div className="space-y-6">
-                                    <PowerBar label={mode === 'super-admin' ? "Contrôles Système" : "Modération"} percent={100} accentColor={accentColor} />
-                                    <PowerBar label="Gestion Utilisateurs" percent={mode === 'super-admin' ? 100 : 85} accentColor={accentColor} />
-                                    <PowerBar label={mode === 'super-admin' ? "Sécurité Archives" : "Finances"} percent={mode === 'super-admin' ? 95 : 90} accentColor={accentColor} />
-                                </div>
-                            </div>
-                            <Zap size={180} className="absolute -right-10 -bottom-10 text-white opacity-10 group-hover:rotate-12 transition-transform duration-1000" />
-                        </div>
+                        <ProfileCard 
+                            user={user} 
+                            isEditing={isEditing} 
+                            editForm={editForm} 
+                            setEditForm={setEditForm} 
+                            isUploading={isUploading} 
+                            handlePhotoUpload={handlePhotoUpload} 
+                            handlePhotoDelete={handlePhotoDelete} 
+                            themeColor={themeColor} 
+                            accentColor={accentColor} 
+                            formattedRole={formattedRole} 
+                            mode={mode} 
+                        />
+                        <PowerSection mode={mode} accentColor={accentColor} />
                     </div>
 
                     <div className="lg:col-span-2 space-y-8">
-                        <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm">
-                            <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight italic mb-8 flex items-center gap-3">
-                                <Lock size={20} className={`text-${themeColor}`} /> Centre de Sécurité
-                            </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-6">
-                                    <SecurityToggle label="Double Authentification (2FA)" desc="Ajoutez une couche de sécurité par code mobile." active={true} icon={Smartphone} themeColor={themeColor} />
-                                    <SecurityToggle label="Alertes de Connexion" desc="Recevez un email à chaque nouvel accès." active={true} icon={Bell} themeColor={themeColor} />
-                                </div>
-                                <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6">
-                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 italic">Clé de Sécurité</p>
-                                    <div className="flex items-center justify-between bg-white border border-slate-100 p-4 rounded-2xl">
-                                        <code className="text-xs font-mono font-bold text-slate-600 tracking-widest break-all">
-                                            {showPass ? user.id : "•••••••••••••••••"}
-                                        </code>
-                                        <button onClick={() => setShowPass(!showPass)} className={`text-slate-400 hover:text-${themeColor} transition-colors`}>
-                                            {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
-                                        </button>
-                                    </div>
-                                    <p className="mt-4 text-[9px] font-medium text-slate-400 leading-relaxed italic">Cette clé est unique à votre {mode === 'super-admin' ? 'instance Super Admin' : 'session administrateur'}. Ne la partagez jamais.</p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm">
-                            <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight italic mb-8 flex items-center gap-3">
-                                <Activity size={20} className={`text-${themeColor}`} /> Historique de Session Personnelle
-                            </h3>
-                            <div className="space-y-6">
-                                {recentLogs.length > 0 ? (
-                                    recentLogs.map((log: AuditLog, idx: number) => (
-                                        <AccessLogItem 
-                                            key={log.id || idx}
-                                            device={log.action} 
-                                            ip={log.ipAddress || "Localhost"} 
-                                            date={new Date(log.createdAt).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })} 
-                                            status={idx === 0 ? "Récent" : undefined} 
-                                            themeColor={themeColor}
-                                        />
-                                    ))
-                                ) : (
-                                    <p className="text-xs text-slate-400 font-bold italic">Aucune activité récente détectée sur votre profil.</p>
-                                )}
-                            </div>
-                        </div>
-
+                        <SecurityCenterSection 
+                            themeColor={themeColor} 
+                            showPass={showPass} 
+                            setShowPass={setShowPass} 
+                            userId={user.id} 
+                        />
+                        <AuditLogsSection recentLogs={recentLogs} themeColor={themeColor} />
+                        
                         <div className="bg-rose-50 border border-rose-100 rounded-[32px] p-8 flex items-center justify-between group">
                             <div>
                                 <h4 className="text-rose-600 font-black uppercase text-sm italic tracking-widest mb-1 italic">Zone Sensible</h4>
@@ -294,7 +192,7 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
 
             <style jsx global>{`
                 @keyframes reveal {
-                    from { opacity: 0; transform: translateY(15px); }
+                    from { opacity: 0; transform: translateY(20px); }
                     to { opacity: 1; transform: translateY(0); }
                 }
                 .animate-reveal { animation: reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -303,7 +201,153 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
     );
 }
 
-function ProfileInfoItem({ icon: Icon, label, value, themeColor }: { icon: LucideIcon; label: string; value: string | null | undefined; themeColor: string }) {
+function ProfileCard({ user, isEditing, editForm, setEditForm, isUploading, handlePhotoUpload, handlePhotoDelete, themeColor, accentColor, formattedRole, mode }: Readonly<{ user: any; isEditing: boolean; editForm: any; setEditForm: any; isUploading: boolean; handlePhotoUpload: any; handlePhotoDelete: any; themeColor: string; accentColor: string; formattedRole: string; mode: string }>) {
+    const getInitials = (name?: string) => {
+        if (!name) return 'AD';
+        return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    };
+
+    return (
+        <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm flex flex-col items-center text-center">
+            <div className="relative mb-6">
+                <div className={`w-32 h-32 rounded-[40px] bg-gradient-to-br from-${accentColor}-400 to-${accentColor}-600 p-1`}>
+                    {user.profilePhoto ? (
+                        <img src={user.profilePhoto} alt={user.name} className="w-full h-full rounded-[38px] object-cover" />
+                    ) : (
+                        <div className={`w-full h-full rounded-[38px] bg-white flex items-center justify-center text-4xl font-black text-${themeColor} italic`}>
+                            {getInitials(user.name)}
+                        </div>
+                    )}
+                </div>
+                {user.profilePhoto && (
+                    <button 
+                        onClick={handlePhotoDelete}
+                        disabled={isUploading}
+                        className="absolute -top-2 -right-2 p-2.5 bg-white border border-rose-100 rounded-xl shadow-xl text-rose-500 hover:scale-110 hover:bg-rose-50 transition-transform z-10"
+                        title="Supprimer la photo"
+                    >
+                        <Trash2 size={16} />
+                    </button>
+                )}
+                <label className={`absolute -bottom-2 -right-2 p-3 bg-white border border-slate-100 rounded-2xl shadow-xl text-${themeColor} hover:scale-110 transition-transform cursor-pointer z-10`}>
+                    {isUploading ? <Loader2 size={18} className="animate-spin" /> : <Camera size={18} />}
+                    <input type="file" className="hidden" accept="image/*" onChange={handlePhotoUpload} disabled={isUploading} />
+                </label>
+            </div>
+            
+            {isEditing ? (
+                <div className="w-full space-y-3 mb-6 px-4">
+                    <input 
+                        type="text" 
+                        value={editForm.name} 
+                        onChange={e => setEditForm({...editForm, name: e.target.value})}
+                        className={`w-full text-center text-lg font-black text-slate-900 italic border-b-2 border-${accentColor}-200 focus:border-${themeColor} outline-none bg-transparent pb-1`}
+                        placeholder="Votre Nom"
+                    />
+                    <input 
+                        type="email" 
+                        value={editForm.email} 
+                        onChange={e => setEditForm({...editForm, email: e.target.value})}
+                        className={`w-full text-center text-xs font-bold text-slate-500 border-b-2 border-${accentColor}-200 focus:border-${themeColor} outline-none bg-transparent pb-1`}
+                        placeholder="Votre Email"
+                    />
+                </div>
+            ) : (
+                <>
+                    <h2 className="text-2xl font-black text-slate-900 italic tracking-tighter uppercase mb-2">{user.name || 'Administrateur'}</h2>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">{formattedRole}</p>
+                </>
+            )}
+
+            <div className="flex gap-2 mb-8">
+                <span className={`px-3 py-1 bg-${accentColor}-50 text-${themeColor} rounded-lg text-[9px] font-black uppercase tracking-widest border border-${accentColor}-100 italic`}>{mode === 'super-admin' ? 'Niveau 10' : 'Plateforme'}</span>
+                <span className={`px-3 py-1 bg-${accentColor}-50 text-${themeColor} rounded-lg text-[9px] font-black uppercase tracking-widest border border-${accentColor}-100 italic`}>Vérifié</span>
+            </div>
+
+            <div className="w-full border-t border-slate-50 pt-8 space-y-4">
+                <ProfileInfoItem icon={Mail} label="Email Primaire" value={user.email} themeColor={themeColor} />
+                <ProfileInfoItem icon={Calendar} label="Création de compte" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Inconnu'} themeColor={themeColor} />
+            </div>
+        </div>
+    );
+}
+
+function PowerSection({ mode, accentColor }: Readonly<{ mode: string; accentColor: string }>) {
+    return (
+        <div className="bg-slate-900 rounded-[32px] p-8 text-white shadow-xl relative overflow-hidden group">
+            <div className="relative z-10">
+                <div className="flex items-center gap-3 mb-6">
+                    <div className={`w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center text-${accentColor}-400`}>
+                        <Award size={18} />
+                    </div>
+                    <span className="text-[10px] font-black uppercase tracking-widest italic">Puissance d'Accès</span>
+                </div>
+                <div className="space-y-6">
+                    <PowerBar label={mode === 'super-admin' ? "Contrôles Système" : "Modération"} percent={100} accentColor={accentColor} />
+                    <PowerBar label="Gestion Utilisateurs" percent={mode === 'super-admin' ? 100 : 85} accentColor={accentColor} />
+                    <PowerBar label={mode === 'super-admin' ? "Sécurité Archives" : "Finances"} percent={mode === 'super-admin' ? 95 : 90} accentColor={accentColor} />
+                </div>
+            </div>
+            <Zap size={180} className="absolute -right-10 -bottom-10 text-white opacity-10 group-hover:rotate-12 transition-transform duration-1000" />
+        </div>
+    );
+}
+
+function SecurityCenterSection({ themeColor, showPass, setShowPass, userId }: Readonly<{ themeColor: string; showPass: boolean; setShowPass: any; userId: string }>) {
+    return (
+        <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight italic mb-8 flex items-center gap-3">
+                <Lock size={20} className={`text-${themeColor}`} /> Centre de Sécurité
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-6">
+                    <SecurityToggle label="Double Authentification (2FA)" desc="Ajoutez une couche de sécurité par code mobile." active={true} icon={Smartphone} themeColor={themeColor} />
+                    <SecurityToggle label="Alertes de Connexion" desc="Recevez un email à chaque nouvel accès." active={true} icon={Bell} themeColor={themeColor} />
+                </div>
+                <div className="bg-slate-50 border border-slate-100 rounded-3xl p-6">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-4 italic">Clé de Sécurité</p>
+                    <div className="flex items-center justify-between bg-white border border-slate-100 p-4 rounded-2xl">
+                        <code className="text-xs font-mono font-bold text-slate-600 tracking-widest break-all">
+                            {showPass ? userId : "•••••••••••••••••"}
+                        </code>
+                        <button onClick={() => setShowPass(!showPass)} className={`text-slate-400 hover:text-${themeColor} transition-colors`}>
+                            {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
+                        </button>
+                    </div>
+                    <p className="mt-4 text-[9px] text-slate-400 font-bold italic leading-tight">Cette clé est unique à votre instance et ne doit jamais être partagée.</p>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function AuditLogsSection({ recentLogs, themeColor }: Readonly<{ recentLogs: AuditLog[]; themeColor: string }>) {
+    return (
+        <div className="bg-white border border-slate-200 rounded-[32px] p-8 shadow-sm">
+            <h3 className="text-lg font-bold text-slate-900 uppercase tracking-tight italic mb-8 flex items-center gap-3">
+                <Activity size={20} className={`text-${themeColor}`} /> Activité du Compte
+            </h3>
+            <div className="space-y-2">
+                {recentLogs.length > 0 ? (
+                    recentLogs.map((log, i) => (
+                        <AccessLogItem 
+                            key={log.id || i}
+                            device={log.action} 
+                            ip={log.ipAddress || '127.0.0.1'} 
+                            date={new Date(log.createdAt).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })} 
+                            status={i === 0 ? "Session Actuelle" : undefined}
+                            themeColor={themeColor}
+                        />
+                    ))
+                ) : (
+                    <p className="text-xs text-slate-400 italic py-8 text-center uppercase font-bold tracking-widest opacity-40">Aucun log récent</p>
+                )}
+            </div>
+        </div>
+    );
+}
+
+function ProfileInfoItem({ icon: Icon, label, value, themeColor }: Readonly<{ icon: LucideIcon; label: string; value: string | null | undefined; themeColor: string }>) {
     return (
         <div className="flex items-center gap-4 text-left group">
             <div className={`w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center border border-slate-100 group-hover:bg-${themeColor} group-hover:text-white transition-all`}>
@@ -317,7 +361,7 @@ function ProfileInfoItem({ icon: Icon, label, value, themeColor }: { icon: Lucid
     );
 }
 
-function PowerBar({ label, percent, accentColor }: { label: string; percent: number; accentColor: string }) {
+function PowerBar({ label, percent, accentColor }: Readonly<{ label: string; percent: number; accentColor: string }>) {
     return (
         <div>
             <div className="flex justify-between items-center mb-2">
@@ -334,7 +378,7 @@ function PowerBar({ label, percent, accentColor }: { label: string; percent: num
     );
 }
 
-function SecurityToggle({ label, desc, active, icon: Icon, themeColor }: { label: string; desc: string; active: boolean; icon: LucideIcon; themeColor: string }) {
+function SecurityToggle({ label, desc, active, icon: Icon, themeColor }: Readonly<{ label: string; desc: string; active: boolean; icon: LucideIcon; themeColor: string }>) {
     return (
         <div className={`flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl group hover:border-${themeColor.split('-')[0]}-100 transition-all`}>
             <div className="flex items-center gap-4">
@@ -354,7 +398,7 @@ function SecurityToggle({ label, desc, active, icon: Icon, themeColor }: { label
     );
 }
 
-function AccessLogItem({ device, ip, date, status, themeColor }: { device: string; ip: string; date: string; status?: string; themeColor: string }) {
+function AccessLogItem({ device, ip, date, status, themeColor }: Readonly<{ device: string; ip: string; date: string; status?: string; themeColor: string }>) {
     return (
         <div className="flex items-center justify-between py-4 border-b border-slate-50 last:border-0 group">
             <div className="flex items-center gap-4">
