@@ -123,7 +123,12 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
 
   return (
     <div className="fixed inset-0 z-[500] overflow-hidden">
-      <div className="absolute inset-0 bg-forest-green/40 backdrop-blur-sm transition-opacity" onClick={onClose}></div>
+      <button 
+        type="button"
+        aria-label="Fermer le panier"
+        className="absolute inset-0 bg-forest-green/40 backdrop-blur-sm transition-opacity border-none w-full h-full cursor-default" 
+        onClick={onClose}
+      ></button>
       
       <div className="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl animate-slide-in-right flex flex-col">
         <div className="p-8 border-b border-forest-green/5 flex justify-between items-center bg-organic-cream">
