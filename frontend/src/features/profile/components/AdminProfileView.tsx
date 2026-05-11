@@ -59,13 +59,6 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
         );
     }
 
-    const getInitials = (name: string) => {
-        if (!name) return 'AD';
-        const parts = name.split(' ');
-        if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-        return name.slice(0, 2).toUpperCase();
-    };
-
     const formattedRole = user.role.replace('_', ' ').toUpperCase();
 
     const handlePhotoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {

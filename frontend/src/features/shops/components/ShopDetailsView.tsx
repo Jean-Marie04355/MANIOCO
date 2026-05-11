@@ -243,7 +243,8 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
                     label="Localisation" 
                     value={(() => {
                         if (store.address) {
-                            return `${store.address}${store.city ? `, ${store.city}` : ''}`;
+                            const cityPart = store.city ? ", " + store.city : "";
+                            return store.address + cityPart;
                         }
                         return store.city || "Abidjan, Côte d'Ivoire";
                     })()} 
