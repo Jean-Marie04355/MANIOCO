@@ -194,16 +194,22 @@ export default function ChatWindow() {
   };
 
   // ─── Context menu helpers ───────────────────────────────────────────────────
-  const openContextMenu = (e: React.MouseEvent | React.TouchEvent, msg: Message) => {
+  const openContextMenu = (e: React.MouseEvent | React.TouchEvent | React.KeyboardEvent, msg: Message) => {
     e.preventDefault();
-    const isTouch = e.type === 'touchstart' || e.type === 'contextmenu';
     let x = 0, y = 0;
+    
     if ('touches' in e && e.touches.length > 0) {
       x = e.touches[0].clientX;
       y = e.touches[0].clientY;
-    } else if ('clientX' in e) {
-      x = (e as React.MouseEvent).clientX;
-      y = (e as React.MouseEvent).clientY;
+    } else if ('clientX' in e && 'clientY' in e) {
+      x = (e as any).clientX;
+      y = (e as any).clientY;
+    } else {
+      // Pour les événements clavier, on positionne le menu au centre de l'écran ou près de l'élément
+      const target = e.target as HTMLElement;
+      const rect = target.getBoundingClientRect();
+      x = rect.left + rect.width / 2;
+      y = rect.top + rect.height / 2;
     }
     setContextMenu({ message: msg, x, y });
   };
