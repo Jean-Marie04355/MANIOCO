@@ -4,7 +4,7 @@ import * as crypto from 'node:crypto';
 import { IFileStorage } from '../interfaces/file-storage.interface';
 import { CreateFileDto, UpdateFileDto, FileResponse } from '../dto/file.dto';
 import { S3StorageService } from '../../../libs/storage/s3-storage.service';
-import * as path from 'path';
+import * as path from 'node:path';
 
 @Injectable()
 export class JsonStorageProvider implements IFileStorage {
@@ -40,6 +40,7 @@ export class JsonStorageProvider implements IFileStorage {
         } catch (s3Error) {
           this.logger.warn(
             'Échec upload S3, repli sur le stockage local',
+            s3Error instanceof Error ? s3Error.stack : s3Error,
           );
         }
       }
@@ -72,7 +73,7 @@ export class JsonStorageProvider implements IFileStorage {
 
       return `/uploads/${filename}`;
     } catch (error) {
-      this.logger.error('Local upload error');
+      this.logger.error('Local upload error', error instanceof Error ? error.stack : error);
       throw new Error('Failed to upload file locally');
     }
   }

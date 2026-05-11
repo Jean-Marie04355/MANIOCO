@@ -78,7 +78,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
             setFormData(prev => ({ ...prev, categoryId: response.data[0].id }));
           }
         } catch (error) {
-          console.error("Erreur catégories");
+          console.error("Erreur lors du chargement des catégories", error);
         } finally {
           setIsLoadingCategories(false);
         }
@@ -160,7 +160,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
       onSuccess(response.data);
       onClose();
     } catch (error: any) {
-      console.error("Erreur produit");
+      console.error("Erreur produit", error);
       alert(error.response?.data?.message || "Erreur lors de l'enregistrement");
     } finally {
       setIsSubmitting(false);
@@ -321,29 +321,25 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                 />
                 
                 {imagePreview ? (
-                  <div 
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFileInput(); } }}
-                    className="relative aspect-square rounded-[2rem] overflow-hidden border-2 border-orange-100 group cursor-pointer" 
+                  <button 
+                    type="button"
+                    className="relative aspect-square rounded-[2rem] overflow-hidden border-2 border-orange-100 group cursor-pointer w-full" 
                     onClick={triggerFileInput}
                   >
                     <Image src={imagePreview} alt="Aperçu du produit" fill className="object-cover" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                        <p className="text-[10px] text-white font-black uppercase tracking-widest">Changer</p>
                     </div>
-                  </div>
+                  </button>
                 ) : (
-                  <div 
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); triggerFileInput(); } }}
+                  <button 
+                    type="button"
                     onClick={triggerFileInput}
-                    className="aspect-square bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-all group shadow-inner"
+                    className="aspect-square bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-all group shadow-inner w-full"
                   >
                     <ImageIcon className="text-slate-300 group-hover:text-orange-400 mb-2" size={32} />
                     <span className="text-[10px] font-black text-slate-400 group-hover:text-orange-500 uppercase tracking-widest">Ajouter</span>
-                  </div>
+                  </button>
                 )}
               </div>
             </div>

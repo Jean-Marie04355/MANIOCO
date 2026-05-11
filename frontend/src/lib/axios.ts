@@ -21,31 +21,15 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const responseData = error?.response?.data;
-    const details = {
-      message: error?.message,
-      code: error?.code,
-      url: error?.config?.url,
-      method: error?.config?.method,
-      status: error?.response?.status,
-      statusText: error?.response?.statusText,
-      data:
-        typeof responseData === 'string'
-          ? responseData
-          : responseData ?? undefined,
-      headers: error?.config?.headers,
-      isAxiosError: error?.isAxiosError,
-      requestPresent: Boolean(error?.request),
-    };
-
     if (process.env.NODE_ENV !== 'production') {
       console.error('API Request Error: See Network tab for details');
     }
 
     if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
+      if (typeof globalThis.window !== 'undefined') {
         localStorage.removeItem('accessToken');
-        if (!window.location.pathname.startsWith('/auth')) {
-          window.location.href = '/auth/login';
+        if (!globalThis.location.pathname.startsWith('/auth')) {
+          globalThis.location.href = '/auth/login';
         }
       }
     }

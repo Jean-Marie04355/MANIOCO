@@ -67,7 +67,7 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         await this.s3Client.send(
           new HeadBucketCommand({ Bucket: this.bucketName }),
         );
-      } catch {
+      } catch (err) {
         this.logger.log(
           'Bucket not found or inaccessible, attempting to create it...',
         );
@@ -99,13 +99,14 @@ export class S3StorageService implements IStorageService, OnModuleInit {
           }),
         );
         this.logger.log('Public access policy ensured for bucket.');
-      } catch {
+      } catch (err) {
         this.logger.warn(
           'Bucket policy could not be set automatically. You may need to set it manually in your S3 console.',
+          err instanceof Error ? err.stack : err,
         );
       }
     } catch (error) {
-      this.logger.error('Could not ensure bucket existence');
+      this.logger.error('Could not ensure bucket existence', error instanceof Error ? error.stack : error);
       throw error;
     }
   }
@@ -172,12 +173,11 @@ export class S3StorageService implements IStorageService, OnModuleInit {
           Key: key,
         }),
       );
-    } catch (error) {
-      const err = error as any;
-      this.logger.error('Error deleting from S3');
+    } catch (error: any) {
+      this.logger.error('Error deleting from S3', error instanceof Error ? error.stack : error);
       throw new HttpException(
         'Error deleting file',
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -193,12 +193,11 @@ export class S3StorageService implements IStorageService, OnModuleInit {
           Delete: { Objects: objects },
         }),
       );
-    } catch (error) {
-      const err = error as any;
-      this.logger.error('Error deleting multiple files from S3');
+    } catch (error: any) {
+      this.logger.error('Error deleting multiple files from S3', error instanceof Error ? error.stack : error);
       throw new HttpException(
         'Error deleting files',
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
@@ -215,8 +214,8 @@ export class S3StorageService implements IStorageService, OnModuleInit {
     try {
       const key = this.extractKey(objectName);
       return `${this.endpoint}/${this.bucketName}/${key}`;
-    } catch {
-      this.logger.error('Error generating URL');
+    } catch (err) {
+      this.logger.error('Error generating URL', err instanceof Error ? err.stack : err);
       throw new HttpException(
         'Error generating URL',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -232,12 +231,11 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         }),
       );
       return response.Contents?.map((obj) => obj.Key || '') || [];
-    } catch (error) {
-      const err = error as any;
-      this.logger.error('Error listing objects');
+    } catch (error: any) {
+      this.logger.error('Error listing objects', error instanceof Error ? error.stack : error);
       throw new HttpException(
         'Error listing objects',
-        err.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

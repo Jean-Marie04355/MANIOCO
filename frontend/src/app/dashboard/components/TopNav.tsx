@@ -29,7 +29,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
       const res = await api.get('/notifications');
       setNotifications(res.data);
     } catch (error) {
-      console.error("Erreur lors de la récupération des notifications");
+      console.error("Erreur lors de la récupération des notifications", error);
     } finally {
       setLoading(false);
     }
@@ -50,7 +50,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
       await api.patch('/notifications/read-all');
       setNotifications(notifications.map(n => ({ ...n, isRead: true })));
     } catch (error) {
-      console.error("Erreur lors du marquage des notifications");
+      console.error("Erreur lors du marquage des notifications", error);
     }
   };
 
@@ -59,7 +59,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
       await api.patch(`/notifications/${id}/read`);
       setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
     } catch (error) {
-      console.error("Erreur lors du marquage de la notification");
+      console.error("Erreur lors du marquage de la notification", error);
     }
   };
 
@@ -153,20 +153,17 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                     <div className="px-6 py-8 text-center text-slate-400 text-xs font-medium">Aucune notification</div>
                   ) : (
                     notifications.map((notif) => (
-                      <div 
+                      <button 
                         key={notif.id} 
                         onClick={() => markAsRead(notif.id)}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') markAsRead(notif.id); }}
-                        role="button"
-                        tabIndex={0}
-                        className={`px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0 ${!notif.isRead ? (pathname.includes('/admin') ? 'bg-emerald-50/10' : 'bg-orange-50/10') : ''}`}
+                        className={`w-full text-left px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0 ${!notif.isRead ? (pathname.includes('/admin') ? 'bg-emerald-50/10' : 'bg-orange-50/10') : ''}`}
                       >
                         <div className="flex justify-between items-start mb-1">
                           <p className={`text-xs font-black ${!notif.isRead ? 'text-slate-900' : 'text-slate-400'}`}>{notif.title}</p>
                           <span className="text-[9px] font-bold text-slate-400">{timeAgo(notif.createdAt)}</span>
                         </div>
                         <p className={`text-[11px] font-medium leading-relaxed ${!notif.isRead ? 'text-slate-500' : 'text-slate-300'}`}>{notif.message}</p>
-                      </div>
+                      </button>
                     ))
                   )}
                 </div>
