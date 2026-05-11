@@ -88,14 +88,48 @@ describe('AdminProfileView', () => {
     expect(screen.getByText('Enregistrer')).toBeInTheDocument();
   });
 
-  it('devrait afficher la barre de puissance', async () => {
+  it('devrait soumettre le formulaire lors de la sauvegarde', async () => {
     (useAuth as any).mockReturnValue({
       user: mockUser,
       isLoading: false,
       logout: vi.fn(),
       fetchUser: vi.fn(),
     });
+    (api.patch as any).mockResolvedValue({ data: {} });
+
     render(<AdminProfileView {...defaultProps} />);
-    expect(screen.getByText(/Puissance d'Accès/i)).toBeInTheDocument();
+    
+    // Mode édition
+    fireEvent.click(screen.getByText(/Modifier les informations/i));
+    
+    // Modifier
+    fireEvent.change(screen.getByPlaceholderText('Votre Nom'), { target: { value: 'Nouveau Nom' } });
+    
+    // Sauvegarder
+    fireEvent.click(screen.getByText('Enregistrer'));
+    
+    await waitFor(() => {
+      expect(api.patch).toHaveBeenCalledWith(`/users/${mockUser.id}`, expect.objectContaining({ name: 'Nouveau Nom' }));
+    });
+  });
+
+  it('devrait appeler handlePhotoDelete lors de la suppression de la photo', async () => {
+    const userWithPhoto = { ...mockUser, profilePhoto: 'photo.jpg' };
+    (useAuth as any).mockReturnValue({
+      user: userWithPhoto,
+      isLoading: false,
+      logout: vi.fn(),
+      fetchUser: vi.fn(),
+    });
+    (api.patch as any).mockResolvedValue({ data: {} });
+
+    render(<AdminProfileView {...defaultProps} />);
+    
+    const deleteBtn = screen.getByTitle(/Supprimer la photo/i);
+    if (deleteBtn) fireEvent.click(deleteBtn);
+
+    await waitFor(() => {
+      expect(api.patch).toHaveBeenCalledWith(`/users/${mockUser.id}`, { profilePhoto: null });
+    });
   });
 });

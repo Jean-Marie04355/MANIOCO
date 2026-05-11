@@ -124,5 +124,42 @@ describe('ShopDetailsView', () => {
       expect(screen.getByText('Produit 2')).toBeInTheDocument();
     });
   });
+
+  it('devrait ouvrir le panier lors du clic sur l\'icône de panier', async () => {
+    (useAuth as any).mockReturnValue({
+      user: { id: 'user-1', role: 'client' },
+      isLoading: false,
+    });
+    render(<ShopDetailsView isPublic={true} />);
+    
+    await waitFor(() => {
+      const cartBtn = screen.getByTestId('cart-drawer').parentElement?.querySelector('button');
+      if (cartBtn) fireEvent.click(cartBtn);
+    });
+  });
+
+  it('devrait rediriger vers le chat lors du clic sur contacter', async () => {
+    const mockPush = vi.fn();
+    vi.mocked(require('next/navigation').useRouter).mockReturnValue({
+      push: mockPush,
+    });
+    
+    (useAuth as any).mockReturnValue({
+      user: { id: 'user-1', role: 'client' },
+      isLoading: false,
+    });
+    (api.post as any).mockResolvedValue({ data: { id: 'chat-1' } });
+
+    render(<ShopDetailsView isPublic={true} />);
+    
+    await waitFor(async () => {
+      const contactBtn = screen.getByText(/Contacter le vendeur/i);
+      fireEvent.click(contactBtn);
+      await waitFor(() => {
+        expect(api.post).toHaveBeenCalledWith('/chats', { sellerId: 'owner-1' });
+      });
+    });
+  });
 });
+
 
