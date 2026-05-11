@@ -1,5 +1,5 @@
 "use client";
-import { Search, Plus, Star, ArrowLeft, ShoppingCart, ShieldCheck, MapPin, Package, Store, Clock, Phone, Mail, Loader2, TrendingUp, MessageSquare, X, CornerUpLeft, ImageIcon, Send, CheckCheck } from 'lucide-react';
+import { Plus, Star, ArrowLeft, ShoppingCart, ShieldCheck, MapPin, Package, Phone, Loader2, TrendingUp, MessageSquare, type LucideIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -7,6 +7,27 @@ import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/CartContext';
 import CartDrawer from '@/components/CartDrawer';
+
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image?: string;
+  profilePhoto?: string;
+  unit?: string;
+}
+
+interface Store {
+  id: string;
+  name: string;
+  description?: string;
+  profilePhoto?: string;
+  ownerId: string;
+  category?: string;
+  address?: string;
+  city?: string;
+  phone?: string;
+}
 
 interface ShopDetailsViewProps {
     isPublic?: boolean;
@@ -18,15 +39,15 @@ export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewPro
   const cartContext = useCart();
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
-  const [store, setStore] = useState<any>(null);
-  const [products, setProducts] = useState<any[]>([]);
+  const [store, setStore] = useState<Store | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isStartingChat, setIsStartingChat] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   
-  const isOwner = user && store && (user.id === store.ownerId || (user as any).userId === store.ownerId);
+  const isOwner = user && store && (user.id === store.ownerId || user.userId === store.ownerId);
 
-  const getRealInternetLink = (product: any) => {
+  const getRealInternetLink = (product: { name?: string; image?: string; profilePhoto?: string }) => {
     const name = (product.name || "").toLowerCase();
     const dbPath = product.image || product.profilePhoto;
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -48,7 +69,7 @@ export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewPro
 
   const handleContact = async () => {
      if (isPublic && !user) {
-        alert("Veuillez vous connecter pour contacter le vendeur.");
+        console.warn("Veuillez vous connecter pour contacter le vendeur.");
         router.push('/auth/login');
         return;
      }
@@ -58,7 +79,6 @@ export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewPro
         router.push('/dashboard/client/messages');
      } catch (error) {
         console.error("Erreur initiation chat", error);
-        alert("Erreur lors de la mise en relation avec le vendeur.");
      } finally {
         setIsStartingChat(false);
      }
@@ -100,6 +120,7 @@ export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewPro
       <div className="bg-[#fcfbf7] min-h-screen flex flex-col items-center justify-center gap-6">
         <p className="text-xl font-black text-[#1a2e22]/40 uppercase tracking-widest">Boutique introuvable</p>
         <button 
+          type="button"
           onClick={() => router.back()} 
           className="bg-[#1a2e22] text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 transition-all"
         >
@@ -296,7 +317,7 @@ export default function ShopDetailsView({ isPublic = false }: ShopDetailsViewPro
   );
 }
 
-function ContactItem({ icon: Icon, label, value }: any) {
+function ContactItem({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
    return (
       <div className="flex gap-6 items-start">
          <div className="mt-1 text-[#c5a059] bg-[#c5a059]/5 p-2 rounded-xl shadow-inner"><Icon size={20} /></div>
@@ -308,7 +329,7 @@ function ContactItem({ icon: Icon, label, value }: any) {
    );
 }
 
-function ProductCard({ product, addToCart, getImageUrl, isOwner, isPublic }: any) {
+function ProductCard({ product, addToCart, getImageUrl, isOwner, isPublic }: { product: Product; addToCart: ((p: Product) => void) | undefined; getImageUrl: () => string; isOwner: boolean | null; isPublic: boolean }) {
    return (
       <div className="group bg-white rounded-[70px] overflow-hidden border border-[#1a2e22]/5 shadow-2xl hover:shadow-3xl hover:-translate-y-4 transition-all duration-1000 p-6 ring-1 ring-slate-50 border-[10px] border-white">
          <div className="relative aspect-[4/3] rounded-[56px] overflow-hidden mb-8 bg-slate-50">
@@ -320,6 +341,7 @@ function ProductCard({ product, addToCart, getImageUrl, isOwner, isPublic }: any
             <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
             {!isOwner && !isPublic && addToCart && (
                <button 
+                  type="button"
                   onClick={(e) => { e.preventDefault(); addToCart(product); }}
                   className="absolute bottom-8 right-8 w-16 h-16 bg-white text-[#1a2e22] rounded-full flex items-center justify-center shadow-3xl opacity-0 translate-y-6 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 hover:bg-[#c5a059] hover:text-white z-20"
                >

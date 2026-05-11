@@ -1,16 +1,23 @@
 "use client";
 import Sidebar from '@/app/dashboard/components/Sidebar';
 import {
-    User, Mail, Phone, ShieldCheck, MapPin,
-    Calendar, Key, Smartphone, LogOut, Camera,
-    ChevronRight, Lock, Bell, Eye, EyeOff,
+    Mail, Calendar, Smartphone, LogOut, Camera,
+    Lock, Bell, Eye, EyeOff,
     Zap, Award, Fingerprint, Activity, Trash2,
-    Loader2
+    Loader2, type LucideIcon
 } from 'lucide-react';
 import React, { useState } from 'react';
 import { useAuth } from '@/features/auth/AuthContext';
 import api from '@/lib/axios';
 import { useRouter } from 'next/navigation';
+
+interface AuditLog {
+    id?: string;
+    userId: string;
+    action: string;
+    ipAddress?: string;
+    createdAt: string;
+}
 
 interface AdminProfileViewProps {
     mode: 'admin' | 'super-admin';
@@ -24,7 +31,7 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
     const [isUploading, setIsUploading] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [editForm, setEditForm] = useState({ name: '', email: '' });
-    const [recentLogs, setRecentLogs] = useState<any[]>([]);
+    const [recentLogs, setRecentLogs] = useState<AuditLog[]>([]);
     const { user, isLoading, logout, fetchUser } = useAuth();
     const router = useRouter();
 
@@ -34,8 +41,8 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
         } else if (user) {
             setEditForm({ name: user.name || '', email: user.email || '' });
             api.get('/audit-logs').then(res => {
-                const logs = res.data.filter((l: any) => l.userId === user.id);
-                logs.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                const logs = res.data.filter((l: AuditLog) => l.userId === user.id);
+                logs.sort((a: AuditLog, b: AuditLog) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
                 setRecentLogs(logs.slice(0, 3));
             }).catch(err => console.error("Could not fetch user logs", err));
         }
@@ -74,7 +81,6 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
             if (fetchUser) await fetchUser();
         } catch (error) {
             console.error("Erreur lors de l'upload", error);
-            alert("Erreur lors de l'envoi de la photo.");
         } finally {
             setIsUploading(false);
         }
@@ -88,7 +94,6 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
             if (fetchUser) await fetchUser();
         } catch (error) {
             console.error("Erreur de suppression", error);
-            alert("Erreur lors de la suppression de la photo.");
         } finally {
             setIsUploading(false);
         }
@@ -104,7 +109,6 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
             if (fetchUser) await fetchUser();
         } catch (error) {
             console.error("Erreur de sauvegarde", error);
-            alert("Erreur lors de la sauvegarde du profil.");
         }
     };
 
@@ -199,7 +203,7 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
 
                             <div className="w-full border-t border-slate-50 pt-8 space-y-4">
                                 <ProfileInfoItem icon={Mail} label="Email Primaire" value={user.email} themeColor={themeColor} />
-                                <ProfileInfoItem icon={Calendar} label="Création de compte" value={(user as any).createdAt ? new Date((user as any).createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Inconnu'} themeColor={themeColor} />
+                                <ProfileInfoItem icon={Calendar} label="Création de compte" value={user.createdAt ? new Date(user.createdAt).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Inconnu'} themeColor={themeColor} />
                             </div>
                         </div>
 
@@ -252,7 +256,7 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
                             </h3>
                             <div className="space-y-6">
                                 {recentLogs.length > 0 ? (
-                                    recentLogs.map((log: any, idx: number) => (
+                                    recentLogs.map((log: AuditLog, idx: number) => (
                                         <AccessLogItem 
                                             key={log.id || idx}
                                             device={log.action} 
@@ -296,7 +300,7 @@ export default function AdminProfileView({ mode, themeColor, accentColor, identi
     );
 }
 
-function ProfileInfoItem({ icon: Icon, label, value, themeColor }: any) {
+function ProfileInfoItem({ icon: Icon, label, value, themeColor }: { icon: LucideIcon; label: string; value: string | null | undefined; themeColor: string }) {
     return (
         <div className="flex items-center gap-4 text-left group">
             <div className={`w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center border border-slate-100 group-hover:bg-${themeColor} group-hover:text-white transition-all`}>
@@ -310,7 +314,7 @@ function ProfileInfoItem({ icon: Icon, label, value, themeColor }: any) {
     );
 }
 
-function PowerBar({ label, percent, accentColor }: any) {
+function PowerBar({ label, percent, accentColor }: { label: string; percent: number; accentColor: string }) {
     return (
         <div>
             <div className="flex justify-between items-center mb-2">
@@ -327,7 +331,7 @@ function PowerBar({ label, percent, accentColor }: any) {
     );
 }
 
-function SecurityToggle({ label, desc, active, icon: Icon, themeColor }: any) {
+function SecurityToggle({ label, desc, active, icon: Icon, themeColor }: { label: string; desc: string; active: boolean; icon: LucideIcon; themeColor: string }) {
     return (
         <div className={`flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl group hover:border-${themeColor.split('-')[0]}-100 transition-all`}>
             <div className="flex items-center gap-4">
@@ -347,7 +351,7 @@ function SecurityToggle({ label, desc, active, icon: Icon, themeColor }: any) {
     );
 }
 
-function AccessLogItem({ device, ip, date, status, themeColor }: any) {
+function AccessLogItem({ device, ip, date, status, themeColor }: { device: string; ip: string; date: string; status?: string; themeColor: string }) {
     return (
         <div className="flex items-center justify-between py-4 border-b border-slate-50 last:border-0 group">
             <div className="flex items-center gap-4">

@@ -16,6 +16,8 @@ interface User {
   nationality: string | null;
   phoneNumber: string | null;
   profilePhoto?: string;
+  createdAt?: string;
+  userId?: string;
 }
 
 interface AuthContextType {
