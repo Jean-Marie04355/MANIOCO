@@ -317,14 +317,14 @@ export default function HomeView() {
                                              <button 
                                                 type="button"
                                                 key={notif.id} 
-                                                onClick={() => markAsRead(notif.id)}
-                                                className={`w-full text-left px-8 py-5 hover:bg-[#1a2e22]/5 transition-colors cursor-pointer border-b border-[#1a2e22]/5 last:border-0 ${!notif.isRead ? 'bg-[#c5a059]/5' : ''}`}
+                                                onClick={() => markAsRead(notif.id)} 
+                                                className={`w-full text-left px-8 py-5 hover:bg-[#1a2e22]/5 transition-colors cursor-pointer border-b border-[#1a2e22]/5 last:border-0 ${notif.isRead ? '' : 'bg-[#c5a059]/5'}`}
                                              >
                                                 <div className="flex justify-between items-start mb-1">
-                                                   <p className={`text-[11px] font-black uppercase tracking-tight ${!notif.isRead ? 'text-[#1a2e22]' : 'text-[#1a2e22]/40'}`}>{notif.title}</p>
+                                                   <p className={`text-[11px] font-black uppercase tracking-tight ${notif.isRead ? 'text-[#1a2e22]/40' : 'text-[#1a2e22]'}`}>{notif.title}</p>
                                                    <span className="text-[9px] font-black text-[#c5a059]">{timeAgo(notif.createdAt)}</span>
                                                 </div>
-                                                <p className={`text-[12px] font-medium leading-relaxed ${!notif.isRead ? 'text-[#1a2e22]/70' : 'text-[#1a2e22]/30'}`}>{notif.message}</p>
+                                                <p className={`text-[12px] font-medium leading-relaxed ${notif.isRead ? 'text-[#1a2e22]/30' : 'text-[#1a2e22]/70'}`}>{notif.message}</p>
                                              </button>
                                           ))
                                        )}

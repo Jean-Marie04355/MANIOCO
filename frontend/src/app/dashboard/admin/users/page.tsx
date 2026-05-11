@@ -63,7 +63,7 @@ export default function AdminUsersManagement() {
             await performAction(action);
             await refreshUserList(action);
         } catch (error) {
-            console.error('Erreur lors de execution action');
+            console.error('Erreur lors de execution action', error);
             alert("❌ Une erreur est survenue lors de l'opération.");
         }
     };
@@ -410,7 +410,10 @@ function KycReviewModal({ user, onClose, onUpdate }: { readonly user: any, reado
     const [rejectionReasons, setRejectionReasons] = useState<any>(() => {
         try {
             return user.kycRejectionReasons ? JSON.parse(user.kycRejectionReasons) : {};
-        } catch (error) { return {}; }
+        } catch (error) {
+            console.error("Failed to parse KYC rejection reasons", error);
+            return {};
+        }
     });
     const [reviewedFields, setReviewedFields] = useState<any>(() => {
         try {
@@ -418,7 +421,10 @@ function KycReviewModal({ user, onClose, onUpdate }: { readonly user: any, reado
             const reviewed: any = {};
             Object.keys(reasons).forEach(k => reviewed[k] = 'REJECTED');
             return reviewed;
-        } catch (error) { return {}; }
+        } catch (error) {
+            console.error("Failed to parse KYC rejection reasons for review", error);
+            return {};
+        }
     });
     const [loading, setLoading] = useState(false);
 

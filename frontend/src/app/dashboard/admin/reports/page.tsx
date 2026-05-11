@@ -89,6 +89,7 @@ export default function AdminReports() {
         const res = await api.get('/reports');
         setReports(res.data);
       } catch (error) {
+        console.error("Failed to fetch reports, using mock data", error);
         // Route pas encore créée → on utilise les données de démo
         setReports(MOCK_REPORTS);
       } finally {

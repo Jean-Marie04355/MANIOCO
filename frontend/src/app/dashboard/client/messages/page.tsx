@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -388,8 +388,8 @@ function getStoreName(c: any) {
 }
 
 function checkIsMe(m: any, user: any) {
-  const myId = String(user?.id || (user as any)?.userId || "");
-  const msgSenderId = m.senderId && typeof m.senderId === 'object' ? (m.senderId as any).id : (m.sender?.id || m.senderId);
+  const myId = String(user?.id || user?.userId || "");
+  const msgSenderId = m.senderId && typeof m.senderId === 'object' ? m.senderId.id : (m.sender?.id || m.senderId);
   return String(msgSenderId) === myId;
 }
 

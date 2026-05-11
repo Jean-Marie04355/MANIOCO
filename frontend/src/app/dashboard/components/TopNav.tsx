@@ -152,20 +152,27 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                   ) : notifications.length === 0 ? (
                     <div className="px-6 py-8 text-center text-slate-400 text-xs font-medium">Aucune notification</div>
                   ) : (
-                    notifications.map((notif) => (
-                      <button 
-                        key={notif.id} 
-                        onClick={() => markAsRead(notif.id)}
-                        className={`w-full text-left px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0 ${!notif.isRead ? (pathname.includes('/admin') ? 'bg-emerald-50/10' : 'bg-orange-50/10') : ''}`}
-                      >
+                      notifications.map((notif) => {
+                        let bgClass = '';
+                        if (!notif.isRead) {
+                          bgClass = pathname.includes('/admin') ? 'bg-emerald-50/10' : 'bg-orange-50/10';
+                        }
+                        
+                        return (
+                          <button 
+                            key={notif.id} 
+                            onClick={() => markAsRead(notif.id)}
+                            className={`w-full text-left px-6 py-4 hover:bg-slate-50 transition-colors cursor-pointer border-b border-slate-50 last:border-0 ${bgClass}`}
+                          >
                         <div className="flex justify-between items-start mb-1">
                           <p className={`text-xs font-black ${!notif.isRead ? 'text-slate-900' : 'text-slate-400'}`}>{notif.title}</p>
                           <span className="text-[9px] font-bold text-slate-400">{timeAgo(notif.createdAt)}</span>
                         </div>
                         <p className={`text-[11px] font-medium leading-relaxed ${!notif.isRead ? 'text-slate-500' : 'text-slate-300'}`}>{notif.message}</p>
-                      </button>
-                    ))
-                  )}
+                        </button>
+                        );
+                      })
+                    )}
                 </div>
                 <div className="px-6 pt-4 text-center">
                   <button 

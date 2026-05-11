@@ -20,13 +20,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const responseData = error?.response?.data;
     if (process.env.NODE_ENV !== 'production') {
       console.error('API Request Error: See Network tab for details');
     }
 
     if (error.response?.status === 401) {
-      if (typeof globalThis.window !== 'undefined') {
+      if (globalThis.window !== undefined) {
         localStorage.removeItem('accessToken');
         if (!globalThis.location.pathname.startsWith('/auth')) {
           globalThis.location.href = '/auth/login';

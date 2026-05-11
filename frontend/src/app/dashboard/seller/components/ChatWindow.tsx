@@ -520,8 +520,11 @@ export default function ChatWindow() {
             {/* Messages List */}
             <div
               ref={scrollRef}
+              role="button"
+              tabIndex={0}
               className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
               onClick={() => setContextMenu(null)}
+              onKeyDown={(e) => { if (e.key === 'Escape') setContextMenu(null); }}
             >
               {messages.map((m) => (
                 <div
@@ -529,6 +532,8 @@ export default function ChatWindow() {
                   className={`flex ${m.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
+                    role="button"
+                    tabIndex={0}
                     className={`rounded-[2rem] p-3 cursor-pointer select-none
                       ${m.senderId === currentUserId
                         ? 'bg-orange-500 text-white rounded-tr-none'
@@ -536,6 +541,7 @@ export default function ChatWindow() {
                       ${m.image ? 'w-full max-w-[240px]' : 'max-w-[70%]'}
                     `}
                     onContextMenu={(e) => openContextMenu(e, m)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openContextMenu(e as any, m); }}
                     onTouchStart={(e) => handleLongPressStart(e, m)}
                     onTouchEnd={handleLongPressEnd}
                     onTouchMove={handleLongPressEnd}
@@ -620,9 +626,12 @@ export default function ChatWindow() {
       {/* ─── Context Menu flottant ──────────────────────────────────────── */}
       {contextMenu && (
         <div
+          role="menu"
+          tabIndex={-1}
           className="fixed z-50"
           style={{ top: contextMenu.y, left: contextMenu.x }}
           onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => { if (e.key === 'Escape') setContextMenu(null); }}
         >
           <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150">
             {/* Répondre — disponible pour tous les messages */}

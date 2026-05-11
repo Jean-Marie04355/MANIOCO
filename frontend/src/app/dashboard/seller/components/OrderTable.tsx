@@ -148,8 +148,12 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
                         {activeMenu === order.id && (
                           <>
                             <div 
+                              role="button"
+                              tabIndex={-1}
+                              aria-label="Fermer le menu"
                               className="fixed inset-0 z-[60]" 
                               onClick={() => setActiveMenu(null)}
+                              onKeyDown={(e) => { if (e.key === 'Escape') setActiveMenu(null); }}
                             ></div>
                             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
                               <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">Changer statut</p>
@@ -179,8 +183,12 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
+            role="button"
+            tabIndex={-1}
+            aria-label="Fermer les détails"
             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
             onClick={() => setSelectedOrder(null)}
+            onKeyDown={(e) => { if (e.key === 'Escape') setSelectedOrder(null); }}
           ></div>
           <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in fade-in duration-300">
             {/* Header */}

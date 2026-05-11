@@ -67,16 +67,20 @@ export class S3StorageService implements IStorageService, OnModuleInit {
         await this.s3Client.send(
           new HeadBucketCommand({ Bucket: this.bucketName }),
         );
-      } catch (err) {
-        this.logger.log(
-          'Bucket not found or inaccessible, attempting to create it...',
-        );
-        await this.s3Client.send(
-          new CreateBucketCommand({ Bucket: this.bucketName }),
-        );
-        this.logger.log('Bucket created successfully.');
-        // Small delay to allow Minio/S3 to propagate bucket creation
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+      } catch (err: any) {
+        if (err.name === 'NotFound' || err.$metadata?.httpStatusCode === 404) {
+          this.logger.log(
+            'Bucket not found or inaccessible, attempting to create it...',
+          );
+          await this.s3Client.send(
+            new CreateBucketCommand({ Bucket: this.bucketName }),
+          );
+          this.logger.log('Bucket created successfully.');
+          // Small delay to allow Minio/S3 to propagate bucket creation
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        } else {
+          throw err;
+        }
       }
 
       // Ensure public read policy is applied (optional step, don't crash if it fails)

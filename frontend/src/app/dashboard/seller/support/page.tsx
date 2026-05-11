@@ -149,7 +149,7 @@ export default function SellerSupport() {
                       type="button"
                       key={ticket.id} 
                       className="w-full text-left p-6 hover:bg-slate-50/50 transition-colors flex items-center justify-between group cursor-pointer" 
-                      onClick={() => window.location.href = `/dashboard/seller/support/${ticket.id}`}
+                      onClick={() => globalThis.location.href = `/dashboard/seller/support/${ticket.id}`}
                     >
                       <div className="flex gap-4 items-center">
                         <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -186,8 +186,12 @@ export default function SellerSupport() {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div 
+             role="button"
+             tabIndex={-1}
+             aria-label="Fermer la modal"
              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
              onClick={() => !isSubmitting && setIsModalOpen(false)}
+             onKeyDown={(e) => { if (e.key === 'Escape' && !isSubmitting) setIsModalOpen(false); }}
            ></div>
           <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in fade-in duration-300">
             <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
