@@ -147,14 +147,13 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
                         
                         {activeMenu === order.id && (
                           <>
-                            <div 
-                              role="button"
-                              tabIndex={-1}
+                            <button 
+                              type="button"
                               aria-label="Fermer le menu"
-                              className="fixed inset-0 z-[60]" 
+                              className="fixed inset-0 z-[60] bg-transparent border-none w-full h-full cursor-default" 
                               onClick={() => setActiveMenu(null)}
                               onKeyDown={(e) => { if (e.key === 'Escape') setActiveMenu(null); }}
-                            ></div>
+                            ></button>
                             <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
                               <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">Changer statut</p>
                               <button onClick={() => { onStatusChange(order.id, 'Confirmée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
@@ -182,14 +181,13 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
       {/* Order Detail Modal */}
       {selectedOrder && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-            role="button"
-            tabIndex={-1}
+          <button 
+            type="button"
             aria-label="Fermer les détails"
-            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+            className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm border-none w-full h-full cursor-default" 
             onClick={() => setSelectedOrder(null)}
             onKeyDown={(e) => { if (e.key === 'Escape') setSelectedOrder(null); }}
-          ></div>
+          ></button>
           <div className="relative w-full max-w-2xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in fade-in duration-300">
             {/* Header */}
             <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">

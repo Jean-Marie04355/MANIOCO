@@ -185,14 +185,13 @@ export default function SellerSupport() {
       {/* New Ticket Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div 
-             role="button"
-             tabIndex={-1}
+          <button 
+             type="button"
              aria-label="Fermer la modal"
-             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" 
+             className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm border-none w-full h-full cursor-default" 
              onClick={() => !isSubmitting && setIsModalOpen(false)}
              onKeyDown={(e) => { if (e.key === 'Escape' && !isSubmitting) setIsModalOpen(false); }}
-           ></div>
+           ></button>
           <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in fade-in duration-300">
             <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">

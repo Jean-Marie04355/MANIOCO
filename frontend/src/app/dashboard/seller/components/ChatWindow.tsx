@@ -520,8 +520,6 @@ export default function ChatWindow() {
             {/* Messages List */}
             <div
               ref={scrollRef}
-              role="button"
-              tabIndex={0}
               className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar"
               onClick={() => setContextMenu(null)}
               onKeyDown={(e) => { if (e.key === 'Escape') setContextMenu(null); }}
@@ -531,17 +529,16 @@ export default function ChatWindow() {
                   key={m.id}
                   className={`flex ${m.senderId === currentUserId ? 'justify-end' : 'justify-start'}`}
                 >
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    className={`rounded-[2rem] p-3 cursor-pointer select-none
+                  <button
+                    type="button"
+                    className={`rounded-[2rem] p-3 cursor-pointer select-none text-left border-none block
                       ${m.senderId === currentUserId
                         ? 'bg-orange-500 text-white rounded-tr-none'
                         : 'bg-white text-slate-700 rounded-tl-none shadow-sm'}
                       ${m.image ? 'w-full max-w-[240px]' : 'max-w-[70%]'}
                     `}
                     onContextMenu={(e) => openContextMenu(e, m)}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openContextMenu(e as any, m); }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') openContextMenu(e, m); }}
                     onTouchStart={(e) => handleLongPressStart(e, m)}
                     onTouchEnd={handleLongPressEnd}
                     onTouchMove={handleLongPressEnd}
@@ -558,7 +555,7 @@ export default function ChatWindow() {
                       {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       {m.senderId === currentUserId && <CheckCheck size={12} />}
                     </div>
-                  </div>
+                  </button>
                 </div>
               ))}
             </div>
