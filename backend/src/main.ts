@@ -25,7 +25,7 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // Enable Global CORS with restricted origins
-  const frontendUrls = configService.get<string>('FRONTEND_URL', 'https://afrigaridev.svodoozlabs.com,http://localhost:3000');
+  const frontendUrls = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
   const origins = frontendUrls.split(',').map((url) => url.trim());
   
   app.enableCors({
