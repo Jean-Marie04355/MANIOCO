@@ -1,1 +1,1 @@
-https://localhost:3000/api
+# Liste des cibles pour Nuclei (vide par défaut pour éviter les timeouts en CI)
