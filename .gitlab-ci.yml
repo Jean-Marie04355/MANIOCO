@@ -76,6 +76,7 @@ merge-coverage:
 
 # Surcharge de Sonar : on rend TOUT optionnel sauf NOS jobs
 sonarqube-checker:
+  image: labor.hwegbe.com/svdockerproxy/sonarsource/sonar-scanner-cli:5.0.1
   dependencies:
     - afrigari-backend-coverage
     - afrigari-frontend-coverage
