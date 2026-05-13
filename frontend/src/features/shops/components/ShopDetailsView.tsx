@@ -45,7 +45,7 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
   const [isStartingChat, setIsStartingChat] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
   
-  const isOwner = user && store && (user.id === store.ownerId || user.userId === store.ownerId);
+  const isOwner = !!(user && store && (user.id === store.ownerId || user.userId === store.ownerId));
 
   const getRealInternetLink = (product: { name?: string; image?: string; profilePhoto?: string }) => {
     const name = (product.name || "").toLowerCase();
@@ -338,7 +338,7 @@ function ContactItem({ icon: Icon, label, value }: Readonly<{ icon: LucideIcon; 
    );
 }
 
-function ProductCard({ product, addToCart, getImageUrl, isOwner, isPublic }: Readonly<{ product: Product; addToCart: ((p: Product) => void) | undefined; getImageUrl: () => string; isOwner: boolean | null; isPublic: boolean }>) {
+function ProductCard({ product, addToCart, getImageUrl, isOwner, isPublic }: Readonly<{ product: Product; addToCart: ((p: Product) => void) | undefined; getImageUrl: () => string; isOwner: boolean; isPublic: boolean }>) {
    return (
       <div className="group bg-white rounded-[70px] overflow-hidden border border-[#1a2e22]/5 shadow-2xl hover:shadow-3xl hover:-translate-y-4 transition-all duration-1000 p-6 ring-1 ring-slate-50 border-[10px] border-white">
          <div className="relative aspect-[4/3] rounded-[56px] overflow-hidden mb-8 bg-slate-50">

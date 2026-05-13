@@ -110,9 +110,9 @@ export default function ClientSettings() {
       setSuccessMessage('Profil mis à jour avec succès !');
       setTimeout(() => setSuccessMessage(''), 3000);
       // Optional: force reload or update context
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erreur mise à jour profil", error);
-      const msg = err.response?.data?.message;
+      const msg = error.response?.data?.message;
       setProfileError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Erreur lors de la mise à jour'));
     } finally {
       setIsSavingProfile(false);
@@ -146,9 +146,9 @@ export default function ClientSettings() {
         setSuccessMessage('Mot de passe modifié avec succès !');
         setPasswordData({ newPassword: '', confirmPassword: '' });
         setTimeout(() => setSuccessMessage(''), 3000);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Erreur changement mot de passe", error);
-        const msg = err.response?.data?.message;
+        const msg = error.response?.data?.message;
         setPasswordError(Array.isArray(msg) ? msg.join(', ') : (msg || 'Erreur lors du changement'));
       } finally {
         setIsSavingPassword(false);
