@@ -9,7 +9,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 #  DEPENDENCIES STAGE
 # ===========================
 FROM base AS deps
-RUN apk add --no-cache libc6-compat=1.1.3-r6
+RUN apk add --no-cache libc6-compat
 
 COPY package.json package-lock.json* ./
 RUN npm ci
@@ -22,11 +22,6 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build-time environment variables for Next.js
-ARG NEXT_PUBLIC_API_URL=https://afrigaribkdev.svodoozlabs.com/api
-ARG NEXT_PUBLIC_SOCKET_URL=https://afrigaribkdev.svodoozlabs.com
-ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
-ENV NEXT_PUBLIC_SOCKET_URL=$NEXT_PUBLIC_SOCKET_URL
 
 RUN npm run build
 
