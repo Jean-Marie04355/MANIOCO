@@ -24,13 +24,8 @@ async function bootstrap() {
   // Get ConfigService for configuration
   const configService = app.get(ConfigService);
 
-  // Enable Global CORS with restricted origins
-  const frontendUrls = configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
-  const origins = frontendUrls.split(',').map((url) => url.trim());
-  
   app.enableCors({
-    origin: origins,
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
   });
 
