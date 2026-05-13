@@ -1,7 +1,13 @@
 import axios from 'axios';
 
+const getBaseURL = () => {
+  let url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  if (url.endsWith('/')) url = url.slice(0, -1);
+  return url.endsWith('/api') ? url : `${url}/api`;
+};
+
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000',
+  baseURL: getBaseURL(),
 });
 
 api.interceptors.request.use(
