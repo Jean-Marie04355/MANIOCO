@@ -1,33 +1,26 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConfigService } from '@nestjs/config';
 import { MailerService } from './mailer.service';
+import { MailerService as NestMailerService } from '@nestjs-modules/mailer';
 
 describe('MailerService', () => {
     let service: MailerService;
+    let nestMailerService: NestMailerService;
 
     beforeEach(async () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 MailerService,
                 {
-                    provide: ConfigService,
+                    provide: NestMailerService,
                     useValue: {
-                        get: jest.fn((key: string) => {
-                            const config = {
-                                MAIL_HOST: 'smtp.example.com',
-                                MAIL_PORT: '587',
-                                MAIL_SECURE: 'false',
-                                MAIL_USER: 'test@example.com',
-                                MAIL_PASSWORD: 'password',
-                            };
-                            return config[key];
-                        }),
+                        sendMail: jest.fn(),
                     },
                 },
             ],
         }).compile();
 
         service = module.get<MailerService>(MailerService);
+        nestMailerService = module.get<NestMailerService>(NestMailerService);
     });
 
     it('should be defined', () => {
@@ -35,17 +28,20 @@ describe('MailerService', () => {
     });
 
     it('should send an email', async () => {
-        const sendMailSpy = jest
-            .spyOn(service['transporter'], 'sendMail')
-            .mockResolvedValue({ messageId: '12345' });
+        const mailOptions = {
+            to: 'recipient@example.com',
+            subject: 'Test Subject',
+            html: '<p>Test Email</p>',
+        };
 
-        const result = await service.sendMail(
-            'recipient@example.com',
-            'Test Subject',
-            '<p>Test Email</p>',
+        await service.sendMail(
+            mailOptions.to,
+            mailOptions.subject,
+            mailOptions.html,
         );
 
-        expect(sendMailSpy).toHaveBeenCalled();
-        expect(result).toEqual({ messageId: '12345' });
+        expect(nestMailerService.sendMail).toHaveBeenCalledWith(
+            expect.objectContaining(mailOptions),
+        );
     });
 });

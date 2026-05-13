@@ -13,11 +13,12 @@ describe('MailerModule', () => {
                     isGlobal: true,
                     load: [
                         () => ({
-                            MAIL_HOST: 'smtp.example.com',
-                            MAIL_PORT: '587',
-                            MAIL_SECURE: 'false',
-                            MAIL_USER: 'test@example.com',
-                            MAIL_PASSWORD: 'password',
+                            SMTP_HOST: 'smtp.example.com',
+                            SMTP_PORT: '587',
+                            SMTP_SECURE: 'false',
+                            SMTP_USER: 'test@example.com',
+                            SMTP_PASS: 'password',
+                            SMTP_FROM: 'Afrigari <noreply@afrigari.com>',
                         }),
                     ],
                 }),
