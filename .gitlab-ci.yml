@@ -75,6 +75,11 @@ merge-coverage:
     expire_in: 1 day
 
 # Surcharge de Sonar : on rend TOUT optionnel sauf NOS jobs
+# Désactivation des jobs du template qui ne supportent pas le monorepo
+test_coverage_node:
+  rules:
+    - when: never
+
 sonarqube-checker:
   image: labor.hwegbe.com/svdockerproxy/library/node:20-alpine
   before_script:
