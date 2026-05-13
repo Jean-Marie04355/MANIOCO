@@ -27,17 +27,21 @@ export class AdminSeeder {
       // Check if an admin already exists by email
       const adminExists = await this.usersService.findByEmail(adminEmail);
 
-      if (adminExists === null || adminExists === undefined) {
+      if (!adminExists) {
         await this.usersService.create({
           name: 'Admin Afrigari',
           email: adminEmail,
           password: adminPassword,
           role: UserRole.SUPER_ADMIN,
         });
-
-        this.logger.log('Initial admin created successfully!');
+        this.logger.log(`Initial admin created successfully: ${adminEmail}`);
       } else {
-        this.logger.log('Admin already exists, seeding skipped.');
+        // Force update existing admin to match .env (role and password)
+        await this.usersService.update(adminExists.id, {
+          role: UserRole.SUPER_ADMIN,
+          password: adminPassword, // usersService.update handles hashing
+        });
+        this.logger.log(`Admin credentials updated successfully: ${adminEmail}`);
       }
     } catch {
       this.logger.error('Error during seeding');
