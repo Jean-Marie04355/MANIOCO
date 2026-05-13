@@ -72,6 +72,6 @@ USER nestjs
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-    CMD wget --spider -q http://localhost:3000/ping || exit 1
+    CMD wget --spider -q http://localhost:3000/api/ping || exit 1
 
 CMD ["node", "dist/main.js"]
