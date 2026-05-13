@@ -65,7 +65,7 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
 
 # Create necessary directories for runtime
-RUN mkdir -p data uploads && chown -R nestjs:nodejs data uploads
+RUN mkdir -p data uploads && chown -R nestjs:nodejs data uploads    
 
 USER nestjs
 
