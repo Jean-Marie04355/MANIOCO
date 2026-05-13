@@ -10,7 +10,7 @@ export class AdminSeeder {
   constructor(
     private readonly usersService: UsersService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async seed() {
     const adminEmail = this.configService.get<string>('ADMIN_EMAIL');
