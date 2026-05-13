@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; background-color: #f9f9f9; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #ffffff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    .header { border-bottom: 2px solid #27ae60; padding-bottom: 20px; text-align: center; }
+    .header h2 { color: #27ae60; margin: 0; }
+    .content { padding: 20px 0; }
+    .order-id { font-weight: bold; color: #27ae60; }
+    .footer { font-size: 12px; color: #777; text-align: center; margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    th { padding: 10px; border-bottom: 1px solid #eee; }
+    td { padding: 10px; border-bottom: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Merci pour votre commande !</h2>
+    </div>
+    <div class="content">
+      <p>Bonjour,</p>
+      <p>Nous avons bien reçu votre commande <span class="order-id">#{{orderId}}</span>.</p>
+      <p>Elle est en cours de traitement et nous vous informerons dès qu'elle sera prête à être expédiée.</p>
+      
+      {{#if items}}
+      <div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 10px;">
+        <h3>Détails de la commande :</h3>
+        <table style="width: 100%; text-align: left;">
+          <thead>
+            <tr>
+              <th>Produit</th>
+              <th>Quantité</th>
+              <th>Prix</th>
+            </tr>
+          </thead>
+          <tbody>
+            {{#each items}}
+            <tr>
+              <td>{{this.productName}}</td>
+              <td>{{this.quantity}}</td>
+              <td>{{this.price}} €</td>
+            </tr>
+            {{/each}}
+          </tbody>
+        </table>
+        <div style="margin-top: 10px; text-align: right; font-weight: bold;">
+          Total : {{totalAmount}} €
+        </div>
+      </div>
+      {{/if}}
+    </div>
+    <div class="footer">
+      <p>Vous avez des questions ? Contactez notre support.</p>
+      <p>&copy; {{year}} Afrigari. Tous droits réservés.</p>
+    </div>
+  </div>
+</body>
+</html>
