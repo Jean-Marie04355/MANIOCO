@@ -5,7 +5,7 @@ include:
 
 # Cache global pour accélérer les installations
 cache:
-  key: ${CI_COMMIT_REF_SLUG}
+  key: "${CI_COMMIT_REF_SLUG}-v2"
   paths:
     - backend/node_modules/
     - frontend/node_modules/
