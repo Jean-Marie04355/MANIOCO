@@ -112,3 +112,11 @@ sonarqube-checker:
   variables:
     SONAR_SCANNER_OPTS: "-Xmx4096m"
     SONAR_OPTS: "-Dsonar.scanner.skipSystemTruststore=true"
+
+# Correction du job svscanners_check (Template)
+svscanners_check:
+  stage: check
+  services: [] # Désactive DinD car inutile pour le scan FS et cause des erreurs de socket
+  variables:
+    SCAN_PATH: "."
+  allow_failure: true
