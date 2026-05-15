@@ -2,9 +2,9 @@
   "name": "afrigari-root",
   "private": true,
   "dependencies": {
-    "ejs": "5.0.2"
+    "ejs": "3.1.10"
   },
   "overrides": {
-    "ejs": "5.0.2"
+    "ejs": "3.1.10"
   }
 }
