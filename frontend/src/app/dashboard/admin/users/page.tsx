@@ -527,7 +527,7 @@ function KycReviewModal({ user, onClose, onUpdate }: { readonly user: any, reado
                                             <>
                                                 <img src={field.value} alt={field.label} className="w-full h-full object-cover" />
                                                 <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-all">
-                                                    <a href={field.value} target="_blank" className="bg-white p-3 rounded-full text-slate-900 hover:scale-110 transition-transform"><ExternalLink size={20} /></a>
+                                                    <a href={field.value} target="_blank" rel="noopener noreferrer" className="bg-white p-3 rounded-full text-slate-900 hover:scale-110 transition-transform"><ExternalLink size={20} /></a>
                                                 </div>
                                             </>
                                         ) : (

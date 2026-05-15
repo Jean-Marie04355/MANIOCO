@@ -11,6 +11,7 @@ export function secureRandom(): number {
     return array[0] / 4294967296; // 2^32
   }
   
-  // Fallback to Math.random if no crypto API is available (should not happen in modern environments)
-  return Math.random();
+  // In the extremely unlikely event that getRandomValues is missing, we throw an error 
+  // instead of falling back to Math.random to maintain security integrity.
+  throw new Error('Crypto API not available');
 }
