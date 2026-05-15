@@ -3,7 +3,7 @@ import { MailerModule as NestMailerModule } from '@nestjs-modules/mailer';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailerService } from './mailer.service';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/adapters/handlebars.adapter';
-import { join } from 'path';
+import { join } from 'node:path';
 
 @Module({
   imports: [
@@ -14,10 +14,10 @@ import { join } from 'path';
           host: configService.get<string>('SMTP_HOST'),
           port: configService.get<number>('SMTP_PORT'),
           secure: configService.get<string>('SMTP_SECURE') === 'true',
-          auth: configService.get<string>('SMTP_USER') !== 'null' ? {
+          auth: configService.get<string>('SMTP_USER') === 'null' ? undefined : {
             user: configService.get<string>('SMTP_USER'),
             pass: configService.get<string>('SMTP_PASS'),
-          } : undefined,
+          },
           tls: {
             rejectUnauthorized: configService.get<string>('NODE_ENV') === 'production',
           },
