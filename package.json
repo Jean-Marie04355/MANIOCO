@@ -1,0 +1,10 @@
+{
+  "name": "afrigari-root",
+  "private": true,
+  "dependencies": {
+    "ejs": "3.1.10"
+  },
+  "overrides": {
+    "ejs": "3.1.10"
+  }
+}
