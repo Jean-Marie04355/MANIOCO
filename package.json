@@ -1,6 +1,10 @@
 {
   "name": "afrigari-root",
   "private": true,
+  "scripts": {
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:backend": "npm --prefix backend run start:dev"
+  },
   "dependencies": {
     "ejs": "5.0.2"
   },
