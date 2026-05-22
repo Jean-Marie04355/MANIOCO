@@ -71,6 +71,9 @@ export default function HomeView() {
    const heroCarouselRef = useRef<HTMLDivElement>(null);
    const [heroIndex, setHeroIndex] = useState(0);
 
+   // Sellers carousel state
+   const sellersCarouselRef = useRef<HTMLDivElement>(null);
+
    // Testimonials slider state
    const [testimonialIndex, setTestimonialIndex] = useState(0);
 
@@ -81,10 +84,10 @@ export default function HomeView() {
    ];
 
    const howItWorksSteps = [
-      { num: '01', title: 'Choisissez vos produits', img: 'https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=600' },
-      { num: '02', title: 'Passez commande', img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=600' },
-      { num: '03', title: "Payer via l'opérateur", img: 'https://images.unsplash.com/photo-1556742111-a301076d9d18?auto=format&fit=crop&q=80&w=600' },
-      { num: '04', title: 'Livraison au Bénin', img: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&q=80&w=600' },
+      { num: '01', title: 'Choisissez vos produits', desc: 'Parcourez les produits de producteurs béninois vérifiés.', img: 'https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=600' },
+      { num: '02', title: 'Passez commande', desc: 'Ajouter au panier et finaliser votre commande en quelques clics.', img: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&q=80&w=600' },
+      { num: '03', title: "Payer via l'opérateur", desc: 'MTN Momo, Moov Money, Celtiis, paiement 100% sécurisé.', img: 'https://images.unsplash.com/photo-1556742111-a301076d9d18?auto=format&fit=crop&q=80&w=600' },
+      { num: '04', title: 'Livraison au Bénin', desc: '24h à Cotonou/Calavi. 48h-72h dans les autres villes via nos transporteurs.', img: 'https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?auto=format&fit=crop&q=80&w=600' },
    ];
 
     const getRealInternetLink = (product: Pick<Product, 'name' | 'image'>) => {
@@ -264,6 +267,17 @@ export default function HomeView() {
       }
    }, []);
 
+   // Sellers carousel scroll
+   const scrollSellersCarousel = useCallback((direction: 'left' | 'right') => {
+      if (sellersCarouselRef.current) {
+         const scrollAmount = 300;
+         sellersCarouselRef.current.scrollBy({
+            left: direction === 'right' ? scrollAmount : -scrollAmount,
+            behavior: 'smooth'
+         });
+      }
+   }, []);
+
    return (
       <div className="bg-manioco-cream min-h-screen text-manioco-brown selection:bg-manioco-terracotta selection:text-white font-sans overflow-x-hidden">
 
@@ -293,12 +307,11 @@ export default function HomeView() {
                   <Link href="/" className="text-manioco-terracotta font-bold hover:text-manioco-terracotta transition-colors">Accueil</Link>
                   <button onClick={() => document.getElementById('best-sellers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-manioco-terracotta transition-colors">Nos produits</button>
                   <button onClick={() => document.getElementById('sellers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-manioco-terracotta transition-colors">Vendeurs</button>
-                  <button onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-manioco-terracotta transition-colors">À propos</button>
                </div>
 
                {/* Right side actions */}
                <div className="flex items-center gap-4">
-                  {user ? (
+                  {user && (
                      <>
                         {/* Messages */}
                         <Link href="/dashboard/client/messages" className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all">
@@ -370,67 +383,69 @@ export default function HomeView() {
                               </div>
                            )}
                         </div>
+                     </>
+                  )}
 
-                        {/* Cart */}
-                        <button
-                           type="button"
-                           onClick={() => setIsCartOpen(true)}
-                           className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
-                        >
-                           <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
-                           {totalItems > 0 && (
-                              <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
-                                 {totalItems}
-                              </span>
+                  {/* Cart */}
+                  <button
+                     type="button"
+                     onClick={() => setIsCartOpen(true)}
+                     className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+                  >
+                     <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
+                     {totalItems > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                           {totalItems}
+                        </span>
+                     )}
+                  </button>
+
+                  {user ? (
+                     /* Profile */
+                     <div className="relative" ref={profileRef}>
+                        <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-10 h-10 rounded-full border-2 border-manioco-terracotta/20 shadow-md hover:scale-105 transition-all overflow-hidden bg-manioco-cream flex items-center justify-center text-manioco-brown font-bold text-sm">
+                           {user?.profilePhoto ? (
+                              <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover" />
+                           ) : (
+                              <span>{user?.name?.[0] || 'U'}</span>
                            )}
                         </button>
 
-                        {/* Profile */}
-                        <div className="relative" ref={profileRef}>
-                           <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-10 h-10 rounded-full border-2 border-manioco-terracotta/20 shadow-md hover:scale-105 transition-all overflow-hidden bg-manioco-cream flex items-center justify-center text-manioco-brown font-bold text-sm">
-                              {user?.profilePhoto ? (
-                                 <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover" />
-                              ) : (
-                                 <span>{user?.name?.[0] || 'U'}</span>
-                              )}
-                           </button>
-
-                           {isProfileOpen && (
-                              <div className="absolute top-14 right-0 w-64 bg-white shadow-2xl rounded-3xl p-5 z-[300] border border-manioco-brown/5 animate-fade-up">
-                                 <div className="flex flex-col items-center mb-5">
-                                    <div className="w-14 h-14 rounded-full border-3 border-manioco-terracotta/20 p-0.5 mb-2 overflow-hidden bg-manioco-cream flex items-center justify-center text-manioco-brown text-lg font-bold">
-                                       {user?.profilePhoto ? (
-                                          <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover rounded-full" />
-                                       ) : (
-                                          <span>{user?.name?.[0] || 'U'}</span>
-                                       )}
-                                    </div>
-                                    <h4 className="font-bold text-base text-manioco-brown text-center">{user?.name || 'Utilisateur'}</h4>
-                                    <p className="text-[10px] font-semibold text-manioco-terracotta uppercase tracking-wider mt-0.5">{user?.role || 'Client'}</p>
+                        {isProfileOpen && (
+                           <div className="absolute top-14 right-0 w-64 bg-white shadow-2xl rounded-3xl p-5 z-[300] border border-manioco-brown/5 animate-fade-up">
+                              <div className="flex flex-col items-center mb-5">
+                                 <div className="w-14 h-14 rounded-full border-3 border-manioco-terracotta/20 p-0.5 mb-2 overflow-hidden bg-manioco-cream flex items-center justify-center text-manioco-brown text-lg font-bold">
+                                    {user?.profilePhoto ? (
+                                       <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover rounded-full" />
+                                    ) : (
+                                       <span>{user?.name?.[0] || 'U'}</span>
+                                    )}
                                  </div>
-                                 <div className="space-y-1">
-                                    <Link href="/dashboard/client/messages" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
-                                       <MessageSquare size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
-                                       <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Conversations</span>
-                                    </Link>
-                                    <Link href="/dashboard/client/orders" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
-                                       <Clock size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
-                                       <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Commandes</span>
-                                    </Link>
-                                    <Link href="/dashboard/client/settings" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
-                                       <Settings size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
-                                       <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Paramètres</span>
-                                    </Link>
-                                    <div className="h-px bg-manioco-brown/5 my-3 mx-2"></div>
-                                    <button onClick={() => logout()} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition-all">
-                                       <LogOut size={16} />
-                                       <span className="text-xs font-semibold">Déconnexion</span>
-                                    </button>
-                                 </div>
+                                 <h4 className="font-bold text-base text-manioco-brown text-center">{user?.name || 'Utilisateur'}</h4>
+                                 <p className="text-[10px] font-semibold text-manioco-terracotta uppercase tracking-wider mt-0.5">{user?.role || 'Client'}</p>
                               </div>
-                           )}
-                        </div>
-                     </>
+                              <div className="space-y-1">
+                                 <Link href="/dashboard/client/messages" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
+                                    <MessageSquare size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
+                                    <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Conversations</span>
+                                 </Link>
+                                 <Link href="/dashboard/client/orders" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
+                                    <Clock size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
+                                    <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Commandes</span>
+                                 </Link>
+                                 <Link href="/dashboard/client/settings" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
+                                    <Settings size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
+                                    <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Paramètres</span>
+                                 </Link>
+                                 <div className="h-px bg-manioco-brown/5 my-3 mx-2"></div>
+                                 <button onClick={() => logout()} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition-all">
+                                    <LogOut size={16} />
+                                    <span className="text-xs font-semibold">Déconnexion</span>
+                                 </button>
+                              </div>
+                           </div>
+                        )}
+                     </div>
                   ) : (
                      <Link href="/auth/login" className="flex items-center gap-2 bg-manioco-terracotta text-white px-6 py-2.5 rounded-full hover:bg-manioco-brown transition-all text-sm font-semibold shadow-md hover:shadow-lg">
                         <UserIcon size={16} />
@@ -476,16 +491,43 @@ export default function HomeView() {
                            {products.slice(0, 8).map((product, i) => (
                               <div key={product.id} className="flex-shrink-0 w-[260px] snap-start">
                                  <div className="relative h-[340px] rounded-3xl overflow-hidden group cursor-pointer shadow-lg">
+                                    {/* Rating badge */}
+                                    <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1 shadow-md z-20">
+                                       <Star size={12} className="fill-[#F4A261] text-[#F4A261]" />
+                                       <span className="text-xs font-bold text-manioco-brown">
+                                          {(4.6 + (i % 2) * 0.2).toFixed(1)}
+                                       </span>
+                                    </div>
                                     <img
                                        src={getRealInternetLink(product)}
                                        alt={product.name}
                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
-                                    <div className="absolute bottom-0 left-0 right-0 p-5">
-                                       <h4 className="text-white font-bold text-base mb-1 truncate">{product.name}</h4>
-                                       <p className="text-white/80 text-sm font-medium">{Number(product.price).toLocaleString('fr-FR')} Fcfa <span className="text-white/50">/ {product.unit || 'Kg'}</span></p>
+                                    {/* Product Info & Cart button */}
+                                    <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between z-20 pointer-events-none">
+                                       <div className="flex-1 min-w-0 pr-4">
+                                          <h4 className="text-white font-bold text-base mb-1 truncate">{product.name}</h4>
+                                          <p className="text-white/80 text-sm font-medium">
+                                             {Number(product.price).toLocaleString('fr-FR')} Fcfa <span className="text-white/50">/ {product.unit || 'Kg'}</span>
+                                          </p>
+                                       </div>
+                                       <button
+                                          onClick={(e) => {
+                                             e.preventDefault();
+                                             e.stopPropagation();
+                                             handleActionClick(e, () => addToCart(product));
+                                          }}
+                                          className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center cursor-pointer transition-all shadow-sm shrink-0 pointer-events-auto"
+                                       >
+                                          <ShoppingCart size={16} />
+                                       </button>
                                     </div>
+                                    {/* Overlay Link to Shop */}
+                                    <Link
+                                       href={product.storeId || product.store?.id ? `/shops/${product.storeId || product.store?.id}` : '#'}
+                                       className="absolute inset-0 z-10"
+                                     />
                                  </div>
                               </div>
                            ))}
@@ -515,31 +557,27 @@ export default function HomeView() {
             {/* ============================================ */}
             <section className="py-16 bg-white/50">
                <div className="max-w-[1400px] mx-auto px-8 lg:px-12">
-                  <h2 className="text-2xl md:text-3xl font-bold text-manioco-brown text-center mb-8">
-                     Trouvez le dérivé de manioc <span className="text-manioco-terracotta italic font-serif font-normal">qu'il vous faut</span>
+                  <h2 className="text-3xl md:text-4xl font-extrabold text-manioco-brown text-left mb-8">
+                     Trouvez le dérivé de manioc qu'il vous faut
                   </h2>
-                  <div className="flex items-center justify-center gap-3 max-w-2xl mx-auto mb-8">
-                     <div className="flex-1 relative">
-                        <Search size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-manioco-brown/25" />
-                        <input
-                           type="text"
-                           placeholder="Ex: Gari, Tapioca, Farine de manioc..."
-                           value={searchQuery}
-                           onChange={(e) => setSearchQuery(e.target.value)}
-                           className="w-full bg-white border border-manioco-brown/10 rounded-full py-4 pl-13 pr-6 text-sm text-manioco-brown placeholder:text-manioco-brown/30 focus:ring-2 focus:ring-manioco-terracotta/30 focus:border-manioco-terracotta outline-none transition-all shadow-sm"
-                        />
-                     </div>
+                  <div className="flex items-center bg-white border border-manioco-brown/15 rounded-full p-2 pl-6 pr-2 w-full mb-8 shadow-[0_4px_20px_rgba(92,45,35,0.04)] focus-within:ring-2 focus-within:ring-manioco-terracotta/20 focus-within:border-manioco-terracotta transition-all duration-300">
+                     <input
+                        type="text"
+                        placeholder="Ex: Gari, Tapioca, Farine, Attiéké..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="flex-1 bg-transparent border-0 outline-none py-3 text-base text-manioco-brown placeholder:text-manioco-brown/30 font-medium"
+                     />
                      <button
                         onClick={() => document.getElementById('best-sellers')?.scrollIntoView({ behavior: 'smooth' })}
-                        className="flex items-center gap-2 bg-manioco-terracotta text-white px-7 py-4 rounded-full font-semibold text-sm hover:bg-manioco-brown transition-all shadow-md whitespace-nowrap"
+                        className="bg-manioco-terracotta text-white px-8 py-3.5 rounded-full font-semibold text-sm hover:bg-manioco-brown transition-all shadow-md whitespace-nowrap cursor-pointer"
                      >
-                        <Search size={16} />
-                        Rechercher
+                        Recherche
                      </button>
                   </div>
 
                   {/* Category badges */}
-                  <div className="flex flex-wrap justify-center gap-3">
+                  <div className="flex flex-wrap justify-start gap-3">
                      <button
                         type="button"
                         onClick={() => setActiveCategoryId(null)}
@@ -690,53 +728,87 @@ export default function HomeView() {
                         <h2 className="text-3xl md:text-4xl font-bold text-white">
                            Nos vendeurs phares
                         </h2>
-                        <Link href="/shops" className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white transition-colors border border-white/30 px-5 py-2.5 rounded-full hover:bg-white/10">
-                           Voir tous les vendeurs <ArrowUpRight size={16} />
-                        </Link>
+                        <div className="flex items-center gap-4">
+                           {/* Carousel controls */}
+                           <div className="flex gap-2">
+                              <button
+                                 type="button"
+                                 onClick={() => scrollSellersCarousel('left')}
+                                 className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white/80 hover:border-white hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                              >
+                                 <ChevronLeft size={18} />
+                              </button>
+                              <button
+                                 type="button"
+                                 onClick={() => scrollSellersCarousel('right')}
+                                 className="w-10 h-10 rounded-full border border-white/30 flex items-center justify-center text-white/80 hover:border-white hover:text-white hover:bg-white/10 transition-all cursor-pointer"
+                              >
+                                 <ChevronRight size={18} />
+                              </button>
+                           </div>
+                           <Link href="/shops" className="inline-flex items-center gap-2 text-sm font-semibold text-white/80 hover:text-white transition-colors border border-white/30 px-5 py-2.5 rounded-full hover:bg-white/10">
+                              Voir tous les producteurs <ArrowUpRight size={16} />
+                           </Link>
+                        </div>
                      </div>
 
-                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                     <div
+                        ref={sellersCarouselRef}
+                        className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory"
+                        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                     >
                         {stores.map((store) => (
-                           <Link href={`/shops/${store.id}`} key={store.id} className="group">
-                              <div className="bg-white rounded-3xl p-6 hover:-translate-y-2 transition-all duration-500 shadow-lg hover:shadow-2xl">
-                                 <div className="flex flex-col items-center text-center mb-5">
-                                    <div className="relative mb-4">
-                                       <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-manioco-cream shadow-md">
-                                          <img
-                                             src={store.profilePhoto ? (store.profilePhoto.startsWith('http') ? store.profilePhoto : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/uploads${store.profilePhoto.startsWith('/') ? '' : '/'}${store.profilePhoto}`) : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200"}
-                                             className="w-full h-full object-cover"
-                                             alt={store.name}
-                                          />
+                           <div key={store.id} className="flex-shrink-0 w-[280px] snap-start">
+                              <Link href={`/shops/${store.id}`} className="group block">
+                                 <div className="bg-white rounded-3xl p-6 hover:-translate-y-2 transition-all duration-500 shadow-lg hover:shadow-2xl h-full">
+                                    <div className="flex flex-col items-center text-center mb-5">
+                                       <div className="relative mb-4">
+                                          <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-manioco-cream shadow-md">
+                                             <img
+                                                src={store.profilePhoto ? (store.profilePhoto.startsWith('http') ? store.profilePhoto : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/uploads${store.profilePhoto.startsWith('/') ? '' : '/'}${store.profilePhoto}`) : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200"}
+                                                className="w-full h-full object-cover"
+                                                alt={store.name}
+                                             />
+                                          </div>
+                                          {/* Verified badge */}
+                                          <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
+                                             <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                          </div>
                                        </div>
-                                       {/* Verified badge */}
-                                       <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center border-2 border-white">
-                                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                                       <h4 className="text-base font-bold text-manioco-brown mb-1 truncate w-full">{store.name}</h4>
+                                       <div className="flex items-center gap-1 text-manioco-brown/40 text-xs">
+                                          <MapPin size={12} />
+                                          <span>{store.city || 'Bénin'}</span>
                                        </div>
                                     </div>
-                                    <h4 className="text-base font-bold text-manioco-brown mb-1 truncate w-full">{store.name}</h4>
-                                    <div className="flex items-center gap-1 text-manioco-brown/40 text-xs">
-                                       <MapPin size={12} />
-                                       <span>{store.city || 'Bénin'}</span>
+                                    <div className="flex items-center justify-between pt-4 border-t border-manioco-brown/5">
+                                       <div className="flex flex-col items-center flex-1">
+                                          <div className="flex items-center gap-1">
+                                             <Star size={14} className="fill-[#F4A261] text-[#F4A261] shrink-0" />
+                                             <span className="text-sm font-bold text-manioco-brown">4.8</span>
+                                          </div>
+                                          <p className="text-[10px] text-manioco-brown/40 font-semibold mt-1">Note</p>
+                                       </div>
+                                       <div className="w-px h-8 bg-manioco-brown/5"></div>
+                                       <div className="flex flex-col items-center flex-1">
+                                          <div className="flex items-center gap-1">
+                                             <TrendingUp size={14} className="text-[#9E4E3B] shrink-0" />
+                                             <span className="text-sm font-bold text-manioco-brown">120+</span>
+                                          </div>
+                                          <p className="text-[10px] text-manioco-brown/40 font-semibold mt-1">Ventes</p>
+                                       </div>
+                                       <div className="w-px h-8 bg-manioco-brown/5"></div>
+                                       <div className="flex flex-col items-center flex-1">
+                                          <div className="flex items-center gap-1">
+                                             <Package size={14} className="text-[#9E4E3B] shrink-0" />
+                                             <span className="text-sm font-bold text-manioco-brown">15</span>
+                                          </div>
+                                          <p className="text-[10px] text-manioco-brown/40 font-semibold mt-1">Produits</p>
+                                       </div>
                                     </div>
                                  </div>
-                                 <div className="flex items-center justify-between pt-4 border-t border-manioco-brown/5">
-                                    <div className="text-center">
-                                       <p className="text-sm font-bold text-manioco-brown">4.8</p>
-                                       <p className="text-[10px] text-manioco-brown/40 font-medium">Note</p>
-                                    </div>
-                                    <div className="w-px h-8 bg-manioco-brown/5"></div>
-                                    <div className="text-center">
-                                       <p className="text-sm font-bold text-manioco-brown">120+</p>
-                                       <p className="text-[10px] text-manioco-brown/40 font-medium">Ventes</p>
-                                    </div>
-                                    <div className="w-px h-8 bg-manioco-brown/5"></div>
-                                    <div className="text-center">
-                                       <p className="text-sm font-bold text-manioco-brown">15</p>
-                                       <p className="text-[10px] text-manioco-brown/40 font-medium">Produits</p>
-                                    </div>
-                                 </div>
-                              </div>
-                           </Link>
+                              </Link>
+                           </div>
                         ))}
                      </div>
                   </div>
@@ -748,40 +820,62 @@ export default function HomeView() {
             {/* ============================================ */}
             <section id="how-it-works" className="py-20">
                <div className="max-w-[1400px] mx-auto px-8 lg:px-12">
-                  <h2 className="text-3xl md:text-4xl font-bold text-manioco-terracotta text-center mb-16">
+                  <h2 className="text-3xl md:text-4xl font-extrabold text-manioco-brown text-center mb-16">
                      Comment ça marche ?
                   </h2>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 border border-manioco-brown/10 rounded-3xl overflow-hidden">
-                     {howItWorksSteps.map((step, i) => {
-                        const isImageLeft = i % 2 === 0;
-                        return (
-                           <div key={step.num} className={`flex ${i < 2 ? 'border-b border-manioco-brown/10 md:border-b' : ''} ${i % 2 === 0 ? 'md:border-r border-manioco-brown/10' : ''}`}>
-                              {isImageLeft ? (
-                                 <>
-                                    <div className="w-1/2 aspect-square overflow-hidden bg-manioco-cream">
-                                       <img src={step.img} alt={step.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                  <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-manioco-brown/10 rounded-[32px] overflow-hidden border border-manioco-brown/10">
+                     {[
+                        { type: 'image', img: howItWorksSteps[0].img, title: howItWorksSteps[0].title },
+                        { type: 'text', num: '01', title: howItWorksSteps[0].title, desc: howItWorksSteps[0].desc },
+                        { type: 'image', img: howItWorksSteps[1].img, title: howItWorksSteps[1].title },
+                        { type: 'text', num: '02', title: howItWorksSteps[1].title, desc: howItWorksSteps[1].desc },
+                        { type: 'text', num: '03', title: howItWorksSteps[2].title, desc: howItWorksSteps[2].desc },
+                        { type: 'image', img: howItWorksSteps[2].img, title: howItWorksSteps[2].title },
+                        { type: 'text', num: '04', title: howItWorksSteps[3].title, desc: howItWorksSteps[3].desc },
+                        { type: 'image', img: howItWorksSteps[3].img, title: howItWorksSteps[3].title },
+                     ].map((cell, index) => {
+                        if (cell.type === 'image') {
+                           return (
+                              <div key={`img-${index}`} className="relative aspect-square w-full overflow-hidden bg-white">
+                                 <img
+                                    src={cell.img}
+                                    alt={cell.title}
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+                                 />
+                              </div>
+                           );
+                        } else {
+                           return (
+                              <div
+                                 key={`text-${index}`}
+                                 className="bg-white p-6 lg:p-8 relative flex flex-col justify-between aspect-square select-none group/step cursor-pointer"
+                              >
+                                 {/* Top side: number and animated line */}
+                                 <div className="flex items-center justify-end w-full relative h-10">
+                                    <span className="text-2xl lg:text-3xl font-extrabold text-manioco-terracotta font-serif transition-all duration-500 transform group-hover/step:-translate-x-[75px]">
+                                       {cell.num}
+                                    </span>
+                                    <div className="absolute right-0 h-[2px] bg-manioco-terracotta w-0 group-hover/step:w-[65px] transition-all duration-500"></div>
+                                 </div>
+
+                                 {/* Bottom side: title & desc */}
+                                 <div className="flex flex-col justify-end mt-4">
+                                    <h4 className="text-sm lg:text-base font-bold text-manioco-brown leading-snug">
+                                       {cell.title}
+                                       <span className="text-manioco-terracotta ml-1.5 font-light group-hover/step:opacity-0 transition-opacity duration-300 inline-block">
+                                          +
+                                       </span>
+                                    </h4>
+                                    <div className="relative h-12 mt-1">
+                                       <p className="text-xs lg:text-sm text-manioco-brown/50 leading-relaxed absolute top-0 left-0 w-full opacity-0 group-hover/step:opacity-100 transition-all duration-500 transform translate-y-2 group-hover/step:translate-y-0 select-none">
+                                          {cell.desc}
+                                       </p>
                                     </div>
-                                    <div className="w-1/2 flex flex-col justify-center p-6 lg:p-10">
-                                       <span className="text-4xl lg:text-5xl font-black text-manioco-terracotta/15 mb-3 font-serif">{step.num}</span>
-                                       <h4 className="text-base lg:text-lg font-bold text-manioco-brown leading-snug">{step.title}</h4>
-                                       <span className="text-manioco-terracotta mt-3 text-xl font-light">+</span>
-                                    </div>
-                                 </>
-                              ) : (
-                                 <>
-                                    <div className="w-1/2 flex flex-col justify-center p-6 lg:p-10">
-                                       <span className="text-4xl lg:text-5xl font-black text-manioco-terracotta/15 mb-3 font-serif">{step.num}</span>
-                                       <h4 className="text-base lg:text-lg font-bold text-manioco-brown leading-snug">{step.title}</h4>
-                                       <span className="text-manioco-terracotta mt-3 text-xl font-light">+</span>
-                                    </div>
-                                    <div className="w-1/2 aspect-square overflow-hidden bg-manioco-cream">
-                                       <img src={step.img} alt={step.title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
-                                    </div>
-                                 </>
-                              )}
-                           </div>
-                        );
+                                 </div>
+                              </div>
+                           );
+                        }
                      })}
                   </div>
                </div>
@@ -913,13 +1007,11 @@ export default function HomeView() {
          </footer>
 
          {/* Cart Drawer */}
-         {user && (
-            <CartDrawer
-               isOpen={isCartOpen}
-               onClose={() => setIsCartOpen(false)}
-               onSuccess={() => { setShowSuccessOrder(true); setIsCartOpen(false); }}
-            />
-         )}
+         <CartDrawer
+            isOpen={isCartOpen}
+            onClose={() => setIsCartOpen(false)}
+            onSuccess={() => { setShowSuccessOrder(true); setIsCartOpen(false); }}
+         />
 
          {/* Success Notification */}
          {showSuccessOrder && (
