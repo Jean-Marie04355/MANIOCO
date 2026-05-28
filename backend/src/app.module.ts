@@ -53,7 +53,7 @@ import { join } from 'node:path';
     PaymentsModule,
     RealtimeModule,
     QueuesModule,
-    AuditModule,
+    AuditModule.register(),
     ChatModule,
     NotificationsModule,
     SupportModule,

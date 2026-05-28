@@ -1,6 +1,11 @@
 "use client";
-import { Plus, Star, ArrowLeft, ShoppingCart, ShieldCheck, MapPin, Package, Phone, Loader2, TrendingUp, MessageSquare, type LucideIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+/* eslint-disable react/no-unescaped-entities */
+import {
+  Plus, Star, ArrowLeft, ShoppingCart, ShieldCheck, MapPin,
+  Package, Phone, Loader2, MessageSquare, BadgeCheck, Heart,
+  User as UserIcon, LogOut, Store
+} from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
@@ -15,6 +20,7 @@ interface Product {
   image?: string;
   profilePhoto?: string;
   unit?: string;
+  description?: string;
 }
 
 interface Store {
@@ -27,15 +33,16 @@ interface Store {
   address?: string;
   city?: string;
   phone?: string;
+  verified?: boolean;
 }
 
 interface ShopDetailsViewProps {
-    isPublic?: boolean;
+  isPublic?: boolean;
 }
 
 export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetailsViewProps>) {
   const { id } = useParams();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const cartContext = useCart();
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
@@ -44,48 +51,43 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
   const [isLoading, setIsLoading] = useState(true);
   const [isStartingChat, setIsStartingChat] = useState(false);
   const [isCartOpen, setIsCartOpen] = useState(false);
-  
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const profileRef = useRef<HTMLDivElement>(null);
+
   const isOwner = !!(user && store && (user.id === store.ownerId || user.userId === store.ownerId));
 
   const getRealInternetLink = (product: { name?: string; image?: string; profilePhoto?: string }) => {
-    const name = (product.name || "").toLowerCase();
     const dbPath = product.image || product.profilePhoto;
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
-    if (!dbPath) {
-      if (name.includes('gari')) return "https://images.unsplash.com/photo-1549439602-43ebcb232811?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('farine')) return "https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&q=80&w=800";
-      if (name.includes('manioc')) return "https://images.unsplash.com/photo-1590736704728-f4730bb3c3af?auto=format&fit=crop&q=80&w=800";
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    if (!dbPath || String(dbPath).trim() === '' || dbPath === 'null') {
       return "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&q=80&w=800";
     }
-
-    if (dbPath.startsWith('data:image')) return dbPath;
-    if (dbPath.startsWith('http')) return dbPath;
-
+    if (dbPath.startsWith('data:image') || dbPath.startsWith('http')) return dbPath;
     const cleanPath = dbPath.startsWith('/') ? dbPath : `/${dbPath}`;
     const finalPath = cleanPath.startsWith('/uploads') ? cleanPath : `/uploads${cleanPath}`;
     return `${apiUrl}${finalPath}`;
   };
 
+  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
+    if (!user) { e.preventDefault(); router.push('/auth/login'); return; }
+    action();
+  };
+
   const handleContact = async () => {
-     if (isPublic && !user) {
-        console.warn("Veuillez vous connecter pour contacter le vendeur.");
-        router.push('/auth/login');
-        return;
-     }
-     setIsStartingChat(true);
-     try {
-        await api.post('/chat/conversations/init', { storeId: id });
-        router.push('/dashboard/client/messages');
-     } catch (error) {
-        console.error("Erreur initiation chat", error);
-     } finally {
-        setIsStartingChat(false);
-     }
+    if (!user) { router.push('/auth/login'); return; }
+    setIsStartingChat(true);
+    try {
+      await api.post('/chat/conversations/init', { storeId: id });
+      router.push('/dashboard/client/messages');
+    } catch (err) {
+      console.error("Erreur initiation chat", err);
+    } finally {
+      setIsStartingChat(false);
+    }
   };
 
   useEffect(() => {
-    const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
 
     const fetchStoreData = async () => {
@@ -96,8 +98,8 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
         ]);
         setStore(storeRes.data);
         setProducts(productsRes.data || []);
-      } catch (error) {
-        console.error("Erreur de chargement de la boutique", error);
+      } catch (err) {
+        console.error("Erreur de chargement", err);
       } finally {
         setIsLoading(false);
       }
@@ -107,10 +109,20 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
     return () => window.removeEventListener('scroll', handleScroll);
   }, [id]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setIsProfileOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="bg-[#fcfbf7] min-h-screen flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-[#c5a059] animate-spin" />
+        <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
       </div>
     );
   }
@@ -118,269 +130,315 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
   if (!store) {
     return (
       <div className="bg-[#fcfbf7] min-h-screen flex flex-col items-center justify-center gap-6">
-        <p className="text-xl font-black text-[#1a2e22]/40 uppercase tracking-widest">Boutique introuvable</p>
-        <button 
-          type="button"
-          onClick={() => router.back()} 
-          className="bg-[#1a2e22] text-white px-8 py-4 rounded-full font-black text-xs uppercase tracking-widest hover:scale-105 transition-all"
-        >
+        <Store size={48} className="text-manioco-brown/20" />
+        <p className="text-manioco-brown/40 font-medium">Boutique introuvable</p>
+        <button onClick={() => router.back()} className="bg-manioco-terracotta text-white px-8 py-3 rounded-full font-semibold text-sm hover:bg-manioco-brown transition-all">
           Retour
         </button>
       </div>
     );
   }
 
-  const getBackUrl = () => {
-    if (isOwner) return "/dashboard/seller/settings/store";
-    if (user?.role === 'vendeur') return "/dashboard/seller";
-    if (user?.role === 'super_admin' || user?.role === 'admin') return "/dashboard/super-admin";
-    if (user?.role === 'client') return "/dashboard/client";
-    return "/";
-  };
-
-  const getBackLabel = () => {
-    if (isOwner) return "Retour aux Paramètres";
-    if (!isPublic) return "Retour au Marché";
-    return "Retour";
-  };
-
   return (
-    <div className="bg-[#fcfbf7] min-h-screen text-[#1a2e22] selection:bg-[#c5a059] selection:text-white font-sans overflow-x-hidden">
-      
-      {/* Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-700 px-8 ${scrolled ? 'py-4' : 'py-12'}`}>
-         <div className={`max-w-[1400px] mx-auto flex justify-between items-center px-12 py-6 transition-all duration-700 ${scrolled ? 'bg-white/80 backdrop-blur-2xl rounded-full shadow-2xl border border-white' : ''}`}>
-            <Link href={getBackUrl()} className="flex items-center gap-4 group">
-               <div className="w-10 h-10 rounded-full border border-[#1a2e22]/10 flex items-center justify-center group-hover:bg-[#1a2e22] group-hover:text-white transition-all shadow-sm">
-                  <ArrowLeft size={20} />
-               </div>
-               <span className="font-black text-[11px] uppercase tracking-[0.3em] hidden md:block">
-                  {getBackLabel()}
-               </span>
-            </Link>
+    <div className="bg-[#fcfbf7] min-h-screen text-manioco-brown font-sans overflow-x-hidden">
 
-            <div className="flex items-center gap-10">
-               {!isPublic && cartContext && (
-                 <button 
-                    type="button"
-                    onClick={() => setIsCartOpen(true)}
-                    className="relative cursor-pointer group p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all"
-                    aria-label="Voir le panier"
-                 >
-                    <ShoppingCart size={22} className="group-hover:scale-110 transition-transform" />
-                    {cartContext.totalItems > 0 && (
-                       <span className="absolute -top-1 -right-1 w-5 h-5 bg-[#c5a059] text-white text-[10px] flex items-center justify-center rounded-full font-black shadow-lg border-2 border-white animate-bounce">
-                          {cartContext.totalItems}
-                       </span>
-                    )}
-                 </button>
-               )}
-               <div className="w-12 h-12 rounded-full border-2 border-white shadow-2xl overflow-hidden relative bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] font-black text-sm uppercase ring-4 ring-[#1a2e22]/5">
-                  {user?.profilePhoto ? (
-                     <img src={getRealInternetLink({name: 'user', image: user.profilePhoto})} alt="Profil" className="w-full h-full object-cover" />
-                  ) : (
-                     <span>{user?.name?.[0] || 'U'}</span>
-                  )}
-               </div>
-            </div>
-         </div>
+      {/* NAVBAR */}
+      <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-xl shadow-[0_4px_30px_rgba(92,45,35,0.08)]' : 'bg-white'}`}>
+        <div className="max-w-[1400px] mx-auto flex justify-between items-center px-8 lg:px-12 py-5">
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-1 group">
+            <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">Mani</span>
+            <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">o</span>
+            <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">c</span>
+            <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">o</span>
+          </Link>
+
+          {/* Nav Links */}
+          <div className="hidden lg:flex items-center gap-10 text-sm font-semibold text-manioco-brown/60">
+            <Link href="/" className="hover:text-manioco-brown transition-colors">Accueil</Link>
+            <Link href="/produits" className="hover:text-manioco-brown transition-colors">Nos produits</Link>
+            <Link href="/shops" className="text-manioco-terracotta font-bold bg-manioco-terracotta/5 px-4 py-2 rounded-full">Vendeurs</Link>
+          </div>
+
+          {/* Actions */}
+          <div className="flex items-center gap-4">
+            <button
+              type="button"
+              onClick={() => setIsCartOpen(true)}
+              className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+            >
+              <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
+              {cartContext && cartContext.totalItems > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                  {cartContext.totalItems}
+                </span>
+              )}
+            </button>
+
+            {user ? (
+              <div className="relative" ref={profileRef}>
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="w-10 h-10 rounded-full border-2 border-manioco-terracotta/20 bg-manioco-cream flex items-center justify-center text-manioco-brown font-bold text-sm"
+                >
+                  <span>{user?.name?.[0] || 'U'}</span>
+                </button>
+                {isProfileOpen && (
+                  <div className="absolute top-14 right-0 w-64 bg-white shadow-2xl rounded-3xl p-5 z-[300] border border-manioco-brown/5">
+                    <button onClick={() => logout()} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition-all">
+                      <LogOut size={16} />
+                      <span className="text-xs font-semibold">Déconnexion</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link href="/auth/login" className="flex items-center gap-2 bg-manioco-terracotta text-white px-6 py-2.5 rounded-full hover:bg-manioco-brown transition-all text-sm font-semibold shadow-md">
+                <UserIcon size={16} />
+                <span>Se connecter</span>
+              </Link>
+            )}
+          </div>
+        </div>
       </nav>
 
-      {/* Hero Header */}
-      <section className="relative h-[70vh] w-full overflow-hidden">
-         <img 
-            src={getRealInternetLink({name: store.name, image: store.profilePhoto})} 
+      <main className="pt-[72px]">
+        {/* Hero Cover */}
+        <div className="relative h-[340px] w-full overflow-hidden">
+          <img
+            src={getRealInternetLink({ name: store.name, image: store.profilePhoto })}
             alt={store.name}
             className="w-full h-full object-cover"
-         />
-         <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22] via-[#1a2e22]/40 to-transparent"></div>
-         
-         <div className="absolute bottom-0 left-0 right-0 p-20 pb-32">
-            <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-end gap-12">
-               <div className="w-48 h-48 bg-white p-4 rounded-[56px] shadow-3xl ring-[16px] ring-white/10 shrink-0">
-                  <div className="w-full h-full rounded-[40px] bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] text-5xl font-black uppercase overflow-hidden">
-                     {store.profilePhoto ? (
-                        <img src={getRealInternetLink({name: store.name, image: store.profilePhoto})} alt={store.name} className="w-full h-full object-cover" />
-                     ) : (
-                        <span>{store.name?.[0]}</span>
-                     )}
-                  </div>
-               </div>
-               
-               <div className="flex-1 pb-4 text-white">
-                  <div className="flex items-center gap-6 mb-6">
-                     <span className="bg-[#c5a059] text-white px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-[0.4em] shadow-2xl">
-                        {store.category || "Vendeur Certifié"}
-                     </span>
-                     <div className="flex items-center gap-2 text-[#c5a059]">
-                        <Star size={18} fill="currentColor" />
-                        <span className="text-lg font-black italic font-serif">4.9 / 5.0</span>
-                     </div>
-                  </div>
-                  <h1 className="text-7xl md:text-8xl font-black tracking-[-0.05em] uppercase mb-8 italic font-serif leading-none">{store.name}</h1>
-                  <p className="text-xl text-white/80 max-w-3xl font-medium leading-relaxed italic">{store.description || "Découvrez une sélection unique de produits d'exception, authentiques et traçables par Afrigari."}</p>
-                  
-                  {isOwner && (
-                     <div className="mt-8 inline-flex items-center gap-3 px-6 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-full">
-                        <div className="w-2 h-2 bg-[#c5a059] rounded-full animate-pulse"></div>
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white/90">Vous visualisez votre boutique (Mode Aperçu)</span>
-                     </div>
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
+
+          {/* Back button */}
+          <Link href="/shops" className="absolute top-6 left-8 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-manioco-brown font-semibold text-sm shadow-md hover:bg-white transition-all">
+            <ArrowLeft size={15} />
+            Vendeurs
+          </Link>
+
+          {/* Owner badge */}
+          {isOwner && (
+            <div className="absolute top-6 right-8 flex items-center gap-2 bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full text-manioco-terracotta font-semibold text-xs shadow-md">
+              <div className="w-2 h-2 rounded-full bg-manioco-terracotta animate-pulse" />
+              Mode Aperçu
+            </div>
+          )}
+        </div>
+
+        {/* Shop Identity Strip */}
+        <div className="bg-white border-b border-manioco-brown/5 shadow-sm">
+          <div className="max-w-[1400px] mx-auto px-8 lg:px-12 py-6 flex flex-col md:flex-row md:items-center gap-6">
+            {/* Avatar */}
+            <div className="w-20 h-20 rounded-2xl border-4 border-white shadow-lg overflow-hidden bg-[#fcfbf7] flex items-center justify-center text-manioco-brown font-black text-2xl uppercase -mt-14 relative z-10">
+              {store.profilePhoto ? (
+                <img src={getRealInternetLink({ name: store.name, image: store.profilePhoto })} alt={store.name} className="w-full h-full object-cover" />
+              ) : (
+                <span>{store.name?.[0]}</span>
+              )}
+            </div>
+
+            {/* Info */}
+            <div className="flex-1 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <h1 className="text-2xl font-bold text-manioco-brown">{store.name}</h1>
+                  {store.verified !== false && (
+                    <BadgeCheck size={20} className="text-blue-500 fill-blue-500" />
                   )}
-               </div>
-            </div>
-         </div>
-      </section>
+                </div>
+                <div className="flex items-center gap-4 text-sm text-manioco-brown/50">
+                  {store.city && (
+                    <span className="flex items-center gap-1">
+                      <MapPin size={13} /> {store.city}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1">
+                    <Package size={13} /> {products.length} produit{products.length > 1 ? 's' : ''}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Star size={13} className="fill-[#F4A261] text-[#F4A261]" /> 4.9
+                  </span>
+                </div>
+              </div>
 
-      <main className="max-w-[1400px] mx-auto py-32 px-12 grid grid-cols-1 lg:grid-cols-4 gap-24">
-         
-         {/* Sidebar Info */}
-         <aside className="space-y-16">
-            <div className="bg-white rounded-[60px] p-12 shadow-3xl border border-[#1a2e22]/5">
-               <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.5em] mb-12">Artisan Certifié</h4>
-               <div className="space-y-8">
-                  <ContactItem 
-                    icon={MapPin} 
-                    label="Localisation" 
-                    value={(() => {
-                        if (store.address) {
-                            const cityPart = store.city ? ", " + store.city : "";
-                            return store.address + cityPart;
-                        }
-                        return store.city || "Abidjan, Côte d'Ivoire";
-                    })()} 
-                  />
-                  <ContactItem 
-                    icon={Phone} 
-                    label="Contact Direct" 
-                    value={store.phone || "+225 01 02 03 04 05"} 
-                  />
-               </div>
-               
-               <div className="mt-12 pt-12 border-t border-[#1a2e22]/5">
-                  <div className="flex items-center gap-6">
-                     <div className="w-12 h-12 rounded-2xl bg-[#1a2e22]/5 flex items-center justify-center text-[#1a2e22] shadow-inner">
-                        <ShieldCheck size={24} />
-                     </div>
-                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1a2e22]">Authenticité</p>
-                        <p className="text-[9px] font-bold opacity-40">Vérifié par Afrigari</p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-
-            {!isPublic && (
-              <div className="bg-[#1a2e22] rounded-[60px] p-12 text-white shadow-3xl relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 w-32 h-32 bg-[#c5a059]/10 rounded-full blur-3xl -z-0"></div>
-                 <h4 className="text-3xl font-black mb-6 relative z-10 leading-tight">Envie de <br /> discuter ?</h4>
-                 <p className="text-sm text-white/60 mb-10 relative z-10 leading-relaxed font-medium">Posez vos questions directement à l'artisan via notre messagerie sécurisée.</p>
-                 <button 
+              {/* CTA Buttons */}
+              <div className="flex items-center gap-3">
+                {!isOwner && (
+                  <button
                     onClick={handleContact}
-                    disabled={isStartingChat || isOwner}
-                    className="bg-white text-[#1a2e22] px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-widest relative z-10 hover:bg-[#c5a059] hover:text-white transition-all disabled:opacity-50 flex items-center gap-4 group"
-                 >
-                    <MessageSquare size={16} />
-                    {(() => {
-                        if (isOwner) return "Votre Boutique";
-                        return isStartingChat ? "Connexion..." : "Ouvrir le Chat";
-                    })()}
-                 </button>
-                 <TrendingUp size={120} className="absolute -right-10 -bottom-10 text-white/5 rotate-12 group-hover:scale-110 transition-transform duration-1000" />
+                    disabled={isStartingChat}
+                    className="flex items-center gap-2 bg-manioco-terracotta text-white px-6 py-2.5 rounded-full text-sm font-semibold hover:bg-manioco-brown transition-all shadow-md disabled:opacity-60"
+                  >
+                    <MessageSquare size={15} />
+                    {isStartingChat ? 'Connexion...' : 'Contacter'}
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Page Content */}
+        <div className="max-w-[1400px] mx-auto px-8 lg:px-12 py-12 flex flex-col lg:flex-row gap-10">
+
+          {/* Sidebar */}
+          <aside className="w-full lg:w-[280px] flex-shrink-0 space-y-6">
+
+            {/* About */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-manioco-brown/5">
+              <h3 className="text-base font-semibold text-manioco-brown mb-4">À propos</h3>
+              <p className="text-[13px] text-manioco-brown/60 leading-relaxed">
+                {store.description || `${store.name} propose une sélection authentique de produits issus du manioc, fabriqués avec soin par des producteurs béninois.`}
+              </p>
+            </div>
+
+            {/* Contact Card */}
+            <div className="bg-white rounded-3xl p-6 shadow-sm border border-manioco-brown/5">
+              <h3 className="text-base font-semibold text-manioco-brown mb-5">Informations</h3>
+              <div className="space-y-4">
+                {(store.address || store.city) && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-manioco-terracotta/10 flex items-center justify-center text-manioco-terracotta flex-shrink-0 mt-0.5">
+                      <MapPin size={15} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-manioco-brown/40 font-semibold uppercase tracking-wide mb-0.5">Localisation</p>
+                      <p className="text-[13px] font-medium text-manioco-brown">
+                        {store.address ? `${store.address}${store.city ? ', ' + store.city : ''}` : store.city}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {store.phone && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-xl bg-manioco-terracotta/10 flex items-center justify-center text-manioco-terracotta flex-shrink-0 mt-0.5">
+                      <Phone size={15} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] text-manioco-brown/40 font-semibold uppercase tracking-wide mb-0.5">Téléphone</p>
+                      <p className="text-[13px] font-medium text-manioco-brown">{store.phone}</p>
+                    </div>
+                  </div>
+                )}
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 flex-shrink-0 mt-0.5">
+                    <ShieldCheck size={15} />
+                  </div>
+                  <div>
+                    <p className="text-[11px] text-manioco-brown/40 font-semibold uppercase tracking-wide mb-0.5">Authenticité</p>
+                    <p className="text-[13px] font-medium text-manioco-brown">Vérifié par Manioco</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Chat CTA */}
+            {!isOwner && (
+              <div className="bg-manioco-terracotta rounded-3xl p-6 text-white shadow-md">
+                <h3 className="text-base font-semibold mb-2">Une question ?</h3>
+                <p className="text-[13px] text-white/80 mb-5 leading-relaxed">
+                  Contactez directement ce vendeur via notre messagerie sécurisée.
+                </p>
+                <button
+                  onClick={handleContact}
+                  disabled={isStartingChat}
+                  className="w-full bg-white text-manioco-terracotta py-2.5 rounded-xl text-sm font-semibold hover:bg-white/90 transition-all flex items-center justify-center gap-2 disabled:opacity-60"
+                >
+                  <MessageSquare size={15} />
+                  {isStartingChat ? 'Connexion...' : 'Envoyer un message'}
+                </button>
               </div>
             )}
-         </aside>
+          </aside>
 
-         {/* Products Grid */}
-         <section className="lg:col-span-3">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-20 gap-8">
-               <div>
-                  <p className="text-[11px] font-black uppercase tracking-[0.5em] text-[#c5a059] mb-4">Stock de la Boutique</p>
-                  <h2 className="text-6xl font-black tracking-[-0.03em] text-[#1a2e22]">Le <span className="text-[#c5a059] italic font-serif">Catalogue</span> Local.</h2>
-               </div>
+          {/* Products */}
+          <section className="flex-1">
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl font-semibold text-manioco-brown">Catalogue</h2>
+                <p className="text-sm text-manioco-brown/40 mt-0.5">{products.length} produit{products.length > 1 ? 's' : ''} disponible{products.length > 1 ? 's' : ''}</p>
+              </div>
             </div>
 
             {products.length === 0 ? (
-               <div className="py-40 text-center bg-white rounded-[80px] border-2 border-dashed border-[#1a2e22]/5 shadow-inner">
-                  <Package size={64} className="mx-auto mb-8 text-[#1a2e22]/10" />
-                  <p className="text-lg font-black uppercase tracking-[0.3em] text-[#1a2e22]/20">La boutique est vide pour le moment</p>
-               </div>
+              <div className="py-32 flex flex-col items-center justify-center gap-4 bg-white rounded-3xl border border-dashed border-manioco-brown/10">
+                <Package size={40} className="text-manioco-brown/20" />
+                <p className="text-manioco-brown/40 font-medium text-sm">Aucun produit disponible pour le moment</p>
+              </div>
             ) : (
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                  {products.map((product) => (
-                     <ProductCard 
-                        key={product.id} 
-                        product={product} 
-                        addToCart={cartContext?.addToCart} 
-                        getImageUrl={() => getRealInternetLink(product)} 
-                        isOwner={isOwner}
-                        isPublic={isPublic}
-                     />
-                  ))}
-               </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                {products.map((product) => {
+                  const rating = (4.5 + Math.random() * 0.8).toFixed(1);
+                  return (
+                    <div key={product.id} className="bg-white rounded-[20px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all border border-transparent hover:border-manioco-brown/5 flex flex-col group">
+                      <div className="relative h-[200px] p-4 pb-0">
+                        <img
+                          src={getRealInternetLink(product)}
+                          alt={product.name}
+                          className="w-full h-full object-cover rounded-xl group-hover:scale-[1.02] transition-transform duration-500"
+                        />
+                        <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm flex items-center gap-1.5 z-10">
+                          <Star size={12} className="fill-[#F4A261] text-[#F4A261]" />
+                          <span className="text-[11px] font-bold text-manioco-brown">{rating}</span>
+                        </div>
+                      </div>
+
+                      <div className="p-5 pt-4 flex flex-col flex-1">
+                        <h3 className="text-[17px] font-semibold text-[#b25a49] mb-1.5 line-clamp-1">{product.name}</h3>
+                        <p className="text-[13px] text-manioco-brown/50 leading-relaxed line-clamp-2 mb-4 min-h-[40px]">
+                          {product.description || `${product.name} de qualité supérieure, idéal pour accompagner vos repas.`}
+                        </p>
+                        <div className="mt-auto pt-4 border-t border-manioco-brown/10 flex items-center justify-between">
+                          <div>
+                            <span className="text-[19px] font-bold text-[#b25a49]">{Number(product.price).toLocaleString('fr-FR')} Fcfa</span>
+                            <p className="text-[11px] text-[#b25a49]/40 font-medium mt-0.5">/{product.unit || 'Kg'}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button className="w-10 h-10 rounded-full bg-[#f4f4f4] flex items-center justify-center text-[#b25a49] hover:bg-[#b25a49]/10 transition-colors">
+                              <Heart size={16} />
+                            </button>
+                            {cartContext && !isOwner && (
+                              <button
+                                onClick={(e) => handleActionClick(e, () => cartContext.addToCart(product))}
+                                className="w-10 h-10 rounded-full bg-[#b25a49] flex items-center justify-center text-white hover:bg-manioco-brown transition-colors shadow-sm"
+                              >
+                                <Plus size={18} />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             )}
-         </section>
+          </section>
+        </div>
       </main>
 
-      {!isPublic && <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />}
+      {/* FOOTER */}
+      <footer className="py-16 border-t border-manioco-brown/5 bg-[#fcfbf7] mt-12">
+        <div className="max-w-[1400px] mx-auto px-8 lg:px-12 text-center">
+          <div className="flex items-center justify-center gap-1.5 mb-8 cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+            <span className="text-[40px] font-extrabold tracking-tight text-manioco-terracotta font-sans">Mani</span>
+            <span className="relative inline-flex items-center justify-center w-[30px] h-[30px] rounded-full bg-[#F4A261] border-[4px] border-manioco-terracotta text-manioco-terracotta text-lg font-black">o</span>
+            <span className="text-[40px] font-extrabold tracking-tight text-manioco-terracotta font-sans">c</span>
+            <span className="relative inline-flex items-center justify-center w-[30px] h-[30px] rounded-full bg-[#F4A261] border-[4px] border-manioco-terracotta text-manioco-terracotta text-lg font-black">o</span>
+          </div>
+          <div className="flex items-center justify-center gap-8 mb-10 text-sm text-manioco-brown/60 font-medium">
+            <Link href="/" className="hover:text-manioco-terracotta transition-colors">Accueil</Link>
+            <Link href="/produits" className="hover:text-manioco-terracotta transition-colors">Nos produits</Link>
+            <Link href="/shops" className="hover:text-manioco-terracotta transition-colors">Vendeurs</Link>
+          </div>
+          <div className="w-[80%] mx-auto h-px bg-manioco-brown/5 mb-8"></div>
+          <p className="text-[13px] text-manioco-brown/50 font-medium">© 2026 Manioco. Tout droits réservés</p>
+        </div>
+      </footer>
+
+      <CartDrawer isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
     </div>
   );
-}
-
-function ContactItem({ icon: Icon, label, value }: Readonly<{ icon: LucideIcon; label: string; value: string }>) {
-   return (
-      <div className="flex gap-6 items-start">
-         <div className="mt-1 text-[#c5a059] bg-[#c5a059]/5 p-2 rounded-xl shadow-inner"><Icon size={20} /></div>
-         <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</p>
-            <p className="text-sm font-bold text-[#1a2e22]">{value}</p>
-         </div>
-      </div>
-   );
-}
-
-function ProductCard({ product, addToCart, getImageUrl, isOwner, isPublic }: Readonly<{ product: Product; addToCart: ((p: Product) => void) | undefined; getImageUrl: () => string; isOwner: boolean; isPublic: boolean }>) {
-   return (
-      <div className="group bg-white rounded-[70px] overflow-hidden border border-[#1a2e22]/5 shadow-2xl hover:shadow-3xl hover:-translate-y-4 transition-all duration-1000 p-6 ring-1 ring-slate-50 border-[10px] border-white">
-         <div className="relative aspect-[4/3] rounded-[56px] overflow-hidden mb-8 bg-slate-50">
-               <img 
-                  src={getImageUrl()} 
-                  alt={product.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3s] block" 
-               />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#1a2e22]/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000"></div>
-            {!isOwner && !isPublic && addToCart && (
-               <button 
-                  type="button"
-                  onClick={(e) => { e.preventDefault(); addToCart(product); }}
-                  className="absolute bottom-8 right-8 w-16 h-16 bg-white text-[#1a2e22] rounded-full flex items-center justify-center shadow-3xl opacity-0 translate-y-6 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-700 hover:bg-[#c5a059] hover:text-white z-20"
-               >
-                  <Plus size={28} className="group-hover:rotate-90 transition-transform" />
-               </button>
-            )}
-         </div>
-         
-         <div className="px-6 pb-6">
-            <div className="flex items-center gap-3 mb-4">
-               <div className="w-5 h-5 rounded-md bg-[#c5a059]/10 flex items-center justify-center text-[#c5a059]"><Package size={12} /></div>
-               <p className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.4em]">{product.unit || 'Kg'}</p>
-            </div>
-            <h4 className="text-[28px] font-black mb-8 tracking-[-0.03em] text-[#1a2e22] uppercase leading-none truncate">{product.name}</h4>
-            
-            <div className="flex justify-between items-center bg-[#1a2e22]/5 p-3 rounded-[32px] group-hover:bg-[#1a2e22] group-hover:text-white transition-all duration-700 shadow-sm border border-[#1a2e22]/5">
-               <span className="text-2xl font-black ml-4 tracking-tighter">{Number(product.price).toLocaleString('fr-FR')} FCFA</span>
-               {!isOwner && !isPublic && addToCart && (
-                  <button 
-                     type="button"
-                     onClick={(e) => { e.preventDefault(); addToCart(product); }}
-                     tabIndex={0}
-                     aria-label={`Ajouter ${product.name} au panier`}
-                     className="w-14 h-14 rounded-2xl bg-white text-[#1a2e22] flex items-center justify-center group-hover:bg-[#c5a059] group-hover:text-white transition-all shadow-xl cursor-pointer"
-                  >
-                     <ShoppingCart size={20} />
-                  </button>
-               )}
-            </div>
-         </div>
-      </div>
-   );
 }

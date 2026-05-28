@@ -64,7 +64,7 @@
     "rxjs": "^7.8.1",
     "serve-static": "^2.2.1",
     "socket.io": "^4.8.1",
-    "sqlite3": "^6.0.1",
+    "sqlite3": "^5.1.7",
     "swagger-ui-express": "^5.0.1",
     "tar": "^7.5.13",
     "typeorm": "^0.3.28",

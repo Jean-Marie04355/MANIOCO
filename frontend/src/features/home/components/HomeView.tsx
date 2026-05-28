@@ -305,7 +305,7 @@ export default function HomeView() {
                {/* Nav Links */}
                <div className="hidden lg:flex items-center gap-10 text-sm font-semibold text-manioco-brown/70">
                   <Link href="/" className="text-manioco-terracotta font-bold hover:text-manioco-terracotta transition-colors">Accueil</Link>
-                  <button onClick={() => document.getElementById('best-sellers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-manioco-terracotta transition-colors">Nos produits</button>
+                  <Link href="/produits" className="hover:text-manioco-terracotta transition-colors">Nos produits</Link>
                   <button onClick={() => document.getElementById('sellers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-manioco-terracotta transition-colors">Vendeurs</button>
                </div>
 
