@@ -10,6 +10,7 @@ import { DatabaseModule } from './libs/database/module';
 import { ProductCategoriesModule } from './core/product-categories/product-categories.module';
 import { ProductsModule } from './core/products/products.module';
 import { StoreModule } from './core/store/store.module';
+import { ReviewsModule } from './core/reviews/reviews.module';
 import { StorageModule } from './libs/storage/storage.module';
 import { CacheModule } from './libs/cache/cache.module';
 import { LocationModule } from './core/location/location.module';
@@ -50,6 +51,7 @@ import { join } from 'node:path';
     ProductCategoriesModule,
     ProductsModule,
     StoreModule,
+    ReviewsModule,
     OrdersModule,
     PaymentsModule,
     RealtimeModule,

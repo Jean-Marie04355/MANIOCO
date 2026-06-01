@@ -22,6 +22,7 @@ export type AuthenticatedUser = {
   role: UserRole;
   userId?: string;
   name?: string;
+  profilePhoto?: string;
   permissions?: string[];
 };
 
@@ -55,6 +56,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       role: user.role,
       userId: user.id,
       name: user.name,
+      profilePhoto: user.profilePhoto,
       permissions: user.permissions || [],
     };
   }

@@ -42,6 +42,7 @@ interface Product {
 interface Review {
    id?: string;
    userName: string;
+   profilePhoto?: string;
    rating: number;
    comment: string;
    productName?: string;
@@ -121,6 +122,18 @@ export default function HomeView() {
        return `${apiUrl}/uploads${cleanPath}`;
     };
 
+    const getPhotoUrl = (photo?: string) => {
+       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+       if (!photo || String(photo).trim() === '' || photo === 'null') {
+          return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=100';
+       }
+       if (photo.startsWith('http') || photo.startsWith('data:')) {
+          return photo;
+       }
+       const cleanPath = photo.startsWith('/') ? photo : `/${photo}`;
+       return photo.includes('uploads/') ? `${apiUrl}${cleanPath}` : `${apiUrl}/uploads${cleanPath}`;
+    };
+
    useEffect(() => {
       const handleScroll = () => setScrolled(window.scrollY > 50);
       window.addEventListener('scroll', handleScroll);
@@ -131,7 +144,7 @@ export default function HomeView() {
                api.get('/products'),
                api.get('/product-categories'),
                api.get('/stores'),
-               api.get('/products/reviews'),
+               api.get('/reviews'),
             ]);
             setProducts((prodRes?.data || []) as Product[]);
             setCategories((catRes?.data || []) as Category[]);
@@ -1001,14 +1014,21 @@ export default function HomeView() {
                                        }
                                        setIsSubmittingReview(true);
                                        try {
-                                          const newReview: Review = {
-                                             id: `${Date.now()}`,
-                                             userName: user?.name || 'Client Afrigari',
+                                          const response = await api.post('/reviews', {
                                              rating: reviewRating,
                                              comment: reviewComment.trim(),
-                                             createdAt: new Date().toISOString(),
+                                          });
+
+                                          const savedReview: Review = {
+                                             id: response.data.id || `${Date.now()}`,
+                                             userName: response.data.userName || user?.name || 'Client Afrigari',
+                                             profilePhoto: response.data.profilePhoto || user?.profilePhoto,
+                                             rating: response.data.rating || reviewRating,
+                                             comment: response.data.comment || reviewComment.trim(),
+                                             createdAt: response.data.createdAt || new Date().toISOString(),
                                           };
-                                          setReviews((current) => [newReview, ...current]);
+
+                                          setReviews((current) => [savedReview, ...current]);
                                           setReviewComment('');
                                           setReviewRating(5);
                                           setIsReviewFormOpen(false);
@@ -1040,27 +1060,43 @@ export default function HomeView() {
                            >
                               {reviews.map((t, i) => (
                                  <div key={t.id || i} className="flex-shrink-0 w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
-                                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-manioco-brown/5 h-full hover:shadow-lg transition-shadow duration-300">
-                                       {/* Stars */}
-                                       <div className="flex items-center gap-1 mb-4">
-                                          {[...Array(Math.max(0, Math.round(t.rating || 0)))].map((_, si) => (
-                                             <Star key={si} size={16} className="fill-[#F4A261] text-[#F4A261]" />
-                                          ))}
-                                          <span className="ml-2 text-sm font-bold text-manioco-brown/60">{t.rating?.toFixed(1)}</span>
+                                    <div className="relative overflow-hidden rounded-[28px] bg-white p-6 shadow-[0_20px_60px_rgba(161,95,56,0.12)] border border-manioco-brown/10 h-full transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_22px_70px_rgba(161,95,56,0.18)]">
+                                       <div className="absolute inset-x-6 top-0 h-1.5 rounded-full bg-gradient-to-r from-manioco-terracotta to-[#F4A261]" />
+                                       <div className="relative">
+                                          <div className="flex items-center justify-between gap-3 mb-4">
+                                             <div className="flex items-center gap-2">
+                                                {[...Array(Math.max(0, Math.round(t.rating || 0)))].map((_, si) => (
+                                                   <Star key={si} size={16} className="fill-[#F4A261] text-[#F4A261]" />
+                                                ))}
+                                                <span className="text-sm font-bold text-manioco-brown/70">{t.rating?.toFixed(1)}</span>
+                                             </div>
+                                             <span className="rounded-full bg-manioco-terracotta/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-manioco-terracotta">
+                                                Avis vérifié
+                                             </span>
+                                          </div>
+                                          <p className="text-sm text-manioco-brown/80 leading-6 mb-6">
+                                             &ldquo;{t.comment}&rdquo;
+                                          </p>
                                        </div>
-                                       {/* Review text */}
-                                       <p className="text-sm text-manioco-brown/70 leading-relaxed mb-6 line-clamp-4">
-                                          &ldquo;{t.comment}&rdquo;
-                                       </p>
-                                       {/* Author */}
-                                       <div className="flex items-center gap-3">
-                                          <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-manioco-cream bg-slate-100 text-sm font-bold text-manioco-brown">
-                                             {t.userName?.charAt(0).toUpperCase() || 'C'}
+                                       <div className="border-t border-manioco-brown/10 pt-5 flex items-center justify-between gap-4">
+                                          <div className="flex items-center gap-3">
+                                             <div className="relative h-12 w-12 overflow-hidden rounded-full border-2 border-manioco-cream bg-manioco-cream text-sm font-bold text-manioco-brown">
+                                                {t.profilePhoto ? (
+                                                   <img src={getPhotoUrl(t.profilePhoto)} alt={t.userName} className="h-full w-full object-cover" />
+                                                ) : (
+                                                   <span className="flex h-full w-full items-center justify-center bg-manioco-cream text-sm font-bold text-manioco-brown">
+                                                      {t.userName?.charAt(0).toUpperCase() || 'C'}
+                                                   </span>
+                                                )}
+                                             </div>
+                                             <div>
+                                                <p className="text-sm font-semibold text-manioco-brown">{t.userName}</p>
+                                                <p className="text-[11px] text-manioco-brown/50">{t.productName ? `Acheté : ${t.productName}` : 'Client Afrigari'}</p>
+                                             </div>
                                           </div>
-                                          <div>
-                                             <p className="text-sm font-bold text-manioco-brown">{t.userName}</p>
-                                             <p className="text-xs text-manioco-brown/40">{t.productName ? `Acheté: ${t.productName}` : 'Client Afrigari'}</p>
-                                          </div>
+                                          <p className="text-[11px] uppercase tracking-[0.18em] text-manioco-brown/40">
+                                             {t.createdAt ? new Date(t.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) : 'Récemment'}
+                                          </p>
                                        </div>
                                     </div>
                                  </div>
