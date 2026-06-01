@@ -11,6 +11,7 @@ import { useParams, useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/CartContext';
+import { useFavorites } from '@/features/favorites/FavoritesContext';
 import CartDrawer from '@/components/CartDrawer';
 
 interface Product {
@@ -44,6 +45,7 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
   const { id } = useParams();
   const { user, logout } = useAuth();
   const cartContext = useCart();
+  const { totalFavorites } = useFavorites();
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [store, setStore] = useState<Store | null>(null);
@@ -162,6 +164,20 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
 
           {/* Actions */}
           <div className="flex items-center gap-4">
+            {/* Favoris */}
+            <Link
+              href="/favoris"
+              className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+              title="Mes Favoris"
+            >
+              <Heart size={20} className={`text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors ${totalFavorites > 0 ? 'fill-manioco-terracotta text-manioco-terracotta' : ''}`} />
+              {totalFavorites > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                  {totalFavorites}
+                </span>
+              )}
+            </Link>
+
             <button
               type="button"
               onClick={() => setIsCartOpen(true)}

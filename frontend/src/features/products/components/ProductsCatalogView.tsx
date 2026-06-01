@@ -8,6 +8,7 @@ import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/CartContext';
 import { useSocket } from '@/features/realtime/SocketContext';
+import { useFavorites } from '@/features/favorites/FavoritesContext';
 
 // Types adapted from HomeView
 interface Category {
@@ -23,6 +24,8 @@ interface Product {
    unit?: string;
    categoryId?: string | number | null;
    description?: string;
+   rating?: number;
+   ratingsCount?: number;
    store?: {
       name?: string;
       city?: string;
@@ -33,6 +36,7 @@ export default function ProductsCatalogView() {
    const { user, logout } = useAuth();
    const { addToCart, totalItems } = useCart();
    const { socket } = useSocket();
+   const { toggleFavorite, isFavorited, totalFavorites } = useFavorites();
    const router = useRouter();
    const [scrolled, setScrolled] = useState(false);
    const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -122,8 +126,9 @@ export default function ProductsCatalogView() {
    }, [user]);
 
    const handleActionClick = (e: React.MouseEvent, action: () => void) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (!user) {
-         e.preventDefault();
          router.push('/auth/login');
          return;
       }
@@ -160,6 +165,20 @@ export default function ProductsCatalogView() {
 
                {/* Actions */}
                <div className="flex items-center gap-4">
+                  {/* Favoris */}
+                  <Link
+                     href="/favoris"
+                     className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+                     title="Mes Favoris"
+                  >
+                     <Heart size={20} className={`text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors ${totalFavorites > 0 ? 'fill-manioco-terracotta text-manioco-terracotta' : ''}`} />
+                     {totalFavorites > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                           {totalFavorites}
+                        </span>
+                     )}
+                  </Link>
+
                   <button type="button" onClick={() => setIsCartOpen(true)} className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all">
                      <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
                      {totalItems > 0 && (
@@ -265,16 +284,20 @@ export default function ProductsCatalogView() {
                      </div>
                   ) : (
                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                        {filteredProducts.map((product, i) => {
-                           const rating = (5.0 + Math.random() * 1.2).toFixed(1); // Fake realistic rating
-                           return (
+                         {filteredProducts.map((product, i) => {
+                             const hasRealRating = product.ratingsCount && product.ratingsCount > 0;
+                             const rating = hasRealRating
+                                ? Number(product.rating).toFixed(1)
+                                : (4.5 + (i % 5) * 0.1).toFixed(1); // Note par défaut élégante
+                             return (
                               <div key={product.id} className="bg-white rounded-[20px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all border border-transparent hover:border-manioco-brown/5 flex flex-col h-full group">
                                  <div className="relative h-[220px] p-4 pb-0">
                                     <img src={getRealInternetLink(product)} alt={product.name} className="w-full h-full object-cover rounded-xl group-hover:scale-[1.02] transition-transform duration-500" />
-                                    <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm flex items-center gap-1.5 z-10">
-                                       <Star size={12} className="fill-[#F4A261] text-[#F4A261]"/>
-                                       <span className="text-[11px] font-bold text-manioco-brown">{rating}</span>
-                                    </div>
+                                     <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm flex items-center gap-1.5 z-10">
+                                        <Star size={12} className="fill-[#F4A261] text-[#F4A261]"/>
+                                        <span className="text-[11px] font-bold text-manioco-brown">{rating}</span>
+                                        {hasRealRating && <span className="text-[9px] text-manioco-brown/40">({product.ratingsCount})</span>}
+                                     </div>
                                  </div>
                                  <div className="p-6 pt-5 flex flex-col flex-1">
                                     <h3 className="text-[19px] font-medium text-[#b25a49] mb-2 line-clamp-1">{product.name}</h3>
@@ -288,8 +311,25 @@ export default function ProductsCatalogView() {
                                           <p className="text-[11px] text-[#b25a49]/40 font-medium mt-0.5">/{product.unit || 'Sachet de 900g'}</p>
                                        </div>
                                        <div className="flex items-center gap-2">
-                                          <button className="w-10 h-10 rounded-full bg-[#f4f4f4] flex items-center justify-center text-[#b25a49] hover:bg-[#b25a49]/10 transition-colors">
-                                             <Heart size={16} />
+                                          <button
+                                             type="button"
+                                             id={`fav-btn-${product.id}`}
+                                             onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleActionClick(e, () => toggleFavorite(String(product.id))); }}
+                                             className={`w-10 h-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                                isFavorited(String(product.id))
+                                                   ? 'bg-manioco-terracotta/10 text-manioco-terracotta scale-110'
+                                                   : 'bg-[#f4f4f4] text-[#b25a49] hover:bg-[#b25a49]/10'
+                                             }`}
+                                             title={isFavorited(String(product.id)) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
+                                          >
+                                             <Heart
+                                                size={16}
+                                                className={`transition-all duration-200 ${
+                                                   isFavorited(String(product.id))
+                                                      ? 'fill-manioco-terracotta text-manioco-terracotta scale-125'
+                                                      : ''
+                                                }`}
+                                             />
                                           </button>
                                           <button onClick={(e) => handleActionClick(e, () => addToCart(product))} className="w-10 h-10 rounded-full bg-[#b25a49] flex items-center justify-center text-white hover:bg-manioco-brown transition-colors shadow-sm">
                                              <Plus size={18} />

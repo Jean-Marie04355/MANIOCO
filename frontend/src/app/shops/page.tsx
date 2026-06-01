@@ -11,10 +11,12 @@ import { useRouter } from 'next/navigation';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/CartContext';
+import { useFavorites } from '@/features/favorites/FavoritesContext';
 
 export default function VendeursPage() {
   const { user, logout } = useAuth();
   const { totalItems } = useCart();
+  const { totalFavorites } = useFavorites();
   const router = useRouter();
   const [scrolled, setScrolled] = useState(false);
   const [stores, setStores] = useState<any[]>([]);
@@ -107,6 +109,20 @@ export default function VendeursPage() {
 
           {/* Actions */}
           <div className="flex items-center gap-4">
+            {/* Favoris */}
+            <Link
+              href="/favoris"
+              className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+              title="Mes Favoris"
+            >
+              <Heart size={20} className={`text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors ${totalFavorites > 0 ? 'fill-manioco-terracotta text-manioco-terracotta' : ''}`} />
+              {totalFavorites > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                  {totalFavorites}
+                </span>
+              )}
+            </Link>
+
             <button type="button" className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all">
               <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
               {totalItems > 0 && (

@@ -334,21 +334,21 @@ export default function ChatWindow() {
   };
 
   if (isLoading) {
-    return <div className="flex-1 flex items-center justify-center h-full"><Loader2 className="animate-spin text-orange-500" size={40} /></div>;
+    return <div className="flex-1 flex items-center justify-center h-full"><Loader2 className="animate-spin text-manioco-terracotta" size={40} /></div>;
   }
 
   return (
-    <div className="flex h-full bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm overflow-hidden">
+    <div className="flex h-full bg-white rounded-[2.5rem] border border-manioco-brown/10 shadow-lg overflow-hidden">
       {/* Sidebar Contacts */}
-      <div className="w-80 border-r border-slate-100 flex flex-col bg-white">
-        <div className="p-6 border-b border-slate-50">
-          <h3 className="text-xl font-black text-slate-900">Messages</h3>
+      <div className="w-80 border-r border-manioco-brown/10 flex flex-col bg-white">
+        <div className="p-6 border-b border-manioco-brown/5">
+          <h3 className="text-xl font-black text-manioco-brown">Messages</h3>
           <div className="mt-4 relative">
-             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+             <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-manioco-brown/40" />
              <input 
                type="text" 
                placeholder="Rechercher un client..." 
-               className="w-full pl-9 pr-4 py-2 bg-slate-50 border-none rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-orange-500/20" 
+               className="w-full pl-9 pr-4 py-2 bg-manioco-brown/5 border border-transparent focus:border-manioco-terracotta/20 rounded-xl text-xs font-medium outline-none focus:ring-2 focus:ring-manioco-terracotta/20 text-manioco-brown placeholder:text-manioco-brown/30" 
                value={searchTerm}
                onChange={(e) => setSearchTerm(e.target.value)}
              />
@@ -356,8 +356,8 @@ export default function ChatWindow() {
         </div>
         <div className="flex-1 overflow-y-auto">
           {searchTerm.trim() !== "" && (
-             <div className="p-4 border-b border-slate-50">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Résultats de recherche</p>
+             <div className="p-4 border-b border-manioco-brown/5">
+                <p className="text-[10px] font-black text-manioco-brown/40 uppercase tracking-widest mb-3">Résultats de recherche</p>
                 <div className="space-y-2">
                    {allClients
                     .filter(c => 
@@ -388,14 +388,14 @@ export default function ChatWindow() {
                                 }
                                 setSearchTerm('');
                              }}
-                             className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 cursor-pointer transition-colors text-left"
+                             className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-manioco-terracotta/5 cursor-pointer transition-colors text-left"
                           >
-                             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[10px] font-black text-slate-500 uppercase">
+                             <div className="w-8 h-8 rounded-full bg-manioco-terracotta/10 flex items-center justify-center text-[10px] font-black text-manioco-terracotta uppercase">
                                 {client.displayName?.[0] || 'C'}
                              </div>
                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-bold text-slate-800 truncate">{client.displayName}</p>
-                                <p className="text-[9px] text-slate-400 font-bold uppercase">{existingConv ? 'Discussion ouverte' : 'Nouveau message'}</p>
+                                <p className="text-xs font-bold text-manioco-brown truncate">{client.displayName}</p>
+                                <p className="text-[9px] text-manioco-brown/45 font-bold uppercase">{existingConv ? 'Discussion ouverte' : 'Nouveau message'}</p>
                              </div>
                           </button>
                        );
@@ -405,39 +405,39 @@ export default function ChatWindow() {
                       `${c.name || ''}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
                       `${c.firstName || ''} ${c.lastName || ''}`.toLowerCase().includes(searchTerm.toLowerCase())
                     ).length === 0 && (
-                      <p className="text-[10px] text-slate-400 italic text-center py-2">Aucun client trouvé</p>
+                      <p className="text-[10px] text-manioco-brown/40 italic text-center py-2">Aucun client trouvé</p>
                     )}
                 </div>
              </div>
           )}
           
-          <div className="p-4 border-b border-slate-50">
-             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Discussions récentes</p>
+          <div className="p-4 border-b border-manioco-brown/5">
+             <p className="text-[10px] font-black text-manioco-brown/40 uppercase tracking-widest">Discussions récentes</p>
           </div>
 
           {conversations.length === 0 && searchTerm === "" ? (
-            <div className="p-8 text-center text-slate-400 text-xs font-bold uppercase tracking-widest">Aucune discussion</div>
+            <div className="p-8 text-center text-manioco-brown/40 text-xs font-bold uppercase tracking-widest">Aucune discussion</div>
           ) : (
             conversations.map((c) => (
               <button 
                 type="button"
                 key={c.id} 
                 onClick={() => setActiveConv(c)}
-                className={`w-full text-left p-4 flex gap-3 cursor-pointer transition-colors ${activeConv?.id === c.id ? 'bg-orange-50/50 border-r-4 border-orange-500' : 'hover:bg-slate-50'}`}
+                className={`w-full text-left p-4 flex gap-3 cursor-pointer transition-colors ${activeConv?.id === c.id ? 'bg-manioco-terracotta/10 border-r-4 border-manioco-terracotta' : 'hover:bg-manioco-terracotta/5'}`}
               >
                 <div className="relative">
-                   <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black uppercase">
+                   <div className="w-12 h-12 rounded-full bg-manioco-terracotta/10 flex items-center justify-center text-manioco-terracotta font-black uppercase">
                      {c.customer?.name?.substring(0, 2) || 'C'}
                    </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex justify-between items-center mb-1">
-                    <h4 className="text-sm font-bold text-slate-800 truncate">{c.customer?.name || 'Client'}</h4>
-                    <span className="text-[10px] font-bold text-slate-400">
+                    <h4 className="text-sm font-bold text-manioco-brown truncate">{c.customer?.name || 'Client'}</h4>
+                    <span className="text-[10px] font-bold text-manioco-brown/40">
                       {c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 truncate">{c.lastMessageText || 'Nouvelle conversation'}</p>
+                  <p className="text-xs text-manioco-brown/60 truncate">{c.lastMessageText || 'Nouvelle conversation'}</p>
                 </div>
               </button>
             ))
@@ -446,43 +446,43 @@ export default function ChatWindow() {
       </div>
 
       {/* Main Chat Area */}
-      <div className="flex-1 flex flex-col bg-slate-50/30">
+      <div className="flex-1 flex flex-col bg-[#FAF7F2]">
         {activeConv ? (
           <>
             {/* Chat Header */}
-            <div className="p-6 bg-white border-b border-slate-100 flex justify-between items-center">
+            <div className="p-6 bg-white border-b border-manioco-brown/10 flex justify-between items-center">
               <div className="flex items-center gap-4">
                  <button 
                    onClick={() => setActiveConv(null)}
-                   className="p-2 -ml-2 text-slate-400 hover:bg-slate-50 hover:text-orange-500 rounded-xl transition-all"
+                   className="p-2 -ml-2 text-manioco-brown/50 hover:bg-manioco-terracotta/5 hover:text-manioco-terracotta rounded-xl transition-all"
                    title="Fermer la discussion"
                  >
                    <ArrowLeft size={20} />
                  </button>
-                 <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-black text-sm uppercase">
+                 <div className="w-10 h-10 rounded-full bg-manioco-terracotta/10 flex items-center justify-center text-manioco-terracotta font-black text-sm uppercase">
                    {activeConv.customer?.name?.substring(0, 2) || 'C'}
                  </div>
                  <div>
-                    <h4 className="text-sm font-black text-slate-900">{activeConv.customer?.name || 'Client'}</h4>
+                    <h4 className="text-sm font-black text-manioco-brown">{activeConv.customer?.name || 'Client'}</h4>
                     <p className="text-[10px] text-green-500 font-bold uppercase tracking-widest">En ligne</p>
                  </div>
               </div>
               <div className="relative">
                 <button 
                   onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  className="p-2 text-slate-400 hover:bg-slate-50 hover:text-orange-500 rounded-xl transition-all"
+                  className="p-2 text-manioco-brown/50 hover:bg-manioco-terracotta/5 hover:text-manioco-terracotta rounded-xl transition-all"
                 >
                   <MoreVertical size={20} />
                 </button>
                 
                 {isMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-slate-100 py-2 z-10 animate-in fade-in slide-in-from-top-2">
+                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-manioco-brown/10 py-2 z-10 animate-in fade-in slide-in-from-top-2">
                     <button 
                       onClick={() => {
                         setIsMenuOpen(false);
                         alert("Fonctionnalité à venir : Voir le profil complet du client.");
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
+                      className="w-full text-left px-4 py-2 text-sm text-manioco-brown hover:bg-manioco-terracotta/5 transition-colors font-medium"
                     >
                       Voir le profil client
                     </button>
@@ -491,16 +491,15 @@ export default function ChatWindow() {
                         setIsMenuOpen(false);
                         try {
                           await api.patch(`/chat/conversations/${activeConv.id}/unread`);
-                          // Optional: fetch unread count again
                         } catch (e) {
                           console.error("Erreur marquage non lu", e);
                         }
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors font-medium"
+                      className="w-full text-left px-4 py-2 text-sm text-manioco-brown hover:bg-manioco-terracotta/5 transition-colors font-medium"
                     >
                       Marquer comme non lu
                     </button>
-                    <div className="h-px bg-slate-100 my-1"></div>
+                    <div className="h-px bg-manioco-brown/10 my-1"></div>
                     <button 
                       onClick={async () => {
                         setIsMenuOpen(false);
@@ -514,7 +513,7 @@ export default function ChatWindow() {
                           }
                         }
                       }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition-colors font-bold"
+                      className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors font-bold"
                     >
                       Supprimer la discussion
                     </button>
@@ -537,8 +536,8 @@ export default function ChatWindow() {
                     type="button"
                     className={`rounded-[2rem] p-3 cursor-pointer select-none text-left border-none block
                       ${m.senderId === currentUserId
-                        ? 'bg-orange-500 text-white rounded-tr-none'
-                        : 'bg-white text-slate-700 rounded-tl-none shadow-sm'}
+                        ? 'bg-manioco-terracotta text-white rounded-[20px] rounded-tr-[4px] shadow-sm'
+                        : 'bg-white text-manioco-brown rounded-[20px] rounded-tl-[4px] border border-manioco-brown/8 shadow-sm'}
                       ${m.image ? 'w-full max-w-[240px]' : 'max-w-[70%]'}
                     `}
                     onContextMenu={(e) => openContextMenu(e, m)}
@@ -555,7 +554,7 @@ export default function ChatWindow() {
                     {m.text && (
                       <p className="text-sm font-medium leading-relaxed px-2 whitespace-pre-line">{m.text}</p>
                     )}
-                    <div className={`flex items-center gap-1 mt-2 text-[10px] font-bold px-2 ${m.senderId === currentUserId ? 'text-white/70' : 'text-slate-400'}`}>
+                    <div className={`flex items-center gap-1 mt-2 text-[10px] font-bold px-2 ${m.senderId === currentUserId ? 'text-white/70' : 'text-manioco-brown/40'}`}>
                       {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       {m.senderId === currentUserId && <CheckCheck size={12} />}
                     </div>
@@ -565,23 +564,23 @@ export default function ChatWindow() {
             </div>
 
             {/* Input Area */}
-            <div className="p-4 bg-white border-t border-slate-100">
+            <div className="p-4 bg-white border-t border-manioco-brown/10">
               {/* Reply preview */}
               {replyTo && (
-                <div className="flex items-center gap-3 mb-3 px-4 py-2 bg-orange-50 border-l-4 border-orange-400 rounded-xl">
-                  <CornerUpLeft size={14} className="text-orange-400 flex-shrink-0" />
-                  <p className="text-xs text-slate-500 truncate flex-1">
-                    <span className="font-bold text-orange-500">Répondre · </span>
+                <div className="flex items-center gap-3 mb-3 px-4 py-2 bg-manioco-terracotta/5 border-l-4 border-manioco-terracotta rounded-xl">
+                  <CornerUpLeft size={14} className="text-manioco-terracotta flex-shrink-0" />
+                  <p className="text-xs text-manioco-brown/60 truncate flex-1">
+                    <span className="font-bold text-manioco-terracotta">Répondre · </span>
                     {replyTo.text?.substring(0, 60)}
                   </p>
-                  <button onClick={() => setReplyTo(null)} className="text-slate-400 hover:text-red-500 transition-colors">
+                  <button onClick={() => setReplyTo(null)} className="text-manioco-brown/40 hover:text-red-500 transition-colors">
                     <X size={14} />
                   </button>
                 </div>
               )}
 
               {imagePreview && (
-                <div className="mb-4 relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-orange-500 shadow-lg">
+                <div className="mb-4 relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-manioco-terracotta shadow-lg">
                   <img src={imagePreview} alt="Preview" className="object-cover w-full h-full" />
                   <button onClick={() => setImagePreview(null)} className="absolute top-1 right-1 p-1 bg-white rounded-full text-red-500 shadow-md">
                     <X size={12} />
@@ -589,7 +588,7 @@ export default function ChatWindow() {
                 </div>
               )}
               <div className="flex items-center gap-4">
-                <button onClick={() => fileInputRef.current?.click()} className="p-3 bg-slate-50 text-slate-400 hover:text-orange-500 rounded-2xl transition-all">
+                <button onClick={() => fileInputRef.current?.click()} className="p-3 bg-manioco-brown/5 text-manioco-brown/40 hover:bg-manioco-terracotta/5 hover:text-manioco-terracotta rounded-2xl transition-all">
                   <ImageIcon size={20} />
                 </button>
                 <input type="file" ref={fileInputRef} onChange={handleImageChange} accept="image/*" className="hidden" />
@@ -601,12 +600,12 @@ export default function ChatWindow() {
                     onChange={(e) => setInputText(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && handleSend()}
                     placeholder={replyTo ? "Écrivez votre réponse..." : "Écrivez votre message..."} 
-                    className="w-full pl-6 pr-12 py-4 bg-slate-50 border-none rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-orange-500/20 transition-all"
+                    className="w-full pl-6 pr-12 py-4 bg-manioco-brown/5 border border-transparent focus:border-manioco-terracotta/25 rounded-2xl text-sm font-medium outline-none focus:ring-2 focus:ring-manioco-terracotta/20 text-manioco-brown placeholder:text-manioco-brown/30 transition-all"
                   />
                   <button 
                     onClick={handleSend}
                     disabled={isSending}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 disabled:opacity-50"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 bg-manioco-terracotta text-white rounded-xl hover:bg-manioco-brown transition-all shadow-lg shadow-manioco-terracotta/20 disabled:opacity-50"
                   >
                     {isSending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
                   </button>
@@ -615,9 +614,9 @@ export default function ChatWindow() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-slate-400">
-            <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-               <Send size={32} />
+          <div className="flex-1 flex flex-col items-center justify-center text-manioco-brown/40">
+            <div className="w-20 h-20 bg-manioco-terracotta/5 rounded-full flex items-center justify-center mb-4">
+               <Send size={32} className="text-manioco-terracotta" />
             </div>
             <p className="font-bold uppercase tracking-widest text-[10px]">Sélectionnez une conversation</p>
           </div>
@@ -641,13 +640,13 @@ export default function ChatWindow() {
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => { if (e.key === 'Escape') setContextMenu(null); }}
           >
-          <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150">
+          <div className="bg-white rounded-2xl shadow-2xl border border-manioco-brown/10 py-2 min-w-[180px] animate-in fade-in zoom-in-95 duration-150">
             {/* Répondre — disponible pour tous les messages */}
             <button
               onClick={() => handleReplyMessage(contextMenu.message)}
-              className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-medium"
+              className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-manioco-brown hover:bg-manioco-terracotta/5 transition-colors font-medium border-none bg-transparent"
             >
-              <CornerUpLeft size={15} className="text-slate-400" />
+              <CornerUpLeft size={15} className="text-manioco-brown/40" />
               Répondre
             </button>
 
@@ -655,9 +654,9 @@ export default function ChatWindow() {
             {contextMenu.message.text && (
               <button
                 onClick={() => handleCopyMessage(contextMenu.message.text)}
-                className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors font-medium"
+                className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-manioco-brown hover:bg-manioco-terracotta/5 transition-colors font-medium border-none bg-transparent"
               >
-                <Copy size={15} className="text-slate-400" />
+                <Copy size={15} className="text-manioco-brown/40" />
                 Copier le texte
               </button>
             )}
@@ -665,10 +664,10 @@ export default function ChatWindow() {
             {/* Supprimer — seulement pour ses propres messages */}
             {contextMenu.message.senderId === currentUserId && (
               <>
-                <div className="h-px bg-slate-100 my-1 mx-3" />
+                <div className="h-px bg-manioco-brown/10 my-1 mx-3" />
                 <button
                   onClick={() => handleDeleteMessage(contextMenu.message.id)}
-                  className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-colors font-semibold"
+                  className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors font-semibold border-none bg-transparent"
                 >
                   <Trash2 size={15} />
                   Supprimer

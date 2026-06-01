@@ -150,26 +150,26 @@ export default function StoreSettings() {
   };
 
   return (
-    <div className="flex bg-slate-50 min-h-screen">
+    <div className="flex bg-[#FAF7F2] min-h-screen">
       <Sidebar mode="seller" />
       
       <main className="flex-1 ml-64">
         <TopNav title="Gestion Boutique" isAdmin={false} />
         
-        <div className="p-8 max-w-5xl mx-auto">
+        <div className="p-8 max-w-5xl mx-auto animate-reveal">
           
           {/* Header Section */}
           <div className="mb-10 flex items-end justify-between">
             <div>
-              <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Ma Boutique</h1>
-              <p className="text-slate-500 mt-2 font-medium">Gérez l'identité visuelle et les paramètres de votre point de vente.</p>
+              <h1 className="text-4xl font-black text-manioco-brown tracking-tighter">Ma Boutique</h1>
+              <p className="text-manioco-brown/60 mt-2 font-medium">Gérez l'identité visuelle et les paramètres de votre point de vente.</p>
             </div>
             {storeId && !isEditing && (
               <button 
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-black text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+                className="flex items-center gap-2 px-6 py-3 bg-white border border-manioco-brown/10 rounded-2xl text-sm font-black text-manioco-brown/70 hover:bg-[#FAF7F2] hover:border-manioco-brown/20 transition-all shadow-sm"
               >
-                <Settings size={16} className="text-slate-400" />
+                <Settings size={16} className="text-manioco-brown/40" />
                 Modifier la boutique
               </button>
             )}
@@ -188,16 +188,16 @@ export default function StoreSettings() {
             <div className="space-y-8 animate-in fade-in zoom-in-95 duration-500">
               
               {/* Main Card */}
-              <div className="bg-white rounded-[3rem] border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden">
+              <div className="bg-white rounded-[3rem] border border-manioco-brown/10 shadow-sm overflow-hidden">
                 {/* Banner */}
-                <div className="h-48 bg-gradient-to-r from-orange-400 via-orange-500 to-amber-500 relative">
+                <div className="h-48 bg-gradient-to-r from-manioco-terracotta via-[#b25a49] to-[#F4A261] relative">
                    <div className="absolute inset-0 opacity-20" style={{backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px'}}></div>
-                   <div className="absolute -bottom-16 left-12 p-2 bg-white rounded-[2.5rem] shadow-lg">
-                      <div className="w-32 h-32 rounded-[2rem] bg-slate-100 overflow-hidden relative border border-slate-100">
+                   <div className="absolute -bottom-16 left-12 p-2 bg-[#FAF7F2] rounded-[2.5rem] shadow-lg">
+                      <div className="w-32 h-32 rounded-[2rem] bg-white overflow-hidden relative border border-manioco-brown/10">
                          {logoPreview ? (
                            <Image src={logoPreview} alt="Logo" fill className="object-cover" />
                          ) : (
-                           <div className="w-full h-full flex items-center justify-center bg-orange-50 text-orange-500">
+                           <div className="w-full h-full flex items-center justify-center bg-manioco-terracotta/5 text-manioco-terracotta">
                               <Store size={40} />
                            </div>
                          )}
@@ -210,49 +210,49 @@ export default function StoreSettings() {
                    <div className="flex justify-between items-start">
                       <div className="max-w-2xl">
                          <div className="flex items-center gap-3 mb-2">
-                           <h2 className="text-3xl font-black text-slate-900">{storeData.name}</h2>
-                           <span className="px-3 py-1 bg-green-100 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full">Active</span>
+                           <h2 className="text-3xl font-black text-manioco-brown">{storeData.name}</h2>
+                           <span className="px-3 py-1 bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-widest rounded-full border border-green-100">Active</span>
                          </div>
-                         <p className="text-slate-500 font-medium leading-relaxed">{storeData.description || "Aucune description fournie pour cette boutique."}</p>
+                         <p className="text-manioco-brown/60 font-medium leading-relaxed">{storeData.description || "Aucune description fournie pour cette boutique."}</p>
                       </div>
                       <div className="flex gap-4">
-                         <div className="text-center px-6 py-4 bg-slate-50 rounded-[2rem] border border-slate-100">
-                            <span className="block text-2xl font-black text-slate-900">{stats.productCount}</span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase">Produits</span>
+                         <div className="text-center px-6 py-4 bg-[#FAF7F2] rounded-[2rem] border border-manioco-brown/10">
+                            <span className="block text-2xl font-black text-manioco-brown">{stats.productCount}</span>
+                            <span className="text-[10px] font-black text-manioco-brown/40 uppercase">Produits</span>
                          </div>
-                         <div className="text-center px-6 py-4 bg-slate-50 rounded-[2rem] border border-slate-100">
-                            <span className="block text-2xl font-black text-slate-900">{stats.salesCount}</span>
-                            <span className="text-[10px] font-black text-slate-400 uppercase">Ventes</span>
+                         <div className="text-center px-6 py-4 bg-[#FAF7F2] rounded-[2rem] border border-manioco-brown/10">
+                            <span className="block text-2xl font-black text-manioco-brown">{stats.salesCount}</span>
+                            <span className="text-[10px] font-black text-manioco-brown/40 uppercase">Ventes</span>
                          </div>
                       </div>
                    </div>
 
-                   <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-slate-100">
+                   <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-manioco-brown/10">
                       <div className="flex items-start gap-4">
-                         <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 shrink-0">
+                         <div className="w-10 h-10 rounded-xl bg-manioco-terracotta/10 flex items-center justify-center text-manioco-terracotta shrink-0">
                             <MapPin size={18} />
                          </div>
                          <div>
-                            <span className="block text-[10px] font-black text-slate-400 uppercase">Localisation</span>
-                            <span className="text-sm font-bold text-slate-700">{storeData.address}, {storeData.city}</span>
+                            <span className="block text-[10px] font-black text-manioco-brown/40 uppercase">Localisation</span>
+                            <span className="text-sm font-bold text-manioco-brown">{storeData.address}, {storeData.city}</span>
                          </div>
                       </div>
                       <div className="flex items-start gap-4">
-                         <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center text-blue-500 shrink-0">
+                         <div className="w-10 h-10 rounded-xl bg-manioco-terracotta/10 flex items-center justify-center text-manioco-terracotta shrink-0">
                             <Phone size={18} />
                          </div>
                          <div>
-                            <span className="block text-[10px] font-black text-slate-400 uppercase">Contact</span>
-                            <span className="text-sm font-bold text-slate-700">{storeData.phone}</span>
+                            <span className="block text-[10px] font-black text-manioco-brown/40 uppercase">Contact</span>
+                            <span className="text-sm font-bold text-manioco-brown">{storeData.phone}</span>
                          </div>
                       </div>
                       <div className="flex items-start gap-4">
-                         <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center text-amber-500 shrink-0">
+                         <div className="w-10 h-10 rounded-xl bg-manioco-terracotta/10 flex items-center justify-center text-manioco-terracotta shrink-0">
                             <CreditCard size={18} />
                          </div>
                          <div>
-                            <span className="block text-[10px] font-black text-slate-400 uppercase">Reversements</span>
-                            <span className="text-sm font-bold text-slate-700">{storeData.payoutAccountId}</span>
+                            <span className="block text-[10px] font-black text-manioco-brown/40 uppercase">Reversements</span>
+                            <span className="text-sm font-bold text-manioco-brown">{storeData.payoutAccountId}</span>
                          </div>
                       </div>
                    </div>
@@ -261,65 +261,65 @@ export default function StoreSettings() {
 
               {/* Quick Actions */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Link href="/dashboard/seller/products" className="bg-white p-6 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex items-center justify-between group cursor-pointer hover:border-orange-500 transition-all">
+                <Link href="/dashboard/seller/products" className="bg-white p-6 rounded-[2.5rem] border border-manioco-brown/10 shadow-sm flex items-center justify-between group cursor-pointer hover:border-manioco-terracotta transition-all">
                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-orange-500 text-white flex items-center justify-center shadow-lg shadow-orange-500/20">
+                      <div className="w-12 h-12 rounded-2xl bg-manioco-terracotta text-white flex items-center justify-center shadow-lg shadow-manioco-terracotta/20">
                          <ShoppingBag size={20} />
                       </div>
                       <div>
-                         <h4 className="font-black text-slate-900">Voir mon catalogue</h4>
-                         <p className="text-xs text-slate-500 font-medium">Gérez vos produits en vente</p>
+                         <h4 className="font-black text-manioco-brown">Voir mon catalogue</h4>
+                         <p className="text-xs text-manioco-brown/50 font-medium">Gérez vos produits en vente</p>
                       </div>
                    </div>
-                   <ChevronRight className="text-slate-300 group-hover:text-orange-500 transition-colors" />
+                   <ChevronRight className="text-manioco-brown/30 group-hover:text-manioco-terracotta transition-colors" />
                 </Link>
-                <Link href={`/shops/${storeId}`} target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-[2.5rem] border border-slate-200/60 shadow-sm flex items-center justify-between group cursor-pointer hover:border-blue-500 transition-all">
+                <Link href={`/shops/${storeId}`} target="_blank" rel="noopener noreferrer" className="bg-white p-6 rounded-[2.5rem] border border-manioco-brown/10 shadow-sm flex items-center justify-between group cursor-pointer hover:border-manioco-terracotta transition-all">
                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-2xl bg-blue-500 text-white flex items-center justify-center shadow-lg shadow-blue-500/20">
+                      <div className="w-12 h-12 rounded-2xl bg-manioco-brown text-white flex items-center justify-center shadow-lg shadow-manioco-brown/20">
                          <ExternalLink size={20} />
                       </div>
                       <div>
-                         <h4 className="font-black text-slate-900">Aperçu public</h4>
-                         <p className="text-xs text-slate-500 font-medium">Voir comme un client</p>
+                         <h4 className="font-black text-manioco-brown">Aperçu public</h4>
+                         <p className="text-xs text-manioco-brown/50 font-medium">Voir comme un client</p>
                       </div>
                    </div>
-                   <ChevronRight className="text-slate-300 group-hover:text-blue-500 transition-colors" />
+                   <ChevronRight className="text-manioco-brown/30 group-hover:text-manioco-terracotta transition-colors" />
                 </Link>
               </div>
 
             </div>
           ) : (
             /* EDIT / CREATE FORM */
-            <div className="bg-white rounded-[3rem] border border-slate-200/60 shadow-xl shadow-slate-200/40 overflow-hidden animate-in slide-in-from-bottom-8 duration-700">
-              <div className="p-8 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+            <div className="bg-white rounded-[3rem] border border-manioco-brown/10 shadow-sm overflow-hidden animate-in slide-in-from-bottom-8 duration-700">
+              <div className="p-8 border-b border-manioco-brown/10 bg-gradient-to-r from-manioco-terracotta/5 to-transparent flex justify-between items-center">
                 <div className="flex items-center gap-6">
                   <div className="relative group">
                     <button 
                       type="button"
-                      className="w-24 h-24 rounded-3xl bg-white border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:border-orange-500 hover:bg-orange-50 transition-all overflow-hidden shadow-sm" 
+                      className="w-24 h-24 rounded-3xl bg-[#FAF7F2] border-2 border-dashed border-manioco-brown/20 flex flex-col items-center justify-center cursor-pointer hover:border-manioco-terracotta hover:bg-manioco-terracotta/5 transition-all overflow-hidden shadow-sm" 
                       onClick={() => fileInputRef.current?.click()}
                     >
                       {logoPreview ? (
                         <Image src={logoPreview} alt="Logo de la boutique" fill className="object-cover" />
                       ) : (
                         <>
-                          <ImageIcon className="text-slate-300 group-hover:text-orange-500 mb-1" size={24} />
-                          <span className="text-[10px] font-black text-slate-400 uppercase">Logo</span>
+                          <ImageIcon className="text-manioco-brown/30 group-hover:text-manioco-terracotta mb-1" size={24} />
+                          <span className="text-[10px] font-black text-manioco-brown/40 uppercase">Logo</span>
                         </>
                       )}
                     </button>
                     <input type="file" ref={fileInputRef} onChange={handleLogoChange} accept="image/*" className="hidden" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-slate-900">Identité Visuelle</h3>
-                    <p className="text-xs text-slate-500 mt-1 max-w-sm leading-relaxed">Téléchargez un logo qui représente votre marque.</p>
+                    <h3 className="text-lg font-black text-manioco-brown">Identité Visuelle</h3>
+                    <p className="text-xs text-manioco-brown/50 mt-1 max-w-sm leading-relaxed">Téléchargez un logo qui représente votre marque.</p>
                   </div>
                 </div>
                 {storeId && (
                   <button 
                     type="button" 
                     onClick={() => setIsEditing(false)}
-                    className="text-xs font-black text-slate-400 hover:text-slate-600 uppercase tracking-widest underline underline-offset-4"
+                    className="text-xs font-black text-manioco-brown/40 hover:text-manioco-brown/70 uppercase tracking-widest underline underline-offset-4"
                   >
                     Retour au profil
                   </button>
@@ -330,7 +330,7 @@ export default function StoreSettings() {
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                   <div className="space-y-3">
-                    <label htmlFor="storeName" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <label htmlFor="storeName" className="text-[11px] font-black text-manioco-brown/40 uppercase tracking-widest flex items-center gap-2">
                       <Store size={14} /> Nom de la boutique
                     </label>
                     <input 
@@ -338,14 +338,14 @@ export default function StoreSettings() {
                       type="text" 
                       required
                       placeholder="Ex: Afrigari Electronics" 
-                      className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
+                      className="w-full px-5 py-4 bg-manioco-brown/5 border border-transparent rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta/30 focus:bg-white text-manioco-brown placeholder:text-manioco-brown/20 transition-all shadow-inner"
                       value={storeData.name}
                       onChange={(e) => setStoreData({...storeData, name: e.target.value})}
                     />
                   </div>
 
                   <div className="space-y-3">
-                    <label htmlFor="storePhone" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <label htmlFor="storePhone" className="text-[11px] font-black text-manioco-brown/40 uppercase tracking-widest flex items-center gap-2">
                       <Phone size={14} /> Téléphone de contact
                     </label>
                     <input 
@@ -353,7 +353,7 @@ export default function StoreSettings() {
                       type="tel" 
                       required
                       placeholder="0102030405 (Chiffres uniquement)" 
-                      className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
+                      className="w-full px-5 py-4 bg-manioco-brown/5 border border-transparent rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta/30 focus:bg-white text-manioco-brown placeholder:text-manioco-brown/20 transition-all shadow-inner"
                       value={storeData.phone}
                       onChange={(e) => setStoreData({...storeData, phone: e.target.value})}
                     />
@@ -361,7 +361,7 @@ export default function StoreSettings() {
                 </div>
 
                 <div className="space-y-3">
-                  <label htmlFor="storeDescription" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                  <label htmlFor="storeDescription" className="text-[11px] font-black text-manioco-brown/40 uppercase tracking-widest flex items-center gap-2">
                     <AlignLeft size={14} /> Description
                   </label>
                   <textarea 
@@ -369,35 +369,35 @@ export default function StoreSettings() {
                     rows={4}
                     required
                     placeholder="Décrivez votre activité..." 
-                    className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner resize-none"
+                    className="w-full px-5 py-4 bg-manioco-brown/5 border border-transparent rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta/30 focus:bg-white text-manioco-brown placeholder:text-manioco-brown/20 transition-all shadow-inner resize-none"
                     value={storeData.description}
                     onChange={(e) => setStoreData({...storeData, description: e.target.value})}
                   />
                 </div>
 
-                <div className="pt-8 border-t border-slate-100">
-                  <h4 className="text-sm font-black text-slate-900 mb-8 flex items-center gap-2"><MapPin size={16} className="text-orange-500"/> Localisation physique</h4>
+                <div className="pt-8 border-t border-manioco-brown/10">
+                  <h4 className="text-sm font-black text-manioco-brown mb-8 flex items-center gap-2"><MapPin size={16} className="text-manioco-terracotta"/> Localisation physique</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div className="space-y-3">
-                      <label htmlFor="storeCity" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Ville</label>
+                      <label htmlFor="storeCity" className="text-[11px] font-black text-manioco-brown/40 uppercase tracking-widest">Ville</label>
                       <input 
                         id="storeCity"
                         type="text" 
                         required
                         placeholder="Ex: Abidjan" 
-                        className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
+                        className="w-full px-5 py-4 bg-manioco-brown/5 border border-transparent rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta/30 focus:bg-white text-manioco-brown placeholder:text-manioco-brown/20 transition-all shadow-inner"
                         value={storeData.city}
                         onChange={(e) => setStoreData({...storeData, city: e.target.value})}
                       />
                     </div>
                     <div className="space-y-3">
-                      <label htmlFor="storeAddress" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Adresse détaillée</label>
+                      <label htmlFor="storeAddress" className="text-[11px] font-black text-manioco-brown/40 uppercase tracking-widest">Adresse détaillée</label>
                       <input 
                         id="storeAddress"
                         type="text" 
                         required
                         placeholder="Ex: Cocody Angré" 
-                        className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
+                        className="w-full px-5 py-4 bg-manioco-brown/5 border border-transparent rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta/30 focus:bg-white text-manioco-brown placeholder:text-manioco-brown/20 transition-all shadow-inner"
                         value={storeData.address}
                         onChange={(e) => setStoreData({...storeData, address: e.target.value})}
                       />
@@ -406,7 +406,7 @@ export default function StoreSettings() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-8">
                     <div className="space-y-3">
-                      <label htmlFor="storeLatitude" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <label htmlFor="storeLatitude" className="text-[11px] font-black text-manioco-brown/40 uppercase tracking-widest flex items-center gap-2">
                         <Globe size={12} /> Latitude (GPS)
                       </label>
                       <input 
@@ -414,13 +414,13 @@ export default function StoreSettings() {
                         type="number" 
                         step="any"
                         placeholder="Ex: 5.348" 
-                        className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
+                        className="w-full px-5 py-4 bg-manioco-brown/5 border border-transparent rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta/30 focus:bg-white text-manioco-brown placeholder:text-manioco-brown/20 transition-all shadow-inner"
                         value={storeData.latitude}
                         onChange={(e) => setStoreData({...storeData, latitude: Number.parseFloat(e.target.value) || 0})}
                       />
                     </div>
                     <div className="space-y-3">
-                      <label htmlFor="storeLongitude" className="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                      <label htmlFor="storeLongitude" className="text-[11px] font-black text-manioco-brown/40 uppercase tracking-widest flex items-center gap-2">
                         <Globe size={12} /> Longitude (GPS)
                       </label>
                       <input 
@@ -428,7 +428,7 @@ export default function StoreSettings() {
                         type="number" 
                         step="any"
                         placeholder="Ex: -4.033" 
-                        className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
+                        className="w-full px-5 py-4 bg-manioco-brown/5 border border-transparent rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta/30 focus:bg-white text-manioco-brown placeholder:text-manioco-brown/20 transition-all shadow-inner"
                         value={storeData.longitude}
                         onChange={(e) => setStoreData({...storeData, longitude: Number.parseFloat(e.target.value) || 0})}
                       />
@@ -436,16 +436,16 @@ export default function StoreSettings() {
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-slate-100">
-                  <h4 className="text-sm font-black text-slate-900 mb-8 flex items-center gap-2"><CreditCard size={16} className="text-orange-500"/> Retraits (FedaPay)</h4>
+                <div className="pt-8 border-t border-manioco-brown/10">
+                  <h4 className="text-sm font-black text-manioco-brown mb-8 flex items-center gap-2"><CreditCard size={16} className="text-manioco-terracotta"/> Retraits (FedaPay)</h4>
                   <div className="space-y-3">
-                    <label htmlFor="payoutAccountId" className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Compte FedaPay</label>
+                    <label htmlFor="payoutAccountId" className="text-[11px] font-black text-manioco-brown/40 uppercase tracking-widest">Compte FedaPay</label>
                     <input 
                       id="payoutAccountId"
                       type="text" 
                       required
                       placeholder="acc_p8p8p8..." 
-                      className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all shadow-inner"
+                      className="w-full px-5 py-4 bg-manioco-brown/5 border border-transparent rounded-2xl text-sm font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta/30 focus:bg-white text-manioco-brown placeholder:text-manioco-brown/20 transition-all shadow-inner"
                       value={storeData.payoutAccountId}
                       onChange={(e) => setStoreData({...storeData, payoutAccountId: e.target.value})}
                     />
@@ -456,14 +456,14 @@ export default function StoreSettings() {
                   <button 
                     type="button" 
                     onClick={() => storeId ? setIsEditing(false) : null}
-                    className="px-8 py-4 text-sm font-black text-slate-400 hover:text-slate-600 transition-all uppercase tracking-widest"
+                    className="px-8 py-4 text-sm font-black text-manioco-brown/40 hover:text-manioco-brown/60 transition-all uppercase tracking-widest"
                   >
                     Annuler
                   </button>
                   <button 
                     type="submit" 
                     disabled={isSaving}
-                    className="px-10 py-4 bg-orange-500 text-white rounded-3xl text-sm font-black hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/30 active:scale-95 disabled:opacity-70 flex items-center gap-3"
+                    className="px-10 py-4 bg-manioco-terracotta text-white rounded-3xl text-sm font-black hover:bg-manioco-brown hover:shadow-lg hover:shadow-manioco-terracotta/30 transition-all shadow-xl shadow-manioco-terracotta/20 active:scale-95 disabled:opacity-70 flex items-center gap-3"
                   >
                     {isSaving ? (
                       <>
@@ -482,11 +482,11 @@ export default function StoreSettings() {
 
           {/* Help Alert */}
           {!storeId && (
-            <div className="mt-8 p-6 bg-blue-50/50 border border-blue-100 rounded-[2rem] flex gap-4">
-              <div className="mt-1"><AlertCircle className="text-blue-500" size={24} /></div>
+            <div className="mt-8 p-6 bg-manioco-terracotta/5 border border-manioco-terracotta/10 rounded-[2rem] flex gap-4">
+              <div className="mt-1"><AlertCircle className="text-manioco-terracotta" size={24} /></div>
               <div>
-                <h4 className="text-sm font-black text-slate-900">Pourquoi créer une boutique ?</h4>
-                <p className="text-xs font-medium text-slate-600 leading-relaxed mt-2 max-w-2xl">
+                <h4 className="text-sm font-black text-manioco-brown">Pourquoi créer une boutique ?</h4>
+                <p className="text-xs font-medium text-manioco-brown/60 leading-relaxed mt-2 max-w-2xl">
                   Sur Afrigari, votre boutique est votre vitrine. Une fois créée, vous pourrez y ajouter vos produits et commencer à vendre.
                 </p>
               </div>

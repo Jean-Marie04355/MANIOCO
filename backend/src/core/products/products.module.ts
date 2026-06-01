@@ -11,6 +11,11 @@ import {
   Product as MongoProduct,
   ProductSchema,
 } from './schemas/product.schema';
+import { ProductReview } from './product-review.entity';
+import {
+  ProductReview as MongoProductReview,
+  ProductReviewSchema,
+} from './schemas/product-review.schema';
 import { NoSqlRepository } from '../../libs/no-sql-database/repository';
 import { SqlRepository } from '../../libs/sql-database/repository';
 import { ProductCategoriesModule } from '../product-categories/product-categories.module';
@@ -27,8 +32,9 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
     dbType === 'mongodb'
       ? MongooseModule.forFeature([
           { name: MongoProduct.name, schema: ProductSchema },
+          { name: MongoProductReview.name, schema: ProductReviewSchema },
         ])
-      : TypeOrmModule.forFeature([Product]),
+      : TypeOrmModule.forFeature([Product, ProductReview]),
     ProductCategoriesModule,
     StoreModule,
     CacheModule,
@@ -51,7 +57,21 @@ const dbType = process.env.DB_TYPE?.toLowerCase();
           : new SqlRepository(engine as never);
       },
     },
+    {
+      provide: 'PRODUCT_REVIEW_REPOSITORY',
+      inject: [
+        ConfigService,
+        dbType === 'mongodb'
+          ? getModelToken(MongoProductReview.name)
+          : getRepositoryToken(ProductReview),
+      ],
+      useFactory: (config: ConfigService, engine: unknown) => {
+        return config.get('DB_TYPE') === 'mongodb'
+          ? new NoSqlRepository(engine as never)
+          : new SqlRepository(engine as never);
+      },
+    },
   ],
-  exports: [ProductsService, 'PRODUCT_REPOSITORY'],
+  exports: [ProductsService, 'PRODUCT_REPOSITORY', 'PRODUCT_REVIEW_REPOSITORY'],
 })
 export class ProductsModule {}

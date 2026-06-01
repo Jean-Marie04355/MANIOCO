@@ -79,10 +79,11 @@ export class SqlRepository<
   }
 
   async update(id: string | number, data: Partial<T>): Promise<T | null> {
-    const existing = await this.findOne({ id } as object);
-    if (!existing) return null;
-    const updated = Object.assign(existing, data);
-    return await this.repo.save(updated);
+    // Use native TypeORM update() which generates a partial SQL UPDATE
+    // (only the specified columns), avoiding NOT NULL constraint violations
+    // on unloaded relation columns (e.g., categoryId).
+    await this.repo.update(id, data as any);
+    return this.findOne({ id } as object);
   }
 
   async delete(id: string | number): Promise<void> {

@@ -37,6 +37,12 @@ export class Product {
   @Column({ nullable: true })
   image: string;
 
+  @Column({ type: 'decimal', precision: 3, scale: 2, default: 0.0 })
+  rating: number;
+
+  @Column({ type: 'int', default: 0 })
+  ratingsCount: number;
+
   @Column({ nullable: true })
   storeId: string;
 

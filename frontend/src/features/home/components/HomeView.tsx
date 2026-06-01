@@ -1,6 +1,6 @@
 "use client";
 /* eslint-disable react/no-unescaped-entities */
-import { ShoppingCart, Search, ArrowUpRight, ArrowRight, ArrowLeft, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, X, TrendingUp, Bell, Settings, MapPin, ChevronDown, User as UserIcon, Star, Heart, ChevronRight, ChevronLeft } from 'lucide-react';
+import { ShoppingCart, Search, ArrowUpRight, ArrowRight, ArrowLeft, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, TrendingUp, Bell, Settings, MapPin, ChevronDown, User as UserIcon, Star, Heart, ChevronRight, ChevronLeft, X } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -9,6 +9,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/CartContext';
 import { useSocket } from '@/features/realtime/SocketContext';
 import CartDrawer from '@/components/CartDrawer';
+import { useFavorites } from '@/features/favorites/FavoritesContext';
 
 interface Category {
    id: string | number;
@@ -38,6 +39,15 @@ interface Product {
    store?: ProductStore;
 }
 
+interface Review {
+   id?: string;
+   userName: string;
+   rating: number;
+   comment: string;
+   productName?: string;
+   createdAt?: string;
+}
+
 export default function HomeView() {
    const { user, logout, isLoading: isAuthLoading } = useAuth();
    const { addToCart, totalItems } = useCart();
@@ -46,6 +56,7 @@ export default function HomeView() {
    const [scrolled, setScrolled] = useState(false);
    const [isProfileOpen, setIsProfileOpen] = useState(false);
    const [isCartOpen, setIsCartOpen] = useState(false);
+   const { totalFavorites } = useFavorites();
    const [showSuccessOrder, setShowSuccessOrder] = useState(false);
 
    const [products, setProducts] = useState<Product[]>([]);
@@ -76,12 +87,11 @@ export default function HomeView() {
 
    // Testimonials slider state
    const [testimonialIndex, setTestimonialIndex] = useState(0);
-
-   const testimonials = [
-      { name: 'Antoine V.', role: 'Restaurateur à Cotonou', rating: 4.8, stars: 5, photo: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200', text: "Le gari que j'ai commandé est d'une qualité exceptionnelle. La livraison a été rapide et le service client très réactif. Je recommande vivement cette plateforme !" },
-      { name: 'Marie-Claire L.', role: 'Cheffe cuisinière', rating: 4.9, stars: 5, photo: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200', text: "Enfin une plateforme qui valorise nos produits locaux ! Les tapiocas sont frais, bien emballés et livrés à temps. Une expérience d'achat fluide et agréable." },
-      { name: 'Pascal D.', role: 'Commerçant à Porto-Novo', rating: 4.7, stars: 5, photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200', text: "Je suis impressionné par la variété des produits disponibles. Les prix sont justes et la qualité est toujours au rendez-vous. Bravo à toute l'équipe !" },
-   ];
+   const [reviews, setReviews] = useState<Review[]>([]);
+   const [isReviewFormOpen, setIsReviewFormOpen] = useState(false);
+   const [reviewRating, setReviewRating] = useState(5);
+   const [reviewComment, setReviewComment] = useState('');
+   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
 
    const howItWorksSteps = [
       { num: '01', title: 'Choisissez vos produits', desc: 'Parcourez les produits de producteurs béninois vérifiés.', img: 'https://images.unsplash.com/photo-1595855759920-86582396756a?auto=format&fit=crop&q=80&w=600' },
@@ -117,14 +127,16 @@ export default function HomeView() {
 
       const fetchDynamicData = async () => {
          try {
-            const [prodRes, catRes, storeRes] = await Promise.all([
+            const [prodRes, catRes, storeRes, reviewsRes] = await Promise.all([
                api.get('/products'),
                api.get('/product-categories'),
-               api.get('/stores')
+               api.get('/stores'),
+               api.get('/products/reviews'),
             ]);
             setProducts((prodRes?.data || []) as Product[]);
             setCategories((catRes?.data || []) as Category[]);
             setStores((storeRes?.data || []).slice(0, 4));
+            setReviews((reviewsRes?.data || []) as Review[]);
          } catch (error) {
             console.error("Erreur de chargement", error);
          } finally {
@@ -248,8 +260,9 @@ export default function HomeView() {
    const uniqueCities = Array.from(new Set(products.map(p => p.store?.city).filter(Boolean))) as string[];
 
    const handleActionClick = (e: React.MouseEvent, action: () => void) => {
+      e.preventDefault();
+      e.stopPropagation();
       if (!user) {
-         e.preventDefault();
          router.push('/auth/login');
          return;
       }
@@ -304,7 +317,7 @@ export default function HomeView() {
 
                {/* Nav Links */}
                <div className="hidden lg:flex items-center gap-10 text-sm font-semibold text-manioco-brown/70">
-                  <Link href="/" className="text-manioco-terracotta font-bold hover:text-manioco-terracotta transition-colors">Accueil</Link>
+                  <Link href="/" className="hover:text-manioco-terracotta transition-colors">Accueil</Link>
                   <Link href="/produits" className="hover:text-manioco-terracotta transition-colors">Nos produits</Link>
                   <button onClick={() => document.getElementById('sellers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-manioco-terracotta transition-colors">Vendeurs</button>
                </div>
@@ -385,6 +398,20 @@ export default function HomeView() {
                         </div>
                      </>
                   )}
+
+                  {/* Favoris */}
+                  <Link
+                     href="/favoris"
+                     className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+                     title="Mes Favoris"
+                  >
+                     <Heart size={20} className={`text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors ${totalFavorites > 0 ? 'fill-manioco-terracotta text-manioco-terracotta' : ''}`} />
+                     {totalFavorites > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                           {totalFavorites}
+                        </span>
+                     )}
+                  </Link>
 
                   {/* Cart */}
                   <button
@@ -495,7 +522,9 @@ export default function HomeView() {
                                     <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1 shadow-md z-20">
                                        <Star size={12} className="fill-[#F4A261] text-[#F4A261]" />
                                        <span className="text-xs font-bold text-manioco-brown">
-                                          {(4.6 + (i % 2) * 0.2).toFixed(1)}
+                                          {product.rating && Number(product.rating) > 0
+                                             ? Number(product.rating).toFixed(1)
+                                             : (4.6 + (i % 2) * 0.2).toFixed(1)}
                                        </span>
                                     </div>
                                     <img
@@ -890,75 +919,187 @@ export default function HomeView() {
                      <h2 className="text-3xl md:text-4xl font-bold text-manioco-brown">
                         Ce que nos clients disent de nous
                      </h2>
-                     <button className="inline-flex items-center gap-2 text-sm font-semibold text-manioco-terracotta border border-manioco-terracotta/30 px-5 py-2.5 rounded-full hover:bg-manioco-terracotta hover:text-white transition-all">
+                     <button
+                        type="button"
+                        onClick={() => {
+                           if (!user) {
+                              router.push('/auth/login');
+                              return;
+                           }
+                           setIsReviewFormOpen(true);
+                        }}
+                        className="inline-flex items-center gap-2 text-sm font-semibold text-manioco-terracotta border border-manioco-terracotta/30 px-5 py-2.5 rounded-full hover:bg-manioco-terracotta hover:text-white transition-all"
+                     >
                         Laissez un avis <ArrowUpRight size={16} />
                      </button>
                   </div>
 
+                  {isReviewFormOpen && (
+                     <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 p-4">
+                        <div className="w-full max-w-2xl rounded-[32px] bg-white p-8 shadow-2xl">
+                           <div className="flex items-start justify-between gap-4 mb-6">
+                              <div>
+                                 <h3 className="text-2xl font-extrabold text-manioco-brown">Laissez votre avis</h3>
+                                 <p className="text-sm text-manioco-brown/60 mt-2">Donnez une note et un commentaire sur l’application. Votre avis sera visible dans cette section.</p>
+                              </div>
+                              <button
+                                 type="button"
+                                 onClick={() => setIsReviewFormOpen(false)}
+                                 className="text-manioco-brown/70 hover:text-manioco-brown"
+                                 aria-label="Fermer le formulaire d'avis"
+                              >
+                                 <X size={22} />
+                              </button>
+                           </div>
+                           <div className="space-y-6">
+                              <div>
+                                 <p className="text-sm font-semibold text-manioco-brown mb-2">Votre note</p>
+                                 <div className="flex items-center gap-1">
+                                    {[1, 2, 3, 4, 5].map((value) => (
+                                       <button
+                                          key={value}
+                                          type="button"
+                                          onClick={() => setReviewRating(value)}
+                                          className="rounded-full p-2 transition-colors"
+                                          aria-label={`Donner ${value} étoiles`}
+                                       >
+                                          <Star
+                                             size={24}
+                                             className={value <= reviewRating ? 'fill-[#F4A261] text-[#F4A261]' : 'text-manioco-brown/30'}
+                                          />
+                                       </button>
+                                    ))}
+                                 </div>
+                              </div>
+                              <div>
+                                 <label htmlFor="reviewComment" className="text-sm font-semibold text-manioco-brown mb-2 block">
+                                    Votre commentaire
+                                 </label>
+                                 <textarea
+                                    id="reviewComment"
+                                    value={reviewComment}
+                                    onChange={(e) => setReviewComment(e.target.value)}
+                                    rows={5}
+                                    className="w-full rounded-3xl border border-manioco-brown/10 bg-manioco-cream/50 px-4 py-4 text-sm text-manioco-brown outline-none focus:border-manioco-terracotta focus:ring-2 focus:ring-manioco-terracotta/20"
+                                    placeholder="Ce que vous avez aimé ou ce qui peut être amélioré..."
+                                 />
+                              </div>
+                              <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                                 <button
+                                    type="button"
+                                    onClick={() => setIsReviewFormOpen(false)}
+                                    className="rounded-full border border-manioco-brown/20 px-5 py-3 text-sm font-semibold text-manioco-brown hover:bg-manioco-brown/5 transition-all"
+                                 >
+                                    Annuler
+                                 </button>
+                                 <button
+                                    type="button"
+                                    onClick={async () => {
+                                       if (!reviewComment.trim()) {
+                                          alert('Veuillez écrire un commentaire avant de soumettre votre avis.');
+                                          return;
+                                       }
+                                       setIsSubmittingReview(true);
+                                       try {
+                                          const newReview: Review = {
+                                             id: `${Date.now()}`,
+                                             userName: user?.name || 'Client Afrigari',
+                                             rating: reviewRating,
+                                             comment: reviewComment.trim(),
+                                             createdAt: new Date().toISOString(),
+                                          };
+                                          setReviews((current) => [newReview, ...current]);
+                                          setReviewComment('');
+                                          setReviewRating(5);
+                                          setIsReviewFormOpen(false);
+                                       } catch (error) {
+                                          console.error('Erreur soumission avis', error);
+                                          alert('Impossible d’ajouter votre avis pour le moment.');
+                                       } finally {
+                                          setIsSubmittingReview(false);
+                                       }
+                                    }}
+                                    disabled={isSubmittingReview}
+                                    className="rounded-full bg-manioco-terracotta px-5 py-3 text-sm font-semibold text-white hover:bg-[#d87e5a] transition-all disabled:opacity-60"
+                                 >
+                                    {isSubmittingReview ? 'Envoi...' : 'Publier mon avis'}
+                                 </button>
+                              </div>
+                           </div>
+                        </div>
+                     </div>
+                  )}
+
                   {/* Testimonials Slider */}
-                  <div className="relative">
-                     <div className="overflow-hidden">
-                        <div
-                           className="flex transition-transform duration-500 ease-out gap-6"
-                           style={{ transform: `translateX(-${testimonialIndex * (100 / Math.min(3, testimonials.length))}%)` }}
-                        >
-                           {testimonials.map((t, i) => (
-                              <div key={i} className="flex-shrink-0 w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
-                                 <div className="bg-white rounded-3xl p-8 shadow-sm border border-manioco-brown/5 h-full hover:shadow-lg transition-shadow duration-300">
-                                    {/* Stars */}
-                                    <div className="flex items-center gap-1 mb-4">
-                                       {[...Array(t.stars)].map((_, si) => (
-                                          <Star key={si} size={16} className="fill-[#F4A261] text-[#F4A261]" />
-                                       ))}
-                                       <span className="ml-2 text-sm font-bold text-manioco-brown/60">{t.rating}</span>
-                                    </div>
-                                    {/* Review text */}
-                                    <p className="text-sm text-manioco-brown/70 leading-relaxed mb-6 line-clamp-4">
-                                       &ldquo;{t.text}&rdquo;
-                                    </p>
-                                    {/* Author */}
-                                    <div className="flex items-center gap-3">
-                                       <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-manioco-cream">
-                                          <img src={t.photo} alt={t.name} className="w-full h-full object-cover" />
+                  {reviews.length > 0 ? (
+                     <div className="relative">
+                        <div className="overflow-hidden">
+                           <div
+                              className="flex transition-transform duration-500 ease-out gap-6"
+                              style={{ transform: `translateX(-${testimonialIndex * (100 / Math.min(3, reviews.length))}%)` }}
+                           >
+                              {reviews.map((t, i) => (
+                                 <div key={t.id || i} className="flex-shrink-0 w-full md:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]">
+                                    <div className="bg-white rounded-3xl p-8 shadow-sm border border-manioco-brown/5 h-full hover:shadow-lg transition-shadow duration-300">
+                                       {/* Stars */}
+                                       <div className="flex items-center gap-1 mb-4">
+                                          {[...Array(Math.max(0, Math.round(t.rating || 0)))].map((_, si) => (
+                                             <Star key={si} size={16} className="fill-[#F4A261] text-[#F4A261]" />
+                                          ))}
+                                          <span className="ml-2 text-sm font-bold text-manioco-brown/60">{t.rating?.toFixed(1)}</span>
                                        </div>
-                                       <div>
-                                          <p className="text-sm font-bold text-manioco-brown">{t.name}</p>
-                                          <p className="text-xs text-manioco-brown/40">{t.role}</p>
+                                       {/* Review text */}
+                                       <p className="text-sm text-manioco-brown/70 leading-relaxed mb-6 line-clamp-4">
+                                          &ldquo;{t.comment}&rdquo;
+                                       </p>
+                                       {/* Author */}
+                                       <div className="flex items-center gap-3">
+                                          <div className="flex items-center justify-center w-10 h-10 rounded-full border-2 border-manioco-cream bg-slate-100 text-sm font-bold text-manioco-brown">
+                                             {t.userName?.charAt(0).toUpperCase() || 'C'}
+                                          </div>
+                                          <div>
+                                             <p className="text-sm font-bold text-manioco-brown">{t.userName}</p>
+                                             <p className="text-xs text-manioco-brown/40">{t.productName ? `Acheté: ${t.productName}` : 'Client Afrigari'}</p>
+                                          </div>
                                        </div>
                                     </div>
                                  </div>
-                              </div>
-                           ))}
+                              ))}
+                           </div>
                         </div>
-                     </div>
 
-                     {/* Slider Controls */}
-                     <div className="flex items-center justify-center gap-4 mt-10">
-                        <button
-                           onClick={() => setTestimonialIndex(Math.max(0, testimonialIndex - 1))}
-                           disabled={testimonialIndex === 0}
-                           className="w-10 h-10 rounded-full border-2 border-manioco-brown/15 flex items-center justify-center text-manioco-brown/40 hover:border-manioco-terracotta hover:text-manioco-terracotta transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                           <ChevronLeft size={18} />
-                        </button>
-                        <div className="flex gap-2">
-                           {testimonials.map((_, i) => (
-                              <button
-                                 key={i}
-                                 onClick={() => setTestimonialIndex(i)}
-                                 className={`w-2.5 h-2.5 rounded-full transition-all ${i === testimonialIndex ? 'bg-manioco-terracotta w-7' : 'bg-manioco-brown/15 hover:bg-manioco-brown/30'}`}
-                              />
-                           ))}
+                        {/* Slider Controls */}
+                        <div className="flex items-center justify-center gap-4 mt-10">
+                           <button
+                              onClick={() => setTestimonialIndex(Math.max(0, testimonialIndex - 1))}
+                              disabled={testimonialIndex === 0}
+                              className="w-10 h-10 rounded-full border-2 border-manioco-brown/15 flex items-center justify-center text-manioco-brown/40 hover:border-manioco-terracotta hover:text-manioco-terracotta transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                           >
+                              <ChevronLeft size={18} />
+                           </button>
+                           <div className="flex gap-2">
+                              {reviews.map((_, i) => (
+                                 <button
+                                    key={i}
+                                    onClick={() => setTestimonialIndex(i)}
+                                    className={`w-2.5 h-2.5 rounded-full transition-all ${i === testimonialIndex ? 'bg-manioco-terracotta w-7' : 'bg-manioco-brown/15 hover:bg-manioco-brown/30'}`}
+                                 />
+                              ))}
+                           </div>
+                           <button
+                              onClick={() => setTestimonialIndex(Math.min(reviews.length - 1, testimonialIndex + 1))}
+                              disabled={testimonialIndex >= reviews.length - 1}
+                              className="w-10 h-10 rounded-full border-2 border-manioco-brown/15 flex items-center justify-center text-manioco-brown/40 hover:border-manioco-terracotta hover:text-manioco-terracotta transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+                           >
+                              <ChevronRight size={18} />
+                           </button>
                         </div>
-                        <button
-                           onClick={() => setTestimonialIndex(Math.min(testimonials.length - 1, testimonialIndex + 1))}
-                           disabled={testimonialIndex >= testimonials.length - 1}
-                           className="w-10 h-10 rounded-full border-2 border-manioco-brown/15 flex items-center justify-center text-manioco-brown/40 hover:border-manioco-terracotta hover:text-manioco-terracotta transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                        >
-                           <ChevronRight size={18} />
-                        </button>
                      </div>
-                  </div>
+                  ) : (
+                     <div className="rounded-3xl bg-white p-12 border border-manioco-brown/10 text-center text-manioco-brown/70">
+                        Aucun avis client n’est disponible pour le moment. Revenez bientôt pour lire les retours de nos utilisateurs.
+                     </div>
+                  )}
                </div>
             </section>
          </main>
@@ -1037,6 +1178,7 @@ export default function HomeView() {
 // ============================================
 
 function ManiocoProductCard({ product, addToCart, handleActionClick, storeId, name, unit, producer, price, img, badge }: any) {
+   const { toggleFavorite, isFavorited } = useFavorites();
    return (
       <div className="group animate-fade-up">
          <div className="bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-manioco-brown/5">
@@ -1048,7 +1190,11 @@ function ManiocoProductCard({ product, addToCart, handleActionClick, storeId, na
                {/* Rating badge */}
                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm rounded-full px-3 py-1.5 flex items-center gap-1 shadow-md">
                   <Star size={12} className="fill-[#F4A261] text-[#F4A261]" />
-                  <span className="text-xs font-bold text-manioco-brown">4.8</span>
+                  <span className="text-xs font-bold text-manioco-brown">
+                     {product?.rating && Number(product.rating) > 0 
+                        ? Number(product.rating).toFixed(1) 
+                        : "4.8"}
+                  </span>
                </div>
 
                {/* Category badge */}
@@ -1072,10 +1218,20 @@ function ManiocoProductCard({ product, addToCart, handleActionClick, storeId, na
                   <span className="text-lg font-extrabold text-manioco-brown">{price.toLocaleString('fr-FR')} <span className="text-xs font-medium text-manioco-brown/40">Fcfa</span></span>
                   <div className="flex gap-2">
                      <button
-                        onClick={(e) => handleActionClick(e, () => { window.location.href = storeId ? `/dashboard/client/messages?sellerId=${storeId}` : "/dashboard/client/messages"; })}
-                        className="w-9 h-9 rounded-full bg-manioco-cream flex items-center justify-center text-manioco-brown/40 cursor-pointer hover:bg-manioco-terracotta/10 hover:text-manioco-terracotta transition-all"
+                        onClick={(e) => handleActionClick(e, () => toggleFavorite(String(product.id)))}
+                        className={`relative z-20 w-9 h-9 rounded-full flex items-center justify-center cursor-pointer transition-all duration-200 ${
+                           isFavorited(String(product.id))
+                              ? 'bg-manioco-terracotta/10 text-manioco-terracotta scale-110'
+                              : 'bg-manioco-cream text-manioco-brown/40 hover:bg-manioco-terracotta/10 hover:text-manioco-terracotta'
+                        }`}
+                        title={isFavorited(String(product.id)) ? 'Retirer des favoris' : 'Ajouter aux favoris'}
                      >
-                        <Heart size={14} />
+                        <Heart
+                           size={14}
+                           className={`transition-all duration-200 ${
+                              isFavorited(String(product.id)) ? 'fill-manioco-terracotta text-manioco-terracotta' : ''
+                           }`}
+                        />
                      </button>
                      <button
                         onClick={(e) => handleActionClick(e, () => addToCart(product))}

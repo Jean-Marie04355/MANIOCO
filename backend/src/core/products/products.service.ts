@@ -24,6 +24,8 @@ export class ProductsService {
   constructor(
     @Inject('PRODUCT_REPOSITORY')
     private readonly repo: IBaseRepository<Product>,
+    @Inject('PRODUCT_REVIEW_REPOSITORY')
+    private readonly reviewRepo: IBaseRepository<any>,
     private readonly storeService: StoreService,
     private readonly storageService: S3StorageService,
     private readonly cache: CacheService,
@@ -180,5 +182,55 @@ export class ProductsService {
     if (this.realtimeGateway.server) {
       this.realtimeGateway.server.emit('catalog_updated', { type: 'product' });
     }
+  }
+
+  async addReview(
+    productId: string,
+    rating: number,
+    comment: string,
+    user: AuthenticatedUser,
+  ) {
+    const product = await this.findOne(productId);
+    if (!product) throw new NotFoundException('Produit non trouvé');
+
+    // Create review
+    const review = await this.reviewRepo.create({
+      productId,
+      userId: user.userId,
+      userName: user.name || 'Client',
+      rating: Number(rating),
+      comment: comment || '',
+    });
+
+    // Recalculate average rating
+    const reviews = await this.reviewRepo.find({ where: { productId } } as any);
+    const totalRating = reviews.reduce((sum: number, r: any) => sum + Number(r.rating), 0);
+    const ratingsCount = reviews.length;
+    const avgRating = ratingsCount > 0 ? Number((totalRating / ratingsCount).toFixed(2)) : 0.0;
+
+    // Update product rating and ratingsCount
+    await this.repo.update(productId, {
+      rating: avgRating,
+      ratingsCount,
+    } as any);
+
+    // Clear cache & emit WS
+    await this.cache.del(PRODUCTS_CACHE_KEY);
+    this.broadcastUpdate();
+
+    return review;
+  }
+
+  async findAllReviews() {
+    const reviews = await this.reviewRepo.find({ relations: ['product'] } as any);
+
+    return reviews.map((review: any) => ({
+      id: review.id,
+      rating: review.rating,
+      comment: review.comment,
+      userName: review.userName,
+      productName: review.product?.name,
+      createdAt: review.createdAt,
+    }));
   }
 }

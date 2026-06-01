@@ -40,6 +40,14 @@ vi.mock('@/features/cart/CartContext', () => ({
   }),
 }));
 
+vi.mock('@/features/favorites/FavoritesContext', () => ({
+  useFavorites: () => ({
+    toggleFavorite: vi.fn(),
+    isFavorited: () => false,
+    totalFavorites: 0,
+  }),
+}));
+
 vi.mock('@/components/CartDrawer', () => ({
   default: () => <div data-testid="cart-drawer" />,
 }));
@@ -105,7 +113,7 @@ describe('ShopDetailsView', () => {
 
     render(<ShopDetailsView isPublic={false} />);
     await waitFor(() => {
-      expect(screen.getByText(/Vous visualisez votre boutique/i)).toBeInTheDocument();
+      expect(screen.getByText(/Mode Aperçu/i)).toBeInTheDocument();
     });
   });
 
@@ -159,7 +167,7 @@ describe('ShopDetailsView', () => {
     render(<ShopDetailsView isPublic={false} />);
     
     await waitFor(async () => {
-      const contactBtn = screen.getByText(/Ouvrir le Chat/i);
+      const contactBtn = screen.getByText(/Contacter/i);
       fireEvent.click(contactBtn);
       await waitFor(() => {
         expect(api.post).toHaveBeenCalled();

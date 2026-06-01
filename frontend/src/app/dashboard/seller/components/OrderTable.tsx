@@ -33,7 +33,7 @@ export interface Order {
   client: string;
   date: string;
   amount: string;
-  status: 'En attente' | 'Confirmée' | 'Expédiée' | 'Annulée';
+  status: 'En attente' | 'Confirmée' | 'Expédiée' | 'Expédiée avec succès' | "Échec d'expédition" | 'Annulée';
   itemCount: number;
   items: OrderItem[];
 }
@@ -61,6 +61,10 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
         return 'bg-blue-50 text-blue-600 border-blue-100';
       case 'Expédiée':
         return 'bg-orange-50 text-orange-600 border-orange-100';
+      case 'Expédiée avec succès':
+        return 'bg-emerald-50 text-emerald-600 border-emerald-100 font-bold';
+      case "Échec d'expédition":
+        return 'bg-rose-50 text-rose-600 border-rose-100 font-bold';
       case 'Annulée':
         return 'bg-red-50 text-red-600 border-red-100';
       default:
@@ -73,6 +77,8 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
       case 'Confirmée': return <CheckCircle2 size={14} />;
       case 'En attente': return <Clock size={14} />;
       case 'Expédiée': return <Truck size={14} />;
+      case 'Expédiée avec succès': return <CheckCircle2 size={14} className="text-emerald-600" />;
+      case "Échec d'expédition": return <XCircle size={14} className="text-rose-600" />;
       case 'Annulée': return <XCircle size={14} />;
     }
   };
@@ -137,38 +143,40 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
                       >
                         <Eye size={18} />
                       </button>
-                      <div className="relative">
-                        <button 
-                          onClick={() => setActiveMenu(activeMenu === order.id ? null : order.id)}
-                          className={`p-2 rounded-xl transition-all ${activeMenu === order.id ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
-                        >
-                          <MoreVertical size={18} />
-                        </button>
-                        
-                        {activeMenu === order.id && (
-                          <>
-                            <button 
-                              type="button"
-                              aria-label="Fermer le menu"
-                              className="fixed inset-0 z-[60] bg-transparent border-none w-full h-full cursor-default" 
-                              onClick={() => setActiveMenu(null)}
-                              onKeyDown={(e) => { if (e.key === 'Escape') setActiveMenu(null); }}
-                            ></button>
-                            <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
-                              <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">Changer statut</p>
-                              <button onClick={() => { onStatusChange(order.id, 'Confirmée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
-                                <CheckCircle2 size={14} /> Confirmer
-                              </button>
-                              <button onClick={() => { onStatusChange(order.id, 'Expédiée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors flex items-center gap-2">
-                                <Truck size={14} /> Expédier
-                              </button>
-                              <button onClick={() => { onStatusChange(order.id, 'Annulée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
-                                <XCircle size={14} /> Annuler
-                              </button>
-                            </div>
-                          </>
-                        )}
-                      </div>
+                      {!['Annulée', 'Expédiée avec succès', "Échec d'expédition"].includes(order.status) && (
+                        <div className="relative">
+                          <button 
+                            onClick={() => setActiveMenu(activeMenu === order.id ? null : order.id)}
+                            className={`p-2 rounded-xl transition-all ${activeMenu === order.id ? 'bg-slate-100 text-slate-900' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-100'}`}
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+                          
+                          {activeMenu === order.id && (
+                            <>
+                              <button 
+                                type="button"
+                                aria-label="Fermer le menu"
+                                className="fixed inset-0 z-[60] bg-transparent border-none w-full h-full cursor-default" 
+                                onClick={() => setActiveMenu(null)}
+                                onKeyDown={(e) => { if (e.key === 'Escape') setActiveMenu(null); }}
+                              ></button>
+                              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-2xl shadow-2xl border border-slate-100 py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-200">
+                                <p className="px-4 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 mb-1">Changer statut</p>
+                                <button onClick={() => { onStatusChange(order.id, 'Confirmée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
+                                  <CheckCircle2 size={14} /> Confirmer
+                                </button>
+                                <button onClick={() => { onStatusChange(order.id, 'Expédiée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors flex items-center gap-2">
+                                  <Truck size={14} /> Expédier
+                                </button>
+                                <button onClick={() => { onStatusChange(order.id, 'Annulée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
+                                  <XCircle size={14} /> Annuler
+                                </button>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </td>
                 </tr>

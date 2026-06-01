@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/features/auth/AuthContext";
 import { CartProvider } from "@/features/cart/CartContext";
 import { SocketProvider } from "@/features/realtime/SocketContext";
+import { FavoritesProvider } from "@/features/favorites/FavoritesContext";
 
 export const metadata: Metadata = {
   title: "Afrigari - Marché d'Excellence Africaine",
@@ -24,7 +25,9 @@ export default function RootLayout({
         <AuthProvider>
           <SocketProvider>
             <CartProvider>
-              {children}
+              <FavoritesProvider>
+                {children}
+              </FavoritesProvider>
             </CartProvider>
           </SocketProvider>
         </AuthProvider>

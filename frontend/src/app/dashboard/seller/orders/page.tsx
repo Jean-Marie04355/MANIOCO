@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
@@ -78,7 +78,8 @@ export default function SellerOrders() {
       case 'PENDING': return 'En attente';
       case 'PAID': return 'Confirmée';
       case 'SHIPPED': return 'Expédiée';
-      case 'DELIVERED': return 'Expédiée';
+      case 'DELIVERED': return 'Expédiée avec succès';
+      case 'FAILED': return "Échec d'expédition";
       case 'CANCELLED': return 'Annulée';
       default: return 'En attente';
     }
@@ -145,7 +146,7 @@ export default function SellerOrders() {
     { label: "Total commandes", value: orders.length, icon: ShoppingBag, color: "bg-slate-100 text-slate-600" },
     { label: "En attente", value: orders.filter(o => o.status === "En attente").length, icon: Clock, color: "bg-blue-100 text-blue-600" },
     { label: "Confirmées", value: orders.filter(o => o.status === "Confirmée").length, icon: CheckCircle2, color: "bg-green-100 text-green-600" },
-    { label: "Expédiées", value: orders.filter(o => o.status === "Expédiée").length, icon: Truck, color: "bg-orange-100 text-orange-600" },
+    { label: "Expédiées / Livrées", value: orders.filter(o => ["Expédiée", "Expédiée avec succès", "Échec d'expédition"].includes(o.status)).length, icon: Truck, color: "bg-orange-100 text-orange-600" },
   ];
 
   if (isLoading) {

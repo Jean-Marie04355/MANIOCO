@@ -25,6 +25,7 @@ import { ChatModule } from './core/chat/chat.module';
 import { NotificationsModule } from './core/notifications/notifications.module';
 import { SupportModule } from './core/support/support.module';
 import { ReportsModule } from './core/reports/reports.module';
+import { FavoritesModule } from './core/favorites/favorites.module';
 import { MailerModule } from './libs/mailer/mailer.module';
 
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -58,6 +59,7 @@ import { join } from 'node:path';
     NotificationsModule,
     SupportModule,
     ReportsModule,
+    FavoritesModule,
     MailerModule,
   ],
 

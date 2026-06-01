@@ -2,7 +2,11 @@
 import { useState, useEffect, useRef, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Send, ArrowLeft, Store, MessageSquare, Loader2, CheckCheck, Phone, Video, MoreVertical, Search, ShieldCheck, Image as ImageIcon } from 'lucide-react';
+import {
+  Send, ArrowLeft, MessageSquare, Loader2, CheckCheck,
+  Search, ShieldCheck, Image as ImageIcon, Sparkles,
+  ChevronLeft, Package, X
+} from 'lucide-react';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useSocket } from '@/features/realtime/SocketContext';
@@ -18,51 +22,46 @@ function ClientMessagesContent() {
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showMobileSidebar, setShowMobileSidebar] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const getImageUrl = (path: string) => {
-    if (!path || String(path).trim() === '' || path === 'null') return "https://i.pravatar.cc/100?u=shop";
-    
+    if (!path || String(path).trim() === '' || path === 'null')
+      return "https://i.pravatar.cc/100?u=shop";
     if (path.startsWith('http') || path.startsWith('data:')) return path;
-    
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    
-    // Si le chemin contient déjà 'uploads/', on s'assure juste du slash initial
     let finalPath = path;
     if (!path.includes('uploads/')) {
-       finalPath = `/uploads${path.startsWith('/') ? '' : '/'}${path}`;
+      finalPath = `/uploads${path.startsWith('/') ? '' : '/'}${path}`;
     } else {
-       finalPath = path.startsWith('/') ? path : `/${path}`;
+      finalPath = path.startsWith('/') ? path : `/${path}`;
     }
-    
-    const finalUrl = `${apiUrl}${finalPath}`;
-    return finalUrl;
+    return `${apiUrl}${finalPath}`;
   };
 
   useEffect(() => {
     const fetchConversations = async () => {
       try {
         let initialConvId = null;
-        
-        // If we have a target seller, initialize that conversation first
         if (targetSellerId) {
-           try {
-              const initRes = await api.post('/chat/conversations/init', { storeId: targetSellerId });
-              initialConvId = initRes.data.id;
-           } catch (e) {
-              console.error("Erreur initiation conversation", e);
-           }
+          try {
+            const initRes = await api.post('/chat/conversations/init', { storeId: targetSellerId });
+            initialConvId = initRes.data.id;
+          } catch (e) {
+            console.error("Erreur initiation conversation", e);
+          }
         }
-
         const res = await api.get('/chat/conversations');
         setConversations(res.data);
-        
         if (initialConvId) {
-           const found = res.data.find((c: any) => c.id === initialConvId);
-           if (found) {
-              setActiveConv(found);
-           }
+          const found = res.data.find((c: any) => c.id === initialConvId);
+          if (found) {
+            setActiveConv(found);
+            setShowMobileSidebar(false);
+          }
         }
       } catch (error) {
         console.error("Erreur chargement conversations", error);
@@ -85,27 +84,25 @@ function ClientMessagesContent() {
         }
       };
       fetchMessages();
-
       socket.emit('join_conversation', { conversationId: activeConv.id });
-
       const handleNewMessage = (msg: any) => {
-        // Ne pas ajouter si c'est un message d'une autre conversation (le socket global reçoit tout)
         if (String(msg.conversationId) !== String(activeConv.id)) return;
-        
         setMessages(prev => {
           if (prev.some(m => m.id === msg.id)) return prev;
           return [...prev, msg];
         });
         setTimeout(scrollToBottom, 100);
       };
-
       socket.on('new_message', handleNewMessage);
-
-      return () => {
-        socket.off('new_message', handleNewMessage);
-      };
+      return () => { socket.off('new_message', handleNewMessage); };
     }
   }, [activeConv?.id, socket]);
+
+  useEffect(() => {
+    if (activeConv) {
+      api.patch(`/chat/conversations/${activeConv.id}/read`).catch(() => {});
+    }
+  }, [activeConv?.id]);
 
   const scrollToBottom = () => {
     if (scrollRef.current) {
@@ -113,16 +110,8 @@ function ClientMessagesContent() {
     }
   };
 
-  useEffect(() => {
-    if (activeConv) {
-       // Marquer comme lu
-       api.patch(`/chat/conversations/${activeConv.id}/read`).catch(() => { /* error handled silently */ });
-    }
-  }, [activeConv?.id]);
-
   const handleSend = async () => {
     if (!inputText.trim() || !activeConv || isSending) return;
-    
     const textToSend = inputText;
     const tempMsg = {
       id: `temp-${Date.now()}`,
@@ -130,23 +119,16 @@ function ClientMessagesContent() {
       senderId: user?.id,
       createdAt: new Date().toISOString(),
     };
-    
     setMessages(prev => [...prev, tempMsg]);
     setInputText('');
     setTimeout(scrollToBottom, 50);
-
     setIsSending(true);
     try {
-      await api.post('/chat/messages', {
-        conversationId: activeConv.id,
-        text: textToSend
-      });
-      // Rafraîchir les messages
+      await api.post('/chat/messages', { conversationId: activeConv.id, text: textToSend });
       const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
       setMessages(res.data);
     } catch (error) {
       console.error("Erreur envoi", error);
-      alert("Erreur lors de l'envoi du message.");
     } finally {
       setIsSending(false);
       setTimeout(scrollToBottom, 50);
@@ -156,226 +138,444 @@ function ClientMessagesContent() {
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !activeConv || isSending) return;
-
     setIsSending(true);
     const formData = new FormData();
     formData.append('file', file);
-
     try {
       const uploadRes = await api.post('/files/upload', formData);
-      const imageUrl = uploadRes.data.path;
-
       await api.post('/chat/messages', {
         conversationId: activeConv.id,
         text: '',
-        image: imageUrl
+        image: uploadRes.data.path
       });
-
       const res = await api.get(`/chat/conversations/${activeConv.id}/messages`);
       setMessages(res.data);
       setTimeout(scrollToBottom, 50);
     } catch (error) {
       console.error("Erreur envoi image", error);
-      alert("Erreur lors de l'envoi de l'image");
     } finally {
       setIsSending(false);
     }
   };
 
+  const openConv = (c: any) => {
+    setActiveConv(c);
+    setShowMobileSidebar(false);
+  };
+
+  const filteredConversations = conversations.filter(c => {
+    const name = getStoreName(c).toLowerCase();
+    return name.includes(searchQuery.toLowerCase());
+  });
+
+  const storeName = activeConv ? getStoreName(activeConv) : '';
+
   return (
-    <div className="bg-[#fcfbf7] h-screen flex flex-col text-[#1a2e22] font-sans overflow-hidden">
-      
-      {/* Header Premium */}
-      <nav className="bg-white/80 backdrop-blur-md px-12 py-5 flex justify-between items-center border-b border-[#1a2e22]/5 z-20">
-        <Link href="/dashboard/client" className="flex items-center gap-4 group">
-          <div className="w-10 h-10 rounded-full border border-[#1a2e22]/10 flex items-center justify-center group-hover:bg-[#1a2e22] group-hover:text-white transition-all">
-            <ArrowLeft size={18} />
+    <div className="bg-[#FAF7F2] h-screen flex flex-col font-sans overflow-hidden" style={{ fontFamily: "'Inter', sans-serif" }}>
+
+      {/* ── TOP NAV ─────────────────────────────────────────── */}
+      <nav className="relative z-30 flex items-center justify-between px-6 md:px-10 py-4 bg-white/95 backdrop-blur-xl border-b border-manioco-brown/10 shadow-[0_4px_30px_rgba(92,45,35,0.08)]">
+        {/* Left — back */}
+        <Link href="/dashboard/client" className="flex items-center gap-3 group">
+          <div className="w-9 h-9 rounded-full border border-manioco-brown/10 flex items-center justify-center group-hover:bg-manioco-terracotta/10 transition-all">
+            <ChevronLeft size={18} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
           </div>
-          <span className="font-black text-[11px] uppercase tracking-widest text-[#1a2e22]/40 group-hover:text-[#1a2e22]">Retour au Dashboard</span>
+          <span className="hidden md:block text-[10px] font-black uppercase tracking-[0.3em] text-manioco-brown/50 group-hover:text-manioco-terracotta transition-colors">
+            Dashboard
+          </span>
         </Link>
-        <div className="flex items-center gap-3">
-           <div className="w-8 h-8 rounded-lg bg-[#1a2e22] flex items-center justify-center text-[#c5a059] rotate-3">
-              <MessageSquare size={16} />
-           </div>
-           <h2 className="font-black text-2xl tracking-tighter uppercase italic">Afrigari <span className="text-[#c5a059]">Chat</span></h2>
-        </div>
-        <div className="flex items-center gap-4">
-           <div className="w-10 h-10 rounded-full bg-[#1a2e22]/5 flex items-center justify-center font-black text-xs overflow-hidden border border-[#1a2e22]/10 shadow-sm">
-              {user?.profilePhoto ? (
-                 <img src={getImageUrl(user.profilePhoto)} alt="Profil" className="w-full h-full object-cover" />
-              ) : (
-                 <span>{user?.name?.[0] || 'U'}</span>
-              )}
-           </div>
+
+        {/* Center — branding */}
+        <Link href="/" className="flex items-center gap-1.5 group animate-reveal">
+          <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">Mani</span>
+          <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">o</span>
+          <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">c</span>
+          <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">o</span>
+          <span className="ml-2 px-2.5 py-0.5 rounded-full bg-manioco-terracotta/10 text-manioco-terracotta text-[9px] font-extrabold uppercase tracking-wider">Chat</span>
+        </Link>
+
+        {/* Right — avatar */}
+        <div className="w-10 h-10 rounded-full border-2 border-manioco-terracotta/20 bg-manioco-cream flex items-center justify-center text-manioco-brown font-bold text-sm overflow-hidden shadow-md">
+          {user?.profilePhoto ? (
+            <img src={getImageUrl(user.profilePhoto)} alt="Profil" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-manioco-brown font-bold text-sm">{user?.name?.[0] || 'U'}</span>
+          )}
         </div>
       </nav>
 
-      <div className="flex-1 flex overflow-hidden">
-        
-        {/* Sidebar Discussions */}
-        <aside className="w-[380px] bg-white border-r border-[#1a2e22]/5 flex flex-col overflow-hidden">
-          <div className="p-8">
-             <div className="relative mb-8">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-[#1a2e22]/20" size={16} />
-                <input 
-                   type="text" 
-                   placeholder="Rechercher un artisan..." 
-                   className="w-full bg-[#1a2e22]/5 border-none rounded-2xl py-3 pl-12 pr-6 text-xs font-bold outline-none focus:ring-2 focus:ring-[#c5a059]/20"
-                />
-             </div>
-             <p className="text-[10px] font-black text-[#c5a059] uppercase tracking-[0.4em] mb-4">Discussions Récentes</p>
+      {/* ── BODY ───────────────────────────────────────────── */}
+      <div className="flex flex-1 overflow-hidden">
+
+        {/* ── SIDEBAR ──────────────────────────────────────── */}
+        <aside className={`
+          ${showMobileSidebar ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          absolute md:relative z-20 md:z-auto
+          w-[320px] md:w-[340px] h-full
+          bg-white border-r border-manioco-brown/10
+          flex flex-col transition-transform duration-300
+          shadow-2xl md:shadow-none
+        `}>
+
+          {/* Sidebar Header */}
+          <div className="px-7 pt-7 pb-4">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <p className="text-[9px] font-black text-manioco-terracotta uppercase tracking-[0.4em] mb-0.5">Messagerie</p>
+                <h2 className="text-lg font-black text-manioco-brown uppercase tracking-tight">Conversations</h2>
+              </div>
+              <div className="w-9 h-9 rounded-2xl bg-manioco-brown/5 flex items-center justify-center">
+                <Sparkles size={16} className="text-manioco-terracotta" />
+              </div>
+            </div>
+
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-manioco-brown/25" size={15} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Chercher un vendeur..."
+                className="w-full bg-manioco-brown/5 rounded-2xl py-3 pl-11 pr-4 text-[12px] font-semibold text-manioco-brown placeholder:text-manioco-brown/25 outline-none focus:ring-2 focus:ring-manioco-terracotta/30 border border-transparent focus:border-manioco-terracotta/20 transition-all"
+              />
+            </div>
+
+            <p className="text-[9px] font-black text-manioco-brown/30 uppercase tracking-[0.3em] mt-6 mb-3">
+              {filteredConversations.length} discussion{filteredConversations.length !== 1 ? 's' : ''}
+            </p>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-4 pb-8 space-y-2">
-                {isLoading ? (
-                   <div className="p-10 flex justify-center"><Loader2 className="animate-spin text-[#c5a059]" /></div>
-                ) : conversations.length === 0 ? (
-                   <div className="p-10 text-center">
-                      <p className="text-[11px] font-bold text-slate-300 uppercase italic leading-relaxed">Aucune conversation <br /> n'a été initiée.</p>
-                   </div>
-                ) : (
-                   conversations.map((c) => {
-                      const storeName = getStoreName(c);
-                      const isActive = activeConv?.id === c.id;
-                      return (
-                        <button 
-                           key={c.id} 
-                           onClick={() => setActiveConv(c)}
-                           className={`p-5 rounded-[32px] flex items-center gap-4 cursor-pointer transition-all duration-500 text-left w-full border-none ${isActive ? 'bg-[#1a2e22] text-white shadow-2xl scale-[1.02]' : 'hover:bg-[#1a2e22]/5 bg-transparent'}`}
-                        >
-                           <div className="w-14 h-14 rounded-2xl bg-[#f4f1ea] overflow-hidden flex items-center justify-center shrink-0 shadow-inner">
-                              <img src={getImageUrl(c.store?.profilePhoto)} alt={storeName} className="w-full h-full object-cover" />
-                           </div>
-                           <div className="flex-1 min-w-0">
-                              <div className="flex justify-between items-start mb-1">
-                                 <h4 className={`text-sm font-black truncate uppercase ${isActive ? 'text-white' : 'text-[#1a2e22]'}`}>{storeName}</h4>
-                                 <span className={`text-[8px] font-black uppercase opacity-40 ${isActive ? 'text-[#c5a059]' : ''}`}>
-                                    {c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
-                                 </span>
-                              </div>
-                              <p className={`text-[10px] truncate font-medium ${isActive ? 'text-white/60' : 'text-slate-400'}`}>{c.lastMessageText || 'Commencez la discussion...'}</p>
-                           </div>
-                        </button>
-                      );
-                   })
-                )}
+          {/* Conversations list */}
+          <div className="flex-1 overflow-y-auto px-4 pb-6 space-y-2 custom-scrollbar">
+            {isLoading ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-3">
+                <Loader2 className="animate-spin text-manioco-terracotta" size={28} />
+                <p className="text-[10px] font-black uppercase text-manioco-brown/30 tracking-widest">Chargement...</p>
+              </div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 gap-4 text-center px-6">
+                <div className="w-16 h-16 rounded-[24px] bg-manioco-brown/5 flex items-center justify-center rotate-6">
+                  <MessageSquare size={28} className="text-manioco-terracotta/40" />
+                </div>
+                <div>
+                  <p className="text-sm font-black text-manioco-brown/30 uppercase tracking-tight">Aucune conversation</p>
+                  <p className="text-[10px] text-manioco-brown/20 font-medium mt-1">Commandez un produit pour démarrer un chat avec un vendeur.</p>
+                </div>
+              </div>
+            ) : (
+              filteredConversations.map((c) => {
+                const name = getStoreName(c);
+                const isActive = activeConv?.id === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    onClick={() => openConv(c)}
+                    className={`
+                      w-full p-4 rounded-[20px] flex items-center gap-4 text-left transition-all duration-300 border
+                      ${isActive
+                        ? 'bg-manioco-brown text-white shadow-xl shadow-manioco-brown/20 scale-[1.01]'
+                        : 'bg-transparent border-transparent hover:bg-manioco-brown/5 hover:border-manioco-brown/10'
+                      }
+                    `}
+                  >
+                    {/* Avatar */}
+                    <div className={`relative w-12 h-12 rounded-2xl overflow-hidden shrink-0 shadow-md ${isActive ? 'ring-2 ring-manioco-terracotta/60 ring-offset-2 ring-offset-manioco-brown' : ''}`}>
+                      <img
+                        src={getImageUrl(c.store?.profilePhoto)}
+                        alt={name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute bottom-0.5 right-0.5 w-3 h-3 bg-emerald-400 rounded-full border-2 border-white" />
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start mb-0.5">
+                        <h4 className={`text-[12px] font-black uppercase truncate tracking-tight ${isActive ? 'text-white' : 'text-manioco-brown'}`}>
+                          {name}
+                        </h4>
+                        <span className={`text-[9px] font-bold shrink-0 ml-2 ${isActive ? 'text-manioco-terracotta' : 'text-manioco-brown/25'}`}>
+                          {c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span>
+                      </div>
+                      <p className={`text-[11px] truncate font-medium leading-tight ${isActive ? 'text-white/50' : 'text-manioco-brown/40'}`}>
+                        {c.lastMessageText || 'Commencer la discussion...'}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })
+            )}
           </div>
         </aside>
 
-        {/* Chat Area Section */}
-        <main className="flex-1 flex flex-col bg-[#fcfbf7] relative">
-          
-          {/* Subtle Background Pattern */}
-          <div className="absolute inset-0 opacity-[0.03] pointer-events-none select-none overflow-hidden flex items-center justify-center">
-             <span className="text-[30rem] font-black rotate-12">AFRIGARI</span>
+        {/* ── CHAT AREA ─────────────────────────────────────── */}
+        <main className="flex-1 flex flex-col overflow-hidden relative bg-[#FAF7F2]">
+
+          {/* Subtle watermark */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+            <span className="text-[18rem] font-black text-manioco-brown/[0.015] rotate-[-12deg] tracking-tighter leading-none">
+              MANIOCO
+            </span>
           </div>
 
           {activeConv ? (
-             <>
-                {/* Chat Header Area */}
-                <div className="p-6 bg-white/50 backdrop-blur-md border-b border-[#1a2e22]/5 flex items-center justify-between z-10">
-                   <div className="flex items-center gap-5">
-                      <button 
-                         onClick={() => setActiveConv(null)} 
-                         className="p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all text-[#1a2e22]/40 hover:text-[#1a2e22]"
-                         title="Retour à la liste"
-                      >
-                         <ArrowLeft size={22} />
-                      </button>
-                      <div className="flex items-center gap-4">
-                         <div className="relative">
-                            <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white shadow-lg">
-                               <img src={getImageUrl(activeConv.store?.profilePhoto)} alt={activeConv.store?.name || 'Artisan'} className="w-full h-full object-cover" />
-                            </div>
-                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-4 border-white rounded-full"></div>
-                         </div>
-                         <div>
-                            <h4 className="text-lg font-black uppercase tracking-tight">{activeConv.store?.name || activeConv.store?.owner?.name || 'Artisan Afrigari'}</h4>
-                            <div className="flex items-center gap-2 text-[9px] font-black text-[#c5a059] uppercase tracking-widest mt-1">
-                               <ShieldCheck size={12} />
-                               <span>Vendeur Certifié Afrigari</span>
-                            </div>
-                         </div>
-                      </div>
-                   </div>
-                   <div className="flex items-center gap-4 text-[#1a2e22]/20">
-                      <button className="p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all hover:text-[#1a2e22]"><Phone size={20} /></button>
-                      <button className="p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all hover:text-[#1a2e22]"><Video size={20} /></button>
-                      <button className="p-3 hover:bg-[#1a2e22]/5 rounded-2xl transition-all hover:text-[#1a2e22]"><MoreVertical size={20} /></button>
-                   </div>
+            <>
+              {/* ── Chat Top Bar */}
+              <div className="relative z-10 flex items-center justify-between px-6 md:px-8 py-4 bg-white/70 backdrop-blur-xl border-b border-manioco-brown/10 shadow-sm">
+                <div className="flex items-center gap-4">
+                  {/* Mobile back */}
+                  <button
+                    onClick={() => setShowMobileSidebar(true)}
+                    className="md:hidden w-9 h-9 rounded-2xl bg-manioco-brown/5 flex items-center justify-center text-manioco-brown/50 hover:text-manioco-brown transition-colors"
+                  >
+                    <ArrowLeft size={18} />
+                  </button>
+
+                  {/* Store avatar */}
+                  <div className="relative">
+                    <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-white shadow-lg">
+                      <img
+                        src={getImageUrl(activeConv.store?.profilePhoto)}
+                        alt={storeName}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full" />
+                  </div>
+
+                  {/* Store name + badge */}
+                  <div>
+                    <h3 className="text-[15px] font-black text-manioco-brown uppercase tracking-tight">
+                      {storeName}
+                    </h3>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                      <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full" />
+                      <span className="text-[9px] font-black text-emerald-500 uppercase tracking-widest">En ligne</span>
+                      <span className="text-manioco-brown/20 mx-1">·</span>
+                      <ShieldCheck size={10} className="text-manioco-terracotta" />
+                      <span className="text-[9px] font-black text-manioco-terracotta uppercase tracking-widest">Vendeur Certifié</span>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Messages List Area */}
-                <div ref={scrollRef} className="flex-1 overflow-y-auto p-10 space-y-8 scroll-smooth relative z-10">
-                    {messages.map((m) => {
-                      const isMe = checkIsMe(m, user);
-                      
-                      return (
-                        <div key={m.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} animate-reveal`}>
-                           <div className="flex flex-col max-w-[65%]">
-                              <div className={`p-5 rounded-[32px] shadow-sm ${isMe ? 'bg-[#1a2e22] text-white rounded-tr-none' : 'bg-white text-[#1a2e22] rounded-tl-none border border-[#1a2e22]/5'}`}>
-                                 {m.image && (
-                                   <div className="relative w-full max-w-[280px] aspect-square mb-3 rounded-2xl overflow-hidden border border-[#1a2e22]/10 shadow-sm cursor-pointer">
-                                     <img 
-                                       src={getImageUrl(m.image)} 
-                                       alt="Envoyé" 
-                                       className="object-cover w-full h-full hover:scale-110 transition-transform duration-700" 
-                                     />
-                                   </div>
-                                 )}
-                                 <p className="text-sm font-medium leading-relaxed">{m.text}</p>
-                              </div>
-                              <div className={`flex items-center gap-2 mt-2 px-2 text-[9px] font-black uppercase opacity-30 ${isMe ? 'justify-end' : 'justify-start'}`}>
-                                 {new Date(m.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
-                                 {isMe && <CheckCheck size={12} className="text-[#c5a059]" />}
-                              </div>
-                           </div>
+                {/* Actions */}
+                <div className="flex items-center gap-2">
+                  <Link
+                    href="/dashboard/client/orders"
+                    className="hidden md:flex items-center gap-2 px-4 py-2 rounded-2xl bg-manioco-brown/5 text-manioco-brown/50 hover:bg-manioco-brown/10 hover:text-manioco-brown transition-all text-[10px] font-black uppercase tracking-widest"
+                  >
+                    <Package size={14} />
+                    Commandes
+                  </Link>
+                </div>
+              </div>
+
+              {/* ── Messages Area */}
+              <div
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto px-6 md:px-10 py-8 space-y-5 relative z-10 scroll-smooth"
+              >
+                {messages.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-full gap-4 text-center py-16">
+                    <div className="w-20 h-20 rounded-[28px] bg-white shadow-xl flex items-center justify-center rotate-6 border border-manioco-brown/5">
+                      <MessageSquare size={36} className="text-manioco-terracotta/30" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-manioco-brown/30 uppercase tracking-tight">Aucun message</p>
+                      <p className="text-[11px] text-manioco-brown/20 mt-1">Soyez le premier à écrire !</p>
+                    </div>
+                  </div>
+                )}
+
+                {messages.map((m, idx) => {
+                  const isMe = checkIsMe(m, user);
+                  const showDate = idx === 0 || (
+                    new Date(messages[idx - 1].createdAt).toDateString() !== new Date(m.createdAt).toDateString()
+                  );
+
+                  return (
+                    <div key={m.id}>
+                      {/* Date separator */}
+                      {showDate && (
+                        <div className="flex items-center gap-4 my-4">
+                          <div className="flex-1 h-px bg-manioco-brown/10" />
+                          <span className="text-[9px] font-black uppercase tracking-widest text-manioco-brown/25 bg-[#FAF7F2] px-3">
+                            {new Date(m.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long' })}
+                          </span>
+                          <div className="flex-1 h-px bg-manioco-brown/10" />
                         </div>
-                      );
-                    })}
+                      )}
+
+                      <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} group`}>
+                        {/* Other user avatar */}
+                        {!isMe && (
+                          <div className="w-8 h-8 rounded-xl overflow-hidden shrink-0 mr-3 mt-auto mb-1 shadow-md">
+                            <img
+                              src={getImageUrl(activeConv.store?.profilePhoto)}
+                              alt="Vendeur"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        )}
+
+                        <div className="flex flex-col max-w-[65%]">
+                          {/* Bubble */}
+                          <div className={`
+                            px-5 py-3.5 shadow-sm
+                            ${isMe
+                              ? 'bg-manioco-brown text-white rounded-[20px] rounded-tr-[4px]'
+                              : 'bg-white text-manioco-brown rounded-[20px] rounded-tl-[4px] border border-manioco-brown/10'
+                            }
+                          `}>
+                            {/* Image attachment */}
+                            {m.image && (
+                              <div className="relative w-full max-w-[260px] aspect-square mb-3 rounded-2xl overflow-hidden shadow-md">
+                                <img
+                                  src={getImageUrl(m.image)}
+                                  alt="Image"
+                                  className="object-cover w-full h-full hover:scale-105 transition-transform duration-700"
+                                />
+                              </div>
+                            )}
+                            {m.text && (
+                              <p className={`text-[13px] font-medium leading-relaxed ${isMe ? 'text-white/90' : 'text-manioco-brown'}`}>
+                                {m.text}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Timestamp + read status */}
+                          <div className={`flex items-center gap-1.5 mt-1.5 px-1 opacity-0 group-hover:opacity-100 transition-opacity ${isMe ? 'justify-end' : 'justify-start'}`}>
+                            <span className="text-[9px] font-bold text-manioco-brown/30 uppercase">
+                              {new Date(m.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                            {isMe && <CheckCheck size={12} className="text-manioco-terracotta" />}
+                          </div>
+                        </div>
+
+                        {/* My avatar */}
+                        {isMe && (
+                          <div className="w-8 h-8 rounded-xl bg-manioco-brown/10 border border-manioco-brown/10 shrink-0 ml-3 mt-auto mb-1 flex items-center justify-center overflow-hidden shadow-md">
+                            {user?.profilePhoto ? (
+                              <img src={getImageUrl(user.profilePhoto)} alt="Moi" className="w-full h-full object-cover" />
+                            ) : (
+                              <span className="text-[10px] font-black text-manioco-brown">{user?.name?.[0] || 'M'}</span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ── Input Bar */}
+              <div className="relative z-10 px-6 md:px-8 py-5 bg-white/60 backdrop-blur-xl border-t border-manioco-brown/10">
+                <div className="max-w-4xl mx-auto">
+                  <div className="flex items-center gap-3 bg-white rounded-[24px] shadow-xl shadow-manioco-brown/5 border border-manioco-brown/10 px-2 py-2">
+                    {/* Image btn */}
+                    <input
+                      type="file"
+                      className="hidden"
+                      ref={fileInputRef}
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      className="w-11 h-11 rounded-2xl flex items-center justify-center text-manioco-brown/25 hover:bg-manioco-brown/5 hover:text-manioco-brown/50 transition-all shrink-0"
+                    >
+                      <ImageIcon size={20} />
+                    </button>
+
+                    {/* Text input */}
+                    <input
+                      ref={inputRef}
+                      type="text"
+                      value={inputText}
+                      onChange={e => setInputText(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                      placeholder={`Écrire à ${storeName}...`}
+                      className="flex-1 bg-transparent border-none py-3 text-[13px] font-medium text-manioco-brown placeholder:text-manioco-brown/25 outline-none"
+                    />
+
+                    {/* Send btn */}
+                    <button
+                      onClick={handleSend}
+                      disabled={isSending || !inputText.trim()}
+                      className={`
+                        w-12 h-12 rounded-[18px] flex items-center justify-center shrink-0 transition-all
+                        ${inputText.trim()
+                          ? 'bg-manioco-terracotta text-white shadow-lg shadow-manioco-terracotta/20 hover:scale-105 active:scale-95'
+                          : 'bg-manioco-brown/5 text-manioco-brown/20 cursor-not-allowed'
+                        }
+                        disabled:opacity-50
+                      `}
+                    >
+                      {isSending
+                        ? <Loader2 size={18} className="animate-spin" />
+                        : <Send size={18} className="translate-x-0.5 -translate-y-0.5" />
+                      }
+                    </button>
+                  </div>
+
+                  <p className="text-center mt-3 text-[9px] font-black uppercase tracking-widest text-manioco-brown/15">
+                    Messages chiffrés · Manioco
+                  </p>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* ── Empty State */
+            <div className="flex-1 flex flex-col items-center justify-center relative z-10 px-8">
+              <div className="text-center max-w-sm">
+                {/* Icon */}
+                <div className="relative mx-auto w-32 h-32 mb-10">
+                  <div className="absolute inset-0 bg-manioco-brown/5 rounded-[40px] rotate-12" />
+                  <div className="absolute inset-2 bg-white rounded-[32px] shadow-2xl flex items-center justify-center border border-manioco-brown/5">
+                    <MessageSquare size={48} className="text-manioco-terracotta/40" />
+                  </div>
                 </div>
 
-                <div className="p-8 bg-white/50 backdrop-blur-md border-t border-[#1a2e22]/5 relative z-10">
-                   <div className="max-w-4xl mx-auto flex gap-6 bg-white p-3 rounded-[40px] shadow-2xl border border-[#1a2e22]/5 items-center">
-                      <input 
-                         type="file" 
-                         className="hidden" 
-                         ref={fileInputRef} 
-                         accept="image/*"
-                         onChange={handleImageUpload}
-                      />
-                      <button 
-                         onClick={() => fileInputRef.current?.click()}
-                         className="w-12 h-12 rounded-full flex items-center justify-center text-[#1a2e22]/30 hover:bg-[#1a2e22]/5 hover:text-[#1a2e22] transition-all ml-2"
-                      >
-                         <ImageIcon size={22} />
-                      </button>
-                      <input 
-                         type="text" 
-                         value={inputText}
-                         onChange={(e) => setInputText(e.target.value)}
-                         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-                         placeholder="Écrivez votre message à l'artisan..." 
-                         className="flex-1 bg-transparent border-none px-2 py-4 text-sm font-bold outline-none placeholder:text-[#1a2e22]/20"
-                      />
-                      <button 
-                         onClick={handleSend}
-                         disabled={isSending || !inputText.trim()}
-                         className="w-14 h-14 bg-[#1a2e22] text-[#c5a059] rounded-full flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 transition-all disabled:opacity-50 mr-1"
-                      >
-                         {isSending ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className="rotate-12" />}
-                      </button>
-                   </div>
+                <h3 className="text-2xl font-black uppercase tracking-tight text-manioco-brown mb-3">
+                  Sélectionnez<br />
+                  <span className="text-manioco-terracotta">un vendeur</span>
+                </h3>
+                <p className="text-[11px] font-bold text-manioco-brown/35 uppercase tracking-widest leading-relaxed mb-8">
+                  Choisissez une conversation dans la liste<br />pour commencer à échanger.
+                </p>
+
+                {/* Stats bar */}
+                <div className="flex items-center justify-center gap-8 py-5 px-8 bg-white rounded-[24px] border border-manioco-brown/10 shadow-xl shadow-manioco-brown/5">
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-manioco-brown">{conversations.length}</p>
+                    <p className="text-[9px] font-black text-manioco-brown/30 uppercase tracking-widest">Discussions</p>
+                  </div>
+                  <div className="w-px h-8 bg-manioco-brown/10" />
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-manioco-terracotta">24h</p>
+                    <p className="text-[9px] font-black text-manioco-brown/30 uppercase tracking-widest">Réponse moy.</p>
+                  </div>
+                  <div className="w-px h-8 bg-manioco-brown/10" />
+                  <div className="text-center">
+                    <p className="text-2xl font-black text-manioco-brown">100%</p>
+                    <p className="text-[9px] font-black text-manioco-brown/30 uppercase tracking-widest">Sécurisé</p>
+                  </div>
                 </div>
-             </>
-          ) : (
-             <div className="flex-1 flex flex-col items-center justify-center text-[#1a2e22]/20 relative z-10">
-                <div className="w-32 h-32 rounded-[48px] bg-white shadow-2xl flex items-center justify-center mb-10 rotate-6 border border-[#1a2e22]/5">
-                   <MessageSquare size={60} className="text-[#c5a059]/20" />
-                </div>
-                <h3 className="text-2xl font-black uppercase tracking-tighter mb-2 text-[#1a2e22]/40">Sélectionnez un Artisan</h3>
-                <p className="text-[10px] font-black uppercase tracking-[0.5em]">La qualité n'attend pas.</p>
-             </div>
+              </div>
+            </div>
+          )}
+
+          {/* Mobile sidebar overlay backdrop */}
+          {showMobileSidebar && (
+            <button
+              type="button"
+              aria-label="Fermer"
+              className="md:hidden fixed inset-0 bg-black/30 backdrop-blur-sm z-10 cursor-default border-none"
+              onClick={() => setShowMobileSidebar(false)}
+            />
           )}
         </main>
       </div>
@@ -389,15 +589,23 @@ function getStoreName(c: any) {
 
 function checkIsMe(m: any, user: any) {
   const myId = String(user?.id || user?.userId || "");
-  const msgSenderId = m.senderId && typeof m.senderId === 'object' ? m.senderId.id : (m.sender?.id || m.senderId);
+  const msgSenderId = m.senderId && typeof m.senderId === 'object'
+    ? m.senderId.id
+    : (m.sender?.id || m.senderId);
   return String(msgSenderId) === myId;
 }
 
 export default function ClientMessages() {
   return (
     <Suspense fallback={
-      <div className="bg-[#fcfbf7] h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#c5a059]" size={40} />
+      <div className="bg-[#FAF7F2] h-screen flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-16 h-16 rounded-[24px] bg-manioco-terracotta flex items-center justify-center rotate-6 shadow-2xl shadow-manioco-terracotta/25">
+            <MessageSquare size={28} className="text-white" />
+          </div>
+          <Loader2 className="animate-spin text-manioco-terracotta" size={28} />
+          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-manioco-brown/30">Chargement...</p>
+        </div>
       </div>
     }>
       <ClientMessagesContent />

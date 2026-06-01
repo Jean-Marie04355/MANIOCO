@@ -350,9 +350,12 @@ export class OrdersService {
     // Check if order exists and user has permission
     const order = await this.findOne(id, user);
 
-    // Only vendors (owners) and admins can update status
+    // Only vendors (owners) and admins can update status, EXCEPT when client confirms delivery/failure for SHIPPED orders
     if (user.role === UserRole.CLIENT) {
-      throw new ForbiddenException('Clients cannot update order status');
+      const allowedClientStatuses = [OrderStatus.DELIVERED, OrderStatus.FAILED];
+      if (!allowedClientStatuses.includes(status) || order.status !== OrderStatus.SHIPPED) {
+        throw new ForbiddenException('Clients can only confirm delivery or delivery failure for SHIPPED orders');
+      }
     }
 
     if (status === OrderStatus.CANCELLED) {
@@ -363,13 +366,15 @@ export class OrdersService {
       await this.orderRepository.update(id, { status });
       this.logger.log(`Order ${id} status updated successfully to ${status}`);
 
-      // Notify the customer about the status update
+      // Notify the customer / seller about the status update
       try {
         let statusLabel = status.toLowerCase();
         if (status === OrderStatus.PAID) statusLabel = 'confirmée';
         if (status === OrderStatus.SHIPPED) statusLabel = 'expédiée';
         if (status === OrderStatus.DELIVERED) statusLabel = 'livrée';
+        if (status === OrderStatus.FAILED) statusLabel = 'échouée';
 
+        // Notify client
         await this.notificationsService.create({
           userId: order.customerId,
           type: NotificationType.ORDER,
@@ -377,15 +382,30 @@ export class OrdersService {
           message: `Votre commande #${order.id.split('-')[0]} est désormais ${statusLabel}.`,
           metadata: JSON.stringify({ orderId: order.id, status }),
         });
-      } catch (notifError) {
+
+        // Notify seller if client confirmed receipt or failure
+        if (user.role === UserRole.CLIENT && order.store?.ownerId) {
+          const sellerMsg = status === OrderStatus.DELIVERED
+            ? `Le client a confirmé la bonne réception de la commande #${order.id.split('-')[0]}.`
+            : `Le client a signalé ne pas avoir reçu la commande #${order.id.split('-')[0]}.`;
+
+          await this.notificationsService.create({
+            userId: order.store.ownerId,
+            type: NotificationType.ORDER,
+            title: status === OrderStatus.DELIVERED ? 'Commande livrée' : 'Échec de livraison',
+            message: sellerMsg,
+            metadata: JSON.stringify({ orderId: order.id, status }),
+          });
+        }
+      } catch (notifError: any) {
         this.logger.error(
-          `Failed to notify customer for order ${id}: ${notifError.message}`,
+          `Failed to notify for order ${id}: ${notifError.message}`,
         );
       }
 
       // Reload order to return updated version
       return this.findOne(id, user);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to update order ${id} status: ${error.message}`,
       );
@@ -418,6 +438,7 @@ export class OrdersService {
       if (status === OrderStatus.PAID) statusLabel = 'payée';
       if (status === OrderStatus.SHIPPED) statusLabel = 'expédiée';
       if (status === OrderStatus.DELIVERED) statusLabel = 'livrée';
+      if (status === OrderStatus.FAILED) statusLabel = 'échouée';
 
       await this.notificationsService.create({
         userId: order.customerId,

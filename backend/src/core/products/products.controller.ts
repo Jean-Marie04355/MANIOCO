@@ -72,4 +72,23 @@ export class ProductsController {
   remove(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.productsService.remove(id, user);
   }
+
+  @Get('reviews')
+  @ApiOperation({ summary: 'Retrieve all product reviews' })
+  findAllReviews() {
+    return this.productsService.findAllReviews();
+  }
+
+  @Post(':id/reviews')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Add a review to a product' })
+  addReview(
+    @Param('id') id: string,
+    @Body('rating') rating: number,
+    @Body('comment') comment: string,
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.productsService.addReview(id, rating, comment, user);
+  }
 }
