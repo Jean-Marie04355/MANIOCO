@@ -2,7 +2,7 @@
 /* eslint-disable react/no-unescaped-entities */
 import { ShoppingCart, Search, ArrowUpRight, ArrowRight, ArrowLeft, Package, Clock, Store, PackageCheck, LogOut, Loader2, MessageSquare, TrendingUp, Bell, Settings, MapPin, ChevronDown, User as UserIcon, Star, Heart, ChevronRight, ChevronLeft, X } from 'lucide-react';
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -37,6 +37,9 @@ interface Product {
    category?: ProductCategory;
    storeId?: string | number | null;
    store?: ProductStore;
+   description?: string;
+   rating?: number | string;
+   ratingsCount?: number;
 }
 
 interface Review {
@@ -54,6 +57,28 @@ export default function HomeView() {
    const { addToCart, totalItems } = useCart();
    const { socket } = useSocket();
    const router = useRouter();
+   const pathname = usePathname();
+   const isActive = (path: string) => {
+     if (path === '/') return pathname === '/';
+     return pathname.startsWith(path);
+   };
+
+   const navLink = (href: string, label: string) => {
+     const active = isActive(href);
+     return (
+       <Link
+         href={href}
+         className={`transition-colors text-sm font-semibold px-4 py-2 rounded-full ${
+           active
+             ? 'text-manioco-terracotta bg-manioco-terracotta/5 font-bold'
+             : 'text-manioco-brown/60 hover:text-manioco-brown hover:bg-manioco-terracotta/5'
+         }`}
+       >
+         {label}
+       </Link>
+     );
+   };
+
    const [scrolled, setScrolled] = useState(false);
    const [isProfileOpen, setIsProfileOpen] = useState(false);
    const [isCartOpen, setIsCartOpen] = useState(false);
@@ -262,7 +287,7 @@ export default function HomeView() {
    }, []);
 
    const filteredProducts = products.filter(p => {
-      const matchesCategory = activeCategoryId ? p.categoryId === activeCategoryId : true;
+      const matchesCategory = activeCategoryId ? String(p.categoryId) === String(activeCategoryId) : true;
       const matchesCity = activeCity ? p.store?.city === activeCity : true;
       const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
          p.category?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -329,10 +354,10 @@ export default function HomeView() {
                </Link>
 
                {/* Nav Links */}
-               <div className="hidden lg:flex items-center gap-10 text-sm font-semibold text-manioco-brown/70">
-                  <Link href="/" className="hover:text-manioco-terracotta transition-colors">Accueil</Link>
-                  <Link href="/produits" className="hover:text-manioco-terracotta transition-colors">Nos produits</Link>
-                  <button onClick={() => document.getElementById('sellers')?.scrollIntoView({ behavior: 'smooth' })} className="hover:text-manioco-terracotta transition-colors">Vendeurs</button>
+               <div className="hidden lg:flex items-center gap-4">
+                  {navLink('/', 'Accueil')}
+                  {navLink('/produits', 'Nos produits')}
+                  {navLink('/shops', 'Vendeurs')}
                </div>
 
                {/* Right side actions */}
@@ -547,29 +572,25 @@ export default function HomeView() {
                                     />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
                                     {/* Product Info & Cart button */}
-                                    <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between z-20 pointer-events-none">
-                                       <div className="flex-1 min-w-0 pr-4">
+                                    {/* Overlay Link to Shop (z-10, sous le bouton) */}
+                                    <Link
+                                       href={product.storeId || product.store?.id ? `/shops/${product.storeId || product.store?.id}` : '#'}
+                                       className="absolute inset-0 z-10"
+                                     />
+                                    <div className="absolute bottom-0 left-0 right-0 p-5 flex items-end justify-between z-20">
+                                       <div className="flex-1 min-w-0 pr-4 pointer-events-none">
                                           <h4 className="text-white font-bold text-base mb-1 truncate">{product.name}</h4>
                                           <p className="text-white/80 text-sm font-medium">
                                              {Number(product.price).toLocaleString('fr-FR')} Fcfa <span className="text-white/50">/ {product.unit || 'Kg'}</span>
                                           </p>
                                        </div>
                                        <button
-                                          onClick={(e) => {
-                                             e.preventDefault();
-                                             e.stopPropagation();
-                                             handleActionClick(e, () => addToCart(product));
-                                          }}
-                                          className="w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center cursor-pointer transition-all shadow-sm shrink-0 pointer-events-auto"
+                                          onClick={(e) => handleActionClick(e, () => addToCart(product))}
+                                          className="relative z-30 w-9 h-9 rounded-full bg-white/20 hover:bg-white/40 text-white flex items-center justify-center cursor-pointer transition-all shadow-sm shrink-0"
                                        >
                                           <ShoppingCart size={16} />
                                        </button>
                                     </div>
-                                    {/* Overlay Link to Shop */}
-                                    <Link
-                                       href={product.storeId || product.store?.id ? `/shops/${product.storeId || product.store?.id}` : '#'}
-                                       className="absolute inset-0 z-10"
-                                     />
                                  </div>
                               </div>
                            ))}
@@ -672,7 +693,7 @@ export default function HomeView() {
                               <X size={12} /> {activeCity}
                            </button>
                         )}
-                        <Link href="/shops" className="inline-flex items-center gap-2 text-sm font-semibold text-manioco-terracotta hover:text-manioco-brown transition-colors">
+                        <Link href="/produits" className="inline-flex items-center gap-2 text-sm font-semibold text-manioco-terracotta hover:text-manioco-brown transition-colors">
                            Voir tous les produits <ArrowUpRight size={16} />
                         </Link>
                      </div>
@@ -807,7 +828,7 @@ export default function HomeView() {
                                        <div className="relative mb-4">
                                           <div className="w-20 h-20 rounded-full overflow-hidden border-3 border-manioco-cream shadow-md">
                                              <img
-                                                src={store.profilePhoto ? (store.profilePhoto.startsWith('http') ? store.profilePhoto : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/uploads${store.profilePhoto.startsWith('/') ? '' : '/'}${store.profilePhoto}`) : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200"}
+                                                src={store.profilePhoto && store.profilePhoto !== 'null' ? getPhotoUrl(store.profilePhoto) : "https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&q=80&w=200"}
                                                 className="w-full h-full object-cover"
                                                 alt={store.name}
                                              />
@@ -1156,7 +1177,7 @@ export default function HomeView() {
                {/* Nav Links */}
                <div className="flex items-center justify-center gap-8 mb-8 text-sm text-manioco-brown/50 font-medium">
                   <Link href="/" className="hover:text-manioco-terracotta transition-colors">Accueil</Link>
-                  <Link href="/shops" className="hover:text-manioco-terracotta transition-colors">Nos produits</Link>
+                  <Link href="/produits" className="hover:text-manioco-terracotta transition-colors">Nos produits</Link>
                   <Link href="/shops" className="hover:text-manioco-terracotta transition-colors">Vendeurs</Link>
                </div>
 

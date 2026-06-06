@@ -126,22 +126,22 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
       <button 
         type="button"
         aria-label="Fermer le panier"
-        className="absolute inset-0 bg-forest-green/40 backdrop-blur-sm transition-opacity border-none w-full h-full cursor-default" 
+        className="absolute inset-0 bg-manioco-brown/40 backdrop-blur-sm transition-opacity border-none w-full h-full cursor-default" 
         onClick={onClose}
       ></button>
       
       <div className="absolute inset-y-0 right-0 max-w-md w-full bg-white shadow-2xl animate-slide-in-right flex flex-col">
-        <div className="p-8 border-b border-forest-green/5 flex justify-between items-center bg-organic-cream">
+        <div className="p-8 border-b border-manioco-brown/5 flex justify-between items-center bg-manioco-cream">
           <div className="flex items-center gap-4">
-            <div className="w-10 h-10 rounded-full bg-forest-green flex items-center justify-center text-white">
+            <div className="w-10 h-10 rounded-full bg-manioco-terracotta flex items-center justify-center text-white">
                <ShoppingBag size={20} />
             </div>
             <div>
-               <h2 className="text-xl font-black tracking-tighter uppercase">Votre Panier</h2>
-               <p className="text-[10px] font-black text-forest-green/40 uppercase tracking-widest">{totalItems} articles</p>
+               <h2 className="text-xl font-black tracking-tighter uppercase text-manioco-brown">Votre Panier</h2>
+               <p className="text-[10px] font-black text-manioco-brown/40 uppercase tracking-widest">{totalItems} articles</p>
             </div>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white border border-forest-green/10 flex items-center justify-center hover:bg-forest-green hover:text-white transition-all">
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white border border-manioco-brown/10 flex items-center justify-center hover:bg-manioco-terracotta hover:text-white transition-all">
             <X size={20} />
           </button>
         </div>
@@ -149,8 +149,8 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
         <div className="flex-1 overflow-y-auto p-8 space-y-6">
           {items.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center">
-               <ShoppingBag size={64} className="text-forest-green/5 mb-6" />
-               <p className="text-xs font-black text-forest-green/30 uppercase tracking-widest">Votre panier est vide</p>
+               <ShoppingBag size={64} className="text-manioco-brown/10 mb-6" />
+               <p className="text-xs font-black text-manioco-brown/30 uppercase tracking-widest">Votre panier est vide</p>
             </div>
           ) : (
             items.map((item) => (
@@ -159,35 +159,35 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
                   type="checkbox" 
                   checked={item.selected} 
                   onChange={() => toggleSelection(item.id)}
-                  className="w-5 h-5 rounded border-forest-green/20 text-forest-green focus:ring-forest-green cursor-pointer"
+                  className="w-5 h-5 rounded border-manioco-brown/20 text-manioco-terracotta focus:ring-manioco-terracotta cursor-pointer accent-manioco-terracotta"
                 />
-                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-forest-green/5 shrink-0 border border-forest-green/5">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-manioco-cream shrink-0 border border-manioco-brown/5">
                   <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 flex flex-col justify-between">
                   <div>
-                    <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1">{item.name}</h4>
+                    <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1 text-manioco-brown">{item.name}</h4>
                     <select 
                       value={item.unit || 'Kg'} 
                       onChange={(e) => updateUnit(item.id, e.target.value)}
-                      className="text-[10px] font-black text-afrigari-gold uppercase tracking-widest bg-transparent border-none focus:ring-0 cursor-pointer p-0"
+                      className="text-[10px] font-black text-manioco-terracotta uppercase tracking-widest bg-transparent border-none focus:ring-0 cursor-pointer p-0"
                     >
                       <option value="Kg">Kg</option>
                       <option value="Sac">Sac</option>
                       <option value="Demi-sac">Demi-sac</option>
                       <option value="Demi-kg">Demi-kg</option>
                     </select>
-                    <span className="text-[9px] font-black text-forest-green/30 ml-2 uppercase tracking-widest">
+                    <span className="text-[9px] font-black text-manioco-brown/30 ml-2 uppercase tracking-widest">
                        {item.price.toLocaleString()} FCFA / {item.unit || 'Kg'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <div className="flex items-center bg-forest-green/5 rounded-lg px-2">
-                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 hover:text-afrigari-gold transition-colors"><Minus size={12} /></button>
-                      <span className="w-8 text-center text-xs font-black">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 hover:text-afrigari-gold transition-colors"><Plus size={12} /></button>
+                    <div className="flex items-center bg-manioco-cream rounded-lg px-2">
+                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 hover:text-manioco-terracotta transition-colors text-manioco-brown/60"><Minus size={12} /></button>
+                      <span className="w-8 text-center text-xs font-black text-manioco-brown">{item.quantity}</span>
+                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 hover:text-manioco-terracotta transition-colors text-manioco-brown/60"><Plus size={12} /></button>
                     </div>
-                    <span className="text-sm font-black">{(item.price * item.quantity).toLocaleString()} FCFA</span>
+                    <span className="text-sm font-black text-manioco-brown">{(item.price * item.quantity).toLocaleString()} FCFA</span>
                   </div>
                 </div>
                 <button onClick={() => removeFromCart(item.id)} className="text-red-400 opacity-0 group-hover:opacity-100 transition-all">
@@ -199,20 +199,18 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
         </div>
 
         {items.length > 0 && (
-          <div className="p-8 bg-organic-cream border-t border-forest-green/5 space-y-6">
-
-
+          <div className="p-8 bg-manioco-cream border-t border-manioco-brown/5 space-y-6">
             <div className="flex justify-between items-center font-black">
               <div>
-                <span className="text-xs uppercase tracking-[0.2em] text-forest-green/40">Total sélectionné</span>
-                <p className="text-[10px] text-forest-green/30 italic">({items.filter(i => i.selected).length} articles)</p>
+                <span className="text-xs uppercase tracking-[0.2em] text-manioco-brown/40">Total sélectionné</span>
+                <p className="text-[10px] text-manioco-brown/30 italic">({items.filter(i => i.selected).length} articles)</p>
               </div>
-              <span className="text-2xl tracking-tighter">{totalPrice.toLocaleString()} FCFA</span>
+              <span className="text-2xl tracking-tighter text-manioco-brown">{totalPrice.toLocaleString()} FCFA</span>
             </div>
             <button 
               onClick={handleCheckout}
               disabled={isSubmitting || items.filter(i => i.selected).length === 0}
-              className="w-full bg-forest-green text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-afrigari-gold transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full bg-manioco-terracotta text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-manioco-brown transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="animate-spin" /> : `Commander (${items.filter(i => i.selected).length})`} <ArrowRight size={18} />
             </button>

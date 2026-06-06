@@ -70,43 +70,7 @@ export default function ShopsExplorer() {
 
   return (
     <div className="bg-organic-cream min-h-screen text-forest-green selection:bg-afrigari-gold selection:text-white pb-32">
-      
-      {/* Premium Navigation */}
-      <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-500 px-8 ${scrolled ? 'py-4' : 'py-8'}`}>
-         <div className={`max-w-7xl mx-auto flex justify-between items-center px-10 py-5 transition-all duration-500 ${scrolled ? 'glass-premium rounded-full px-12' : ''}`}>
-            <div className="flex items-center gap-6">
-                <Link href="/dashboard/client" className="w-10 h-10 rounded-full border border-forest-green/10 flex items-center justify-center hover:bg-forest-green hover:text-white transition-all">
-                    <ChevronLeft size={20} />
-                </Link>
-                <div className="flex items-center gap-2 group">
-                    <div className="w-8 h-8 rounded-lg bg-forest-green flex items-center justify-center text-white scale-110 group-hover:rotate-12 transition-transform">
-                       <ShoppingBag size={16} />
-                    </div>
-                    <span className="font-black text-xl tracking-tighter uppercase font-display italic">AFRIGARI</span>
-                    <span className="text-[10px] font-black text-afrigari-gold bg-afrigari-gold/5 px-2 py-1 rounded-md uppercase tracking-widest ml-2">Annuaire</span>
-                </div>
-            </div>
-            
-            <div className="flex bg-forest-green/5 rounded-full px-5 py-2.5 items-center gap-3 border border-forest-green/5 w-96">
-                <Search size={16} className="text-forest-green/40" />
-                <input 
-                  type="text" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Rechercher un artisan, une boutique..." 
-                  className="bg-transparent border-none text-[10px] font-black outline-none w-full placeholder:text-forest-green/30 tracking-widest uppercase" 
-                />
-            </div>
-
-            <div className="flex items-center gap-4">
-                <div className="w-10 h-10 rounded-full bg-forest-green text-white flex items-center justify-center font-black text-xs shadow-xl uppercase overflow-hidden relative border-2 border-white">
-                   <UserAvatar user={user} getImageUrl={getRealInternetLink} />
-                </div>
-            </div>
-         </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto pt-40 px-8">
+      <main className="max-w-7xl mx-auto pt-8 px-8">
         
         {/* Header Section */}
         <header className="mb-20 animate-reveal">

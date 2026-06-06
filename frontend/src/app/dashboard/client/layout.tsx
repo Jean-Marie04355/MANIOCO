@@ -3,6 +3,7 @@ import { useAuth } from '@/features/auth/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
+import ClientNavbar from '@/components/ClientNavbar';
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -32,11 +33,19 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
 
   if (isLoading || !authorized) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#fcfbf7]">
-        <Loader2 className="w-8 h-8 text-[#2d4635] animate-spin" />
+      <div className="flex items-center justify-center min-h-screen bg-[#FAF7F2]">
+        <Loader2 className="w-8 h-8 text-manioco-terracotta animate-spin" />
       </div>
     );
   }
 
-  return <>{children}</>;
+  return (
+    <>
+      <ClientNavbar />
+      <div className="pt-[72px]">
+        {children}
+      </div>
+    </>
+  );
 }
+

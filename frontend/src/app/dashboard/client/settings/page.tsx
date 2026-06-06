@@ -165,24 +165,7 @@ export default function ClientSettings() {
 
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-manioco-brown font-sans pb-20">
-      
-      {/* Header / Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-xl border-b border-manioco-brown/10 shadow-[0_4px_30px_rgba(92,45,35,0.08)] px-8 py-6">
-        <div className="max-w-[1200px] mx-auto flex justify-between items-center">
-          <Link href="/dashboard/client" className="flex items-center gap-4 group">
-            <div className="w-10 h-10 rounded-full border border-manioco-brown/10 flex items-center justify-center text-manioco-brown group-hover:bg-manioco-terracotta group-hover:text-white transition-all">
-              <ChevronLeft size={20} />
-            </div>
-            <span className="text-xs font-black uppercase tracking-widest text-manioco-brown/60 group-hover:text-manioco-brown transition-colors">Retour</span>
-          </Link>
-          <div className="flex items-center gap-3">
-             <Settings className="text-manioco-terracotta" size={20} />
-             <h1 className="text-xs font-black uppercase tracking-[0.3em]">Paramètres</h1>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-[800px] mx-auto pt-32 px-6 animate-reveal">
+      <main className="max-w-[800px] mx-auto pt-8 px-6 animate-reveal">
         
         {/* Success Feedback */}
         {successMessage && (
