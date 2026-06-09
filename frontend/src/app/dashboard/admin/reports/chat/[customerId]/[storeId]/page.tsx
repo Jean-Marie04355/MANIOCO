@@ -64,7 +64,7 @@ export default function AdminChatView() {
       <div className="flex bg-slate-50 min-h-screen">
         <Sidebar mode="admin" />
         <main className="flex-1 ml-64 flex items-center justify-center">
-            <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+            <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
         </main>
       </div>
     );
@@ -107,12 +107,12 @@ export default function AdminChatView() {
                        <ArrowLeft size={18} />
                     </button>
                     <div className="flex items-center gap-3">
-                       <div className="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                          <MessageSquare size={24} />
-                       </div>
-                       <div>
-                          <h4 className="font-black text-slate-900 uppercase tracking-tight">Audit de Discussion</h4>
-                          <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
+                        <div className="w-12 h-12 rounded-2xl bg-manioco-terracotta flex items-center justify-center text-white shadow-lg shadow-manioco-terracotta/20">
+                           <MessageSquare size={24} />
+                        </div>
+                        <div>
+                           <h4 className="font-black text-slate-900 uppercase tracking-tight">Audit de Discussion</h4>
+                           <p className="text-[10px] font-black text-manioco-terracotta uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
                              <ShieldCheck size={12} /> Mode Surveillance Administrateur
                           </p>
                        </div>
@@ -184,7 +184,7 @@ export default function AdminChatView() {
 
               {/* Store Info */}
               <div className="bg-white rounded-[2rem] p-6 border border-slate-100 shadow-sm">
-                 <p className="text-[10px] font-black text-orange-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                 <p className="text-[10px] font-black text-manioco-terracotta uppercase tracking-widest mb-4 flex items-center gap-2">
                     <Store size={12} /> Profil Boutique
                  </p>
                  <div className="flex items-center gap-4 mb-4 pb-4 border-b border-slate-50">
@@ -208,7 +208,7 @@ export default function AdminChatView() {
 
               {/* Tips for Admin */}
               <div className="bg-slate-900 rounded-[2rem] p-6 text-white shadow-xl shadow-slate-900/10">
-                 <h5 className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-orange-500">Conseils Audit</h5>
+                 <h5 className="text-[10px] font-black uppercase tracking-[0.2em] mb-4 text-manioco-terracotta">Conseils Audit</h5>
                  <p className="text-xs text-slate-400 leading-relaxed font-medium">
                     Analysez le ton des échanges. Cherchez des preuves de promesses non tenues ou de comportement déplacé pour justifier votre décision sur le signalement.
                  </p>
@@ -229,7 +229,7 @@ export default function AdminChatView() {
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #f97316;
+          background: #9E4E3B;
         }
       `}</style>
     </div>

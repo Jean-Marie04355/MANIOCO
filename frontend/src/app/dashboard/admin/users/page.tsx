@@ -143,7 +143,7 @@ export default function AdminUsersManagement() {
                                 <input 
                                     type="text" 
                                     placeholder="Rechercher..."
-                                    className="w-full bg-slate-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-indigo-100 transition-all font-sans italic"
+                                    className="w-full bg-slate-50 border-none rounded-xl pl-10 pr-4 py-2.5 text-xs font-bold outline-none focus:ring-2 focus:ring-manioco-terracotta-100 transition-all font-sans italic"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
@@ -165,7 +165,7 @@ export default function AdminUsersManagement() {
                                     onClick={() => setSelectedUser(u)}
                                     className={`w-full p-4 rounded-2xl border transition-all flex items-center gap-4 text-left group ${
                                         selectedUser?.id === u.id 
-                                        ? 'bg-indigo-600 border-indigo-600 shadow-lg shadow-indigo-200 text-white' 
+                                        ? 'bg-manioco-terracotta border-manioco-terracotta shadow-lg shadow-manioco-terracotta/20 text-white' 
                                         : 'bg-white border-transparent hover:bg-slate-50 hover:border-slate-100'
                                     }`}
                                 >
@@ -176,7 +176,7 @@ export default function AdminUsersManagement() {
                                     </div>
                                     <div className="flex-1 overflow-hidden">
                                         <p className="font-black text-[11px] uppercase tracking-tighter truncate">{u.name}</p>
-                                        <p className={`text-[9px] truncate ${selectedUser?.id === u.id ? 'text-indigo-100' : 'text-slate-400'}`}>{u.email}</p>
+                                        <p className={`text-[9px] truncate ${selectedUser?.id === u.id ? 'text-manioco-terracotta-100' : 'text-slate-400'}`}>{u.email}</p>
                                     </div>
                                     {u.role === 'vendeur' && !u.isVerified && (
                                         <div className="w-2 h-2 rounded-full bg-amber-400 shadow-[0_0_8px_rgba(251,191,36,0.8)]"></div>
@@ -196,7 +196,7 @@ export default function AdminUsersManagement() {
                             return selectedUser ? (
                             <>
                                 {/* Floating Background Accent */}
-                                <div className="absolute top-0 right-0 w-96 h-96 bg-indigo-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50"></div>
+                                <div className="absolute top-0 right-0 w-96 h-96 bg-manioco-terracotta-50 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50"></div>
                                 
                                 {/* Header Detail */}
                                 <div className="p-12 pb-8 relative z-10 flex items-end justify-between">
@@ -365,12 +365,12 @@ export default function AdminUsersManagement() {
                                                 <div className="space-y-4">
                                                     <div className="flex items-center justify-between p-4 bg-white rounded-2xl border border-slate-200">
                                                         <div className="flex items-center gap-3">
-                                                            <div className="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><FileText size={16} /></div>
+                                                            <div className="p-2 bg-manioco-terracotta-50 text-manioco-terracotta-600 rounded-lg"><FileText size={16} /></div>
                                                             <span className="text-xs font-black text-slate-700">Dossier Identité</span>
                                                         </div>
                                                         <button 
                                                             onClick={() => setIsKycOpen(true)}
-                                                            className="text-indigo-600 text-[10px] font-black uppercase tracking-widest hover:underline"
+                                                            className="text-manioco-terracotta-600 text-[10px] font-black uppercase tracking-widest hover:underline"
                                                         >
                                                             Consulter
                                                         </button>
@@ -384,7 +384,7 @@ export default function AdminUsersManagement() {
                                             )}
                                         </div>
 
-                                        <div className="p-8 bg-indigo-600 rounded-[2.5rem] text-white shadow-xl shadow-indigo-100">
+                                        <div className="p-8 bg-manioco-terracotta rounded-[2.5rem] text-white shadow-xl shadow-manioco-terracotta/20">
                                             <h4 className="text-[10px] font-black uppercase tracking-widest mb-4 opacity-50">Note Administrative</h4>
                                             <p className="text-xs font-bold leading-relaxed italic">"Compte marchand actif. Historique des transactions conforme aux standards de sécurité."</p>
                                         </div>
@@ -575,7 +575,7 @@ function TabSmall({ active, label, onClick, alert }: any) {
         <button 
             onClick={onClick}
             className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${
-                active ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 shadow-sm'
+                active ? 'bg-manioco-terracotta text-white shadow-md shadow-manioco-terracotta/10' : 'bg-slate-50 text-slate-400 hover:bg-slate-100 shadow-sm'
             } ${alert && !active ? 'ring-2 ring-amber-400' : ''}`}
         >
             {label}
@@ -623,8 +623,8 @@ function SuspensionLabel({ days }: { readonly days: number }) {
 
 function ActionCard({ icon: Icon, label, desc, onClick, variant }: any) {
     const styles = {
-        primary: 'bg-indigo-600 text-white shadow-indigo-200',
-        secondary: 'bg-white text-indigo-600 border-slate-100 hover:border-indigo-100',
+        primary: 'bg-manioco-terracotta text-white shadow-manioco-terracotta/20',
+        secondary: 'bg-white text-manioco-terracotta border-slate-100 hover:border-manioco-terracotta-100',
         success: 'bg-emerald-500 text-white shadow-emerald-200',
         danger: 'bg-rose-500 text-white shadow-rose-200',
         'danger-outline': 'bg-white text-rose-500 border-slate-100 hover:border-rose-100'

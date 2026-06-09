@@ -37,7 +37,7 @@ export default function AdminLoginPage() {
             subtitle="Veuillez vous authentifier pour accéder à la gestion administrative (Admin & Super Admin)."
             backUrl="/dashboard/client"
             backLabel="Retour à l'accueil"
-            icon={<ShieldCheck size={56} className="text-forest-green" />}
+            icon={<ShieldCheck size={56} className="text-manioco-terracotta" />}
         >
             <form onSubmit={onSubmit} className="w-full space-y-6">
                 {error && <div className="text-red-500 text-sm font-bold text-center bg-red-50 p-4 rounded-[20px]">{error}</div>}
@@ -45,7 +45,7 @@ export default function AdminLoginPage() {
                 <Input icon={User} type="email" placeholder="Identifiant (Email)" value={email} onChange={e => setEmail(e.target.value)} required />
                 <Input icon={Lock} type="password" placeholder="Mot de passe système" value={password} onChange={e => setPassword(e.target.value)} required />
 
-                <button type="submit" disabled={isLoading} className="w-full bg-forest-green text-white py-6 rounded-[28px] font-black text-sm uppercase tracking-widest hover:bg-afrigari-gold transition-all shadow-2xl flex items-center justify-center gap-3 mt-8 disabled:opacity-70 active:scale-95">
+                <button type="submit" disabled={isLoading} className="w-full bg-manioco-terracotta text-white py-6 rounded-[28px] font-black text-sm uppercase tracking-widest hover:bg-manioco-brown transition-all shadow-2xl flex items-center justify-center gap-3 mt-8 disabled:opacity-70 active:scale-95">
                     {isLoading ? <Loader2 className="animate-spin" size={18} /> : <>Entrer dans la Citadelle <ArrowRight size={18} /></>}
                 </button>
             </form>

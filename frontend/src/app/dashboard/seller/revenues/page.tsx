@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
@@ -104,7 +104,7 @@ export default function SellerRevenues() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'COMPLETED': return <span className="px-2.5 py-1 rounded-full bg-green-50 text-green-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit"><CheckCircle2 size={12}/> Payé</span>;
-      case 'PENDING': return <span className="px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit"><TrendingUp size={12}/> En cours</span>;
+      case 'PENDING': return <span className="px-2.5 py-1 rounded-full bg-manioco-terracotta-50 text-manioco-terracotta text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit"><TrendingUp size={12}/> En cours</span>;
       case 'DECLINED': return <span className="px-2.5 py-1 rounded-full bg-red-50 text-red-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit"><AlertCircle size={12}/> Échoué</span>;
       default: return null;
     }
@@ -115,7 +115,7 @@ export default function SellerRevenues() {
       <div className="flex bg-slate-50 min-h-screen">
         <Sidebar mode="seller" />
         <main className="flex-1 ml-64 flex items-center justify-center">
-          <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+          <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
         </main>
       </div>
     );
@@ -135,7 +135,7 @@ export default function SellerRevenues() {
             
             {/* Main Net Balance Card */}
             <div className="lg:col-span-2 bg-slate-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl shadow-slate-900/20">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-orange-500 rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
+              <div className="absolute top-0 right-0 w-64 h-64 bg-manioco-terracotta rounded-full blur-3xl opacity-20 -translate-y-1/2 translate-x-1/2"></div>
               
               <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-end h-full">
                 <div>
@@ -158,7 +158,7 @@ export default function SellerRevenues() {
                 
                 <div className="mt-6 md:mt-0 p-4 bg-white/10 rounded-2xl border border-white/10 backdrop-blur-md">
                    <div className="flex items-center gap-3">
-                      <CreditCard className="text-orange-400" />
+                      <CreditCard className="text-manioco-terracotta" />
                       <div>
                          <p className="text-[10px] text-slate-300 font-bold uppercase tracking-widest">Paiement direct</p>
                          <p className="text-sm font-black text-white">{hasFedaPay ? 'Actif via FedaPay' : 'Non configuré'}</p>
@@ -171,7 +171,7 @@ export default function SellerRevenues() {
             {/* Side Stats */}
             <div className="space-y-6">
               <div className="bg-white p-6 rounded-[2rem] border border-slate-200/60 shadow-sm flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-500">
+                <div className="w-14 h-14 rounded-2xl bg-manioco-terracotta-50 flex items-center justify-center text-manioco-terracotta">
                   <TrendingUp size={24} />
                 </div>
                 <div>

@@ -100,7 +100,7 @@ export default function AdminTicketDetail() {
             <div className="flex bg-[#F8FAFC] min-h-screen">
                 <Sidebar mode="admin" />
                 <main className="flex-1 lg:ml-64 flex items-center justify-center">
-                    <Loader2 className="w-12 h-12 text-emerald-500 animate-spin" />
+                    <Loader2 className="w-12 h-12 text-manioco-terracotta animate-spin" />
                 </main>
             </div>
         );
@@ -119,7 +119,7 @@ export default function AdminTicketDetail() {
                             onClick={() => router.push('/dashboard/admin/support')}
                             className="group flex flex-col items-center justify-center hover:scale-105 transition-transform"
                         >
-                            <div className="w-10 h-10 rounded-[14px] bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500 transition-colors shadow-sm">
+                            <div className="w-10 h-10 rounded-[14px] bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-manioco-terracotta-50 group-hover:text-manioco-terracotta transition-colors shadow-sm">
                                 <ChevronLeft size={20} strokeWidth={3} />
                             </div>
                         </button>
@@ -144,7 +144,7 @@ export default function AdminTicketDetail() {
                                     </span>
                                 )}
                             </div>
-                            <p className="text-[10px] font-black text-slate-400 tracking-widest mt-1 uppercase">Ticket ID: <span className="text-emerald-500">{ticket.id.split('-')[0]}</span></p>
+                             <p className="text-[10px] font-black text-slate-400 tracking-widest mt-1 uppercase">Ticket ID: <span className="text-manioco-terracotta-500">{ticket.id.split('-')[0]}</span></p>
                         </div>
                     </div>
 
@@ -152,7 +152,7 @@ export default function AdminTicketDetail() {
                         {ticket.status === 'CLOSED' ? (
                             <button
                                 onClick={() => updateStatus('IN_PROGRESS')}
-                                className="text-emerald-600 hover:text-white hover:bg-emerald-500 text-[10px] font-black uppercase tracking-widest bg-emerald-50 px-6 py-3 rounded-xl border border-emerald-200 transition-all shadow-sm active:scale-95"
+                                className="text-manioco-terracotta-600 hover:text-white hover:bg-manioco-terracotta text-[10px] font-black uppercase tracking-widest bg-manioco-terracotta-50 px-6 py-3 rounded-xl border border-manioco-terracotta-200 transition-all shadow-sm active:scale-95"
                             >
                                 Réouvrir le dossier
                             </button>
@@ -160,7 +160,7 @@ export default function AdminTicketDetail() {
                             <button
                                 onClick={() => updateStatus('CLOSED')}
                                 disabled={isUpdatingStatus}
-                                className="group bg-slate-900 hover:bg-emerald-500 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-slate-900/10 hover:shadow-emerald-500/30 flex items-center gap-2 active:scale-95"
+                                className="group bg-slate-900 hover:bg-manioco-terracotta text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all shadow-xl shadow-slate-900/10 hover:shadow-manioco-terracotta/30 flex items-center gap-2 active:scale-95"
                             >
                                 {isUpdatingStatus ? <Loader2 size={14} className="animate-spin" /> : <Check size={16} className="group-hover:scale-125 transition-transform" />}
                                 Clôturer le ticket
@@ -172,7 +172,7 @@ export default function AdminTicketDetail() {
                 <div className="flex-1 flex overflow-hidden relative">
                     
                     {/* Arrière-plan de la zone de chat (Motif type iMessage/WhatsApp) */}
-                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#10b981 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
+                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(#9E4E3B 1px, transparent 1px)', backgroundSize: '24px 24px' }}></div>
 
                     {/* 2. Zone de Chat */}
                     <div className="flex-1 flex flex-col h-full relative z-10 w-full overflow-hidden">
@@ -180,7 +180,7 @@ export default function AdminTicketDetail() {
                         {/* Bulle info centrale de début */}
                         <div className="w-full flex justify-center pt-8 pb-4 absolute top-0 z-10 bg-gradient-to-b from-slate-50/90 to-transparent pointer-events-none">
                             <div className="bg-white/80 backdrop-blur-md px-4 py-1.5 rounded-full shadow-sm border border-slate-200/50 flex items-center gap-2">
-                                <ShieldCheck size={12} className="text-emerald-500" />
+                                <ShieldCheck size={12} className="text-manioco-terracotta" />
                                 <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400 italic">Début de l'historique chiffré</span>
                             </div>
                         </div>
@@ -196,7 +196,7 @@ export default function AdminTicketDetail() {
                                             
                                             {/* Nom de l'expéditeur au-dessus de la bulle */}
                                             <div className={`flex items-center gap-1.5 mb-1.5 ${isAdminMessage ? 'flex-row-reverse' : ''} px-2`}>
-                                                <span className={`text-[9px] font-black uppercase tracking-widest italic ${isAdminMessage ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                <span className={`text-[9px] font-black uppercase tracking-widest italic ${isAdminMessage ? 'text-manioco-terracotta' : 'text-slate-400'}`}>
                                                     {isAdminMessage ? 'Support Admin' : ticket.seller?.name || 'Vendeur'}
                                                 </span>
                                             </div>
@@ -204,13 +204,13 @@ export default function AdminTicketDetail() {
                                             {/* Corps de la bulle de message */}
                                             <div className={`relative px-6 py-4 rounded-[1.5rem] shadow-sm transform transition-all hover:scale-[1.01] ${
                                                     isAdminMessage
-                                                    ? 'bg-gradient-to-tr from-emerald-500 to-emerald-400 text-white rounded-tr-sm shadow-emerald-500/20'
+                                                    ? 'bg-gradient-to-tr from-manioco-terracotta to-manioco-terracotta-400 text-white rounded-tr-sm shadow-manioco-terracotta/20'
                                                     : 'bg-white text-slate-700 rounded-tl-sm border border-slate-200 shadow-slate-200/50'
                                                 }`}>
                                                 <p className="text-[15px] font-medium leading-relaxed">{msg.message}</p>
                                                 
                                                 {/* Heure intégrée */}
-                                                <div className={`mt-2 flex items-center gap-1 ${isAdminMessage ? 'justify-end text-emerald-100' : 'justify-start text-slate-400'}`}>
+                                                <div className={`mt-2 flex items-center gap-1 ${isAdminMessage ? 'justify-end text-manioco-terracotta-100' : 'justify-start text-slate-400'}`}>
                                                     <Clock size={10} />
                                                     <span className="text-[9px] font-black tracking-widest">
                                                         {new Date(msg.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
@@ -227,9 +227,9 @@ export default function AdminTicketDetail() {
                         {/* 3. Barre de saisie flottante moderne */}
                         <div className="absolute bottom-6 left-6 right-6 lg:left-12 lg:right-12">
                             <form onSubmit={handleSendMessage} className="relative group">
-                                <div className="absolute inset-0 bg-white/60 backdrop-blur-xl rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-white -z-10 group-focus-within:shadow-emerald-500/10 transition-all duration-300"></div>
+                                <div className="absolute inset-0 bg-white/60 backdrop-blur-xl rounded-[2rem] shadow-2xl shadow-slate-200/50 border border-white -z-10 group-focus-within:shadow-manioco-terracotta/10 transition-all duration-300"></div>
                                 <div className="flex items-center p-2 relative">
-                                    <div className="w-12 h-12 flex items-center justify-center text-slate-300 group-focus-within:text-emerald-500 transition-colors shrink-0">
+                                    <div className="w-12 h-12 flex items-center justify-center text-slate-300 group-focus-within:text-manioco-terracotta transition-colors shrink-0">
                                         <MessageSquare size={20} />
                                     </div>
                                     
@@ -245,7 +245,7 @@ export default function AdminTicketDetail() {
                                     <button
                                         type="submit"
                                         disabled={!newMessage.trim() || isSending || ticket.status === 'CLOSED'}
-                                        className="w-12 h-12 bg-emerald-500 text-white rounded-[1.5rem] flex items-center justify-center hover:bg-emerald-600 hover:scale-105 hover:rotate-12 shadow-xl shadow-emerald-500/30 transition-all duration-300 active:scale-95 disabled:opacity-0 disabled:scale-50 cursor-pointer shrink-0 ml-2"
+                                        className="w-12 h-12 bg-manioco-terracotta text-white rounded-[1.5rem] flex items-center justify-center hover:bg-manioco-brown hover:scale-105 hover:rotate-12 shadow-xl shadow-manioco-terracotta/30 transition-all duration-300 active:scale-95 disabled:opacity-0 disabled:scale-50 cursor-pointer shrink-0 ml-2"
                                     >
                                         {isSending ? <Loader2 size={20} className="animate-spin" /> : <Send size={20} className="-translate-x-0.5 translate-y-0.5" />}
                                     </button>
@@ -287,7 +287,7 @@ export default function AdminTicketDetail() {
                         {/* Fiche Utilisateur */}
                         <div className="bg-white border border-slate-100 rounded-3xl p-6 shadow-sm">
                             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-50">
-                                <div className="w-10 h-10 bg-emerald-50 text-emerald-500 rounded-xl flex items-center justify-center">
+                                <div className="w-10 h-10 bg-manioco-terracotta-50 text-manioco-terracotta-500 rounded-xl flex items-center justify-center">
                                     <User size={18} />
                                 </div>
                                 <div>
@@ -313,7 +313,7 @@ export default function AdminTicketDetail() {
                                 </div>
                             </div>
                             
-                            <button className="w-full mt-6 py-3 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-50 hover:text-emerald-600 transition-colors border border-slate-100">
+                            <button className="w-full mt-6 py-3 bg-slate-50 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-manioco-terracotta-50 hover:text-manioco-terracotta transition-colors border border-slate-100">
                                 Voir la boutique
                             </button>
                         </div>

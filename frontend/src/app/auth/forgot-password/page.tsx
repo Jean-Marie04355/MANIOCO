@@ -1,5 +1,5 @@
 "use client";
-import { Mail, ArrowLeft, Leaf, Sparkles } from 'lucide-react';
+import { Mail, ArrowLeft, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import Link from 'next/link';
 import { Input } from '@/components/ui/Input';
@@ -28,23 +28,26 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fcfbf7] flex items-center justify-center p-4 selection:bg-[#c5a059] selection:text-white font-sans overflow-hidden relative">
+    <div className="min-h-screen bg-[#fcfbf7] flex items-center justify-center p-4 selection:bg-manioco-terracotta selection:text-white font-sans overflow-hidden relative">
       
       {/* Decorative Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-         <div className="absolute -top-40 -left-40 w-[1000px] h-[1000px] bg-[#2d4635]/5 rounded-full blur-[180px] opacity-70"></div>
-         <div className="absolute -bottom-40 -right-40 w-[1000px] h-[1000px] bg-[#c5a059]/5 rounded-full blur-[180px] opacity-70"></div>
+         <div className="absolute -top-40 -left-40 w-[1000px] h-[1000px] bg-manioco-terracotta/5 rounded-full blur-[180px] opacity-70"></div>
+         <div className="absolute -bottom-40 -right-40 w-[1000px] h-[1000px] bg-[#F4A261]/5 rounded-full blur-[180px] opacity-70"></div>
       </div>
 
-      <div className="relative z-50 w-full max-w-md bg-white/40 backdrop-blur-3xl rounded-[48px] shadow-[0_40px_100px_-20px_rgba(45,70,53,0.2)] border border-white/60 overflow-hidden p-12">
+      <div className="relative z-50 w-full max-w-md bg-white/40 backdrop-blur-3xl rounded-[48px] shadow-[0_40px_100px_-20px_rgba(139,69,19,0.15)] border border-white/60 overflow-hidden p-12">
         <div className="flex flex-col items-center text-center">
-          <div className="flex gap-2 mb-8 items-center">
-            <Leaf size={40} className="text-green-600" fill="currentColor" />
-            <span className="text-2xl font-black italic text-[#2d4635] tracking-tighter">AFRIGARI</span>
+          {/* Logo Manioco */}
+          <div className="flex gap-1 mb-8 items-center">
+            <span className="text-2xl font-extrabold tracking-tight text-manioco-brown">Mani</span>
+            <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black">o</span>
+            <span className="text-2xl font-extrabold tracking-tight text-manioco-brown">c</span>
+            <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black">o</span>
           </div>
 
-          <h1 className="text-3xl font-black uppercase text-[#2d4635] mb-4 tracking-tighter italic">Récupération</h1>
-          <p className="text-[#2d4635]/60 text-xs font-bold mb-10 leading-relaxed uppercase tracking-widest px-4">
+          <h1 className="text-3xl font-black uppercase text-manioco-brown mb-4 tracking-tighter italic">Récupération</h1>
+          <p className="text-manioco-brown/60 text-xs font-bold mb-10 leading-relaxed uppercase tracking-widest px-4">
             Entrez votre adresse email pour recevoir un lien de réinitialisation.
           </p>
 
@@ -73,13 +76,13 @@ export default function ForgotPasswordPage() {
             <button 
               type="submit"
               disabled={isLoading || message !== ''}
-              className="w-full bg-[#2d4635] text-white py-6 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] hover:bg-[#c5a059] transition-all shadow-xl active:scale-95 disabled:opacity-50"
+              className="w-full bg-manioco-terracotta text-white py-6 rounded-[24px] font-black text-xs uppercase tracking-[0.2em] hover:bg-manioco-brown transition-all shadow-xl active:scale-95 disabled:opacity-50"
             >
               {isLoading ? "Envoi en cours..." : "Envoyer le lien"}
             </button>
           </form>
 
-          <Link href="/auth/login" className="mt-10 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-[#2d4635]/40 hover:text-[#2d4635] transition-colors group">
+          <Link href="/auth/login" className="mt-10 flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-manioco-brown/40 hover:text-manioco-brown transition-colors group">
             <ArrowLeft size={14} className="group-hover:-translate-x-1 transition-transform" />
             Retour à la connexion
           </Link>

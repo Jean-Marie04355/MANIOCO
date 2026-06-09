@@ -16,7 +16,7 @@ export default function ProductTable({ products, onDelete, onEdit }: ProductTabl
 
   const getStatus = (stock: number) => {
     if (stock <= 0) return { label: 'Epuisé', class: 'bg-red-50 text-red-600' };
-    if (stock <= 5) return { label: 'Stock faible', class: 'bg-orange-50 text-orange-600' };
+    if (stock <= 5) return { label: 'Stock faible', class: 'bg-manioco-terracotta-50 text-manioco-terracotta' };
     return { label: 'En ligne', class: 'bg-green-50 text-green-600' };
   };
 
@@ -77,7 +77,7 @@ export default function ProductTable({ products, onDelete, onEdit }: ProductTabl
                       </span>
                       <div className="w-12 h-1 bg-slate-100 rounded-full overflow-hidden">
                          <div 
-                           className={`h-full rounded-full ${product.stock === 0 ? "bg-red-500" : "bg-orange-500"}`} 
+                           className={`h-full rounded-full ${product.stock === 0 ? "bg-red-500" : "bg-manioco-terracotta"}`} 
                            style={{ width: `${Math.min(product.stock * 4, 100)}%` }}
                          ></div>
                       </div>
@@ -92,7 +92,7 @@ export default function ProductTable({ products, onDelete, onEdit }: ProductTabl
                     <div className="flex items-center justify-end gap-3">
                       <button 
                         onClick={() => onEdit(product)}
-                        className="p-2.5 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100"
+                        className="p-2.5 text-slate-400 hover:text-manioco-terracotta hover:bg-manioco-terracotta-50 rounded-xl transition-all shadow-sm bg-white border border-slate-100"
                       >
                         <Edit2 size={16} />
                       </button>

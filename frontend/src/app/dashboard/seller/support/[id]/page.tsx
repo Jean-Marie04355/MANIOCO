@@ -79,7 +79,7 @@ export default function TicketDetail() {
             <div className="flex bg-slate-50 min-h-screen">
                 <Sidebar mode="seller" />
                 <main className="flex-1 ml-64 flex items-center justify-center">
-                    <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+                    <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
                 </main>
             </div>
         );
@@ -105,7 +105,7 @@ export default function TicketDetail() {
                             <div className="flex items-center gap-6">
                                 <button
                                     onClick={() => router.push('/dashboard/seller/support')}
-                                    className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center text-slate-400 hover:text-orange-500 transition-all shadow-sm"
+                                    className="w-12 h-12 rounded-full border border-slate-100 flex items-center justify-center text-slate-400 hover:text-manioco-terracotta transition-all shadow-sm"
                                 >
                                     <ArrowLeft size={20} />
                                 </button>
@@ -117,7 +117,7 @@ export default function TicketDetail() {
                                 </div>
                             </div>
 
-                            <div className={`px-4 py-1.5 rounded-full border flex items-center gap-2 font-black text-[10px] uppercase tracking-widest ${ticket.status === 'OPEN' ? 'border-orange-200 text-orange-500 bg-orange-50/30' : 'border-emerald-100 text-emerald-500 bg-emerald-50/30'
+                            <div className={`px-4 py-1.5 rounded-full border flex items-center gap-2 font-black text-[10px] uppercase tracking-widest ${ticket.status === 'OPEN' ? 'border-manioco-terracotta-200 text-manioco-terracotta bg-manioco-terracotta-50/30' : 'border-green-100 text-green-500 bg-green-50/30'
                                 }`}>
                                 <AlertCircle size={14} />
                                 {ticket.status === 'OPEN' ? 'OUVERT' : ticket.status === 'IN_PROGRESS' ? 'EN COURS' : 'RÉSOLU'}
@@ -139,12 +139,12 @@ export default function TicketDetail() {
 
                                         <div className={`flex items-end gap-3 ${isMe ? 'flex-row' : 'flex-row-reverse'}`}>
                                             <div className={`px-6 py-4 rounded-[1.8rem] text-sm font-bold max-w-sm ${isMe
-                                                    ? 'bg-orange-500 text-white rounded-tr-none'
+                                                    ? 'bg-manioco-terracotta text-white rounded-tr-none'
                                                     : 'bg-slate-100 text-slate-700 rounded-tl-none'
                                                 }`}>
                                                 <p>{msg.message}</p>
                                             </div>
-                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-slate-100 ${isMe ? 'bg-orange-100 text-orange-500' : 'bg-slate-100 text-slate-400'}`}>
+                                            <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 border border-slate-100 ${isMe ? 'bg-manioco-terracotta-50 text-manioco-terracotta' : 'bg-slate-100 text-slate-400'}`}>
                                                 {isMe ? <User size={18} /> : <ShieldCheck size={18} />}
                                             </div>
                                         </div>
@@ -164,7 +164,7 @@ export default function TicketDetail() {
                                         onChange={e => setNewMessage(e.target.value)}
                                         disabled={ticket.status === 'CLOSED' || isSending}
                                         placeholder={ticket.status === 'CLOSED' ? "Ce ticket est clôturé" : "Écrivez votre réponse..."}
-                                        className="w-full bg-slate-50/50 border border-slate-100 rounded-[1.5rem] px-8 py-5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all placeholder:text-slate-300 disabled:opacity-50"
+                                        className="w-full bg-slate-50/50 border border-slate-100 rounded-[1.5rem] px-8 py-5 text-sm font-bold text-slate-700 focus:outline-none focus:ring-4 focus:ring-manioco-terracotta/10 focus:bg-white transition-all placeholder:text-slate-300 disabled:opacity-50"
                                     />
                                 </div>
                                 <button
@@ -173,7 +173,7 @@ export default function TicketDetail() {
                                     className={`w-14 h-14 rounded-[1.2rem] flex items-center justify-center transition-all shadow-lg active:scale-95 ${
                                         !newMessage.trim() || isSending || ticket.status === 'CLOSED'
                                         ? 'bg-slate-100 text-slate-300 shadow-none cursor-not-allowed'
-                                        : 'bg-orange-500 text-white shadow-orange-500/20 hover:bg-orange-600 hover:-rotate-12'
+                                        : 'bg-manioco-terracotta text-white shadow-manioco-terracotta/20 hover:bg-manioco-brown hover:-rotate-12'
                                     }`}
                                 >
                                     {isSending ? (

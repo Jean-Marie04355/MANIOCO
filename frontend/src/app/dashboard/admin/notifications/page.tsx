@@ -81,7 +81,7 @@ export default function AdminNotificationsPage() {
                     <div className="flex justify-between items-end mb-10">
                         <div className="space-y-2">
                             <h2 className="text-4xl font-black text-slate-900 tracking-tighter uppercase italic">Alertes Système</h2>
-                            <p className="text-sm font-bold text-slate-400">Vous avez <span className="text-emerald-500 font-black">{unreadCount}</span> notifications non lues.</p>
+                            <p className="text-sm font-bold text-slate-400">Vous avez <span className="text-manioco-terracotta font-black">{unreadCount}</span> notifications non lues.</p>
                         </div>
                         <div className="flex gap-3">
                             <div className="bg-slate-100 p-1 rounded-2xl flex">
@@ -92,7 +92,7 @@ export default function AdminNotificationsPage() {
                                 onClick={markAllRead}
                                 className="flex items-center gap-2 bg-white border border-slate-100 px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all shadow-sm"
                             >
-                                <CheckCheck size={16} className="text-emerald-500" />
+                                <CheckCheck size={16} className="text-manioco-terracotta" />
                                 Tout marquer comme lu
                             </button>
                         </div>
@@ -142,7 +142,7 @@ function FilterBtn({ active, label, onClick }: { readonly active: boolean, reado
     return (
         <button 
             onClick={onClick}
-            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${active ? 'bg-white text-emerald-600 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${active ? 'bg-white text-manioco-terracotta shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
         >
             {label}
         </button>
@@ -154,7 +154,7 @@ function NotificationItem({ notification, onRead, onDelete }: { readonly notific
     
     // Config based on type
     const configs: any = {
-        ORDER: { icon: ShoppingCart, color: 'emerald', label: 'Commande' },
+        ORDER: { icon: ShoppingCart, color: 'manioco-terracotta', label: 'Commande' },
         USER: { icon: UserPlus, color: 'blue', label: 'Utilisateur' },
         REPORT: { icon: Flag, color: 'amber', label: 'Signalement' },
         SECURITY: { icon: AlertCircle, color: 'rose', label: 'Sécurité' },
@@ -163,7 +163,7 @@ function NotificationItem({ notification, onRead, onDelete }: { readonly notific
 
     const config = configs[notification.type] || configs.DEFAULT;
     const colors: any = {
-        emerald: 'bg-emerald-50 text-emerald-500',
+        'manioco-terracotta': 'bg-manioco-terracotta-50 text-manioco-terracotta-500',
         blue: 'bg-blue-50 text-blue-500',
         amber: 'bg-amber-50 text-amber-500',
         rose: 'bg-rose-50 text-rose-500',
@@ -175,7 +175,7 @@ function NotificationItem({ notification, onRead, onDelete }: { readonly notific
     });
 
     return (
-        <div className={`group flex items-start gap-6 p-7 rounded-[2.5rem] border transition-all ${isUnread ? 'bg-white border-emerald-100 shadow-xl shadow-emerald-500/5' : 'bg-white/50 border-slate-100 opacity-70 hover:opacity-100'}`}>
+        <div className={`group flex items-start gap-6 p-7 rounded-[2.5rem] border transition-all ${isUnread ? 'bg-white border-manioco-terracotta-100 shadow-xl shadow-manioco-terracotta/5' : 'bg-white/50 border-slate-100 opacity-70 hover:opacity-100'}`}>
             <div className={`mt-1 p-4 rounded-2xl shrink-0 transition-transform group-hover:scale-110 shadow-sm ${colors[config.color]}`}>
                 <config.icon size={22} />
             </div>
@@ -183,10 +183,10 @@ function NotificationItem({ notification, onRead, onDelete }: { readonly notific
             <div className="flex-1 min-w-0">
                 <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-3">
-                        <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isUnread ? 'text-emerald-500' : 'text-slate-400'}`}>
+                        <span className={`text-[9px] font-black uppercase tracking-[0.2em] ${isUnread ? 'text-manioco-terracotta' : 'text-slate-400'}`}>
                             {config.label}
                         </span>
-                        {isUnread && <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />}
+                        {isUnread && <div className="w-1.5 h-1.5 bg-manioco-terracotta rounded-full animate-pulse" />}
                     </div>
                     <p className="text-[10px] font-bold text-slate-300 flex items-center gap-2">
                         <Clock size={12} />
@@ -199,7 +199,7 @@ function NotificationItem({ notification, onRead, onDelete }: { readonly notific
                 {isUnread && (
                     <button 
                         onClick={onRead}
-                        className="mt-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-emerald-600 hover:text-emerald-700 transition-colors"
+                        className="mt-5 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-manioco-terracotta hover:text-manioco-brown transition-colors"
                     >
                         <CheckCircle2 size={16} />
                         Marquer comme lu

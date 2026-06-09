@@ -101,7 +101,7 @@ export default function AdminOrdersManagement() {
         return (
             <div className="flex bg-[#f8fafc] min-h-screen items-center justify-center">
                 <div className="text-center space-y-4">
-                    <Loader2 size={48} className="animate-spin text-emerald-500 mx-auto" />
+                    <Loader2 size={48} className="animate-spin text-manioco-terracotta mx-auto" />
                     <p className="text-slate-400 font-bold animate-pulse uppercase tracking-widest text-xs">Initialisation de la tour de contrôle...</p>
                 </div>
             </div>
@@ -109,7 +109,7 @@ export default function AdminOrdersManagement() {
     }
 
     return (
-        <div className="flex bg-[#f8fafc] min-h-screen text-slate-800 font-sans selection:bg-emerald-100">
+        <div className="flex bg-[#f8fafc] min-h-screen text-slate-800 font-sans selection:bg-manioco-terracotta-50">
             <Sidebar mode="admin" />
             
             <main className="flex-1 ml-64 flex flex-col h-screen overflow-hidden">
@@ -144,7 +144,7 @@ export default function AdminOrdersManagement() {
                             <input 
                                 type="text" 
                                 placeholder="Rechercher..."
-                                className="w-full bg-white border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-emerald-100 transition-all shadow-sm"
+                                className="w-full bg-white border-none rounded-2xl pl-12 pr-4 py-3.5 text-xs font-semibold outline-none focus:ring-2 focus:ring-manioco-terracotta-100 transition-all shadow-sm"
                             />
                         </div>
 
@@ -218,7 +218,7 @@ export default function AdminOrdersManagement() {
 
 // Subcomponents
 function StatCard({ icon: Icon, label, value, color, highlight }: { readonly icon: any, readonly label: string, readonly value: string | number, readonly color: string, readonly highlight?: boolean }) {
-    const colors: any = { emerald: 'text-emerald-500 bg-emerald-50', amber: 'text-amber-500 bg-amber-50', blue: 'text-blue-500 bg-blue-50' };
+    const colors: any = { emerald: 'text-manioco-terracotta bg-manioco-terracotta-50', amber: 'text-amber-500 bg-amber-50', blue: 'text-blue-500 bg-blue-50' };
     return (
         <div className="flex items-center gap-4 group">
             <div className={`p-4 rounded-2xl ${colors[color]} group-hover:scale-110 transition-transform shadow-sm`}>
@@ -236,7 +236,7 @@ function ModeToggle({ active, label, onClick }: { readonly active: boolean, read
     return (
         <button 
             onClick={onClick}
-            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${active ? 'bg-white shadow-md text-emerald-600' : 'text-slate-400 hover:text-slate-600'}`}
+            className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${active ? 'bg-white shadow-md text-manioco-terracotta-600' : 'text-slate-400 hover:text-slate-600'}`}
         >
             {label}
         </button>
@@ -247,7 +247,7 @@ function FilterTab({ active, label, count, onClick, alert }: { readonly active: 
     return (
         <button 
             onClick={onClick}
-            className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex flex-col items-center gap-1.5 transition-all ${active ? 'bg-emerald-50 text-emerald-600 shadow-sm' : 'text-slate-400 hover:bg-slate-50'}`}
+            className={`flex-1 py-3.5 rounded-xl text-[9px] font-black uppercase tracking-widest flex flex-col items-center gap-1.5 transition-all ${active ? 'bg-manioco-terracotta-50 text-manioco-terracotta-600 shadow-sm' : 'text-slate-400 hover:bg-slate-50'}`}
         >
             {label}
             {count > 0 && (
@@ -267,17 +267,17 @@ function OrderCardItem({ order, active, onClick }: { readonly order: any, readon
     return (
         <button 
             onClick={onClick}
-            className={`w-full p-6 rounded-3xl border transition-all text-left relative group ${active ? 'bg-slate-900 border-slate-900 text-white shadow-2xl scale-[1.02]' : 'bg-white border-slate-100 hover:border-emerald-200'}`}
+            className={`w-full p-6 rounded-3xl border transition-all text-left relative group ${active ? 'bg-slate-900 border-slate-900 text-white shadow-2xl scale-[1.02]' : 'bg-white border-slate-100 hover:border-manioco-terracotta-200'}`}
         >
             <div className="flex justify-between items-start mb-5">
                 <div>
-                    <p className={`text-[10px] font-black tracking-widest ${active ? 'text-emerald-400' : 'text-slate-400'}`}>#{order.id.split('-')[0]}</p>
+                    <p className={`text-[10px] font-black tracking-widest ${active ? 'text-manioco-terracotta-400' : 'text-slate-400'}`}>#{order.id.split('-')[0]}</p>
                     <p className={`text-[10px] font-bold ${active ? 'text-slate-400' : 'text-slate-300'}`}>{date}</p>
                 </div>
                 <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-tighter border ${active ? 'bg-white/10 border-white/20' : 'bg-slate-50 text-slate-500'}`}>{statusLabels[order.status] || order.status}</span>
             </div>
             <div className="flex items-center gap-4">
-                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs ${active ? 'bg-white/10' : 'bg-slate-50 text-emerald-600'}`}>{avatar}</div>
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xs ${active ? 'bg-white/10' : 'bg-slate-50 text-manioco-terracotta-600'}`}>{avatar}</div>
                 <div className="flex-1 min-w-0">
                     <p className="text-sm font-black tracking-tight">{Number(order.totalAmount).toLocaleString()} FCFA</p>
                     <p className={`text-[10px] font-bold truncate ${active ? 'text-slate-100' : 'text-slate-400'}`}>{order.customer?.firstName} ➔ {order.store?.name || 'Boutique'}</p>
@@ -290,7 +290,7 @@ function OrderCardItem({ order, active, onClick }: { readonly order: any, readon
 function getFilterBadgeStyles(active: boolean, alert?: boolean) {
     if (!active) return 'bg-slate-200 text-slate-500';
     if (alert) return 'bg-rose-500 text-white animate-pulse';
-    return 'bg-emerald-500 text-white shadow-xl';
+    return 'bg-manioco-terracotta text-white shadow-xl shadow-manioco-terracotta/20';
 }
 
 function getOrderAvatar(order: any) {
@@ -304,15 +304,15 @@ function CustomerCardItem({ customer, active, onClick }: { readonly customer: an
     return (
         <button 
             onClick={onClick}
-            className={`w-full p-6 rounded-3xl border transition-all text-left group ${active ? 'bg-slate-900 border-slate-900 text-white shadow-2xl scale-[1.02]' : 'bg-white border-slate-100 hover:border-emerald-200'}`}
+            className={`w-full p-6 rounded-3xl border transition-all text-left group ${active ? 'bg-slate-900 border-slate-900 text-white shadow-2xl scale-[1.02]' : 'bg-white border-slate-100 hover:border-manioco-terracotta-200'}`}
         >
             <div className="flex items-center gap-5">
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-sm ${active ? 'bg-emerald-500 text-white shadow-emerald-500/20' : 'bg-emerald-50 text-emerald-600'}`}>{customer.avatar}</div>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center font-black text-xl shadow-sm ${active ? 'bg-manioco-terracotta text-white shadow-manioco-terracotta/20' : 'bg-manioco-terracotta-50 text-manioco-terracotta-600'}`}>{customer.avatar}</div>
                 <div className="flex-1">
                     <h4 className="font-black text-xs uppercase tracking-tight">{customer.name}</h4>
                     <p className={`text-[10px] font-bold ${active ? 'text-slate-100' : 'text-slate-400'}`}>{customer.totalOrders} commandes passées</p>
                 </div>
-                <ChevronRight size={18} className={active ? 'text-emerald-500' : 'text-slate-200'} />
+                <ChevronRight size={18} className={active ? 'text-manioco-terracotta' : 'text-slate-200'} />
             </div>
         </button>
     );
@@ -327,13 +327,13 @@ function OrderDisplay({ order }: { readonly order: any }) {
             <div className="p-12 pb-10 border-b border-slate-50 bg-slate-50/30">
                 <div className="flex justify-between items-end">
                     <div className="space-y-4">
-                        <span className="px-3 py-1 bg-white border border-slate-100 rounded-lg text-[9px] font-black uppercase text-emerald-600 tracking-widest shadow-sm">ID Dossier : {order.id}</span>
+                        <span className="px-3 py-1 bg-white border border-slate-100 rounded-lg text-[9px] font-black uppercase text-manioco-terracotta-600 tracking-widest shadow-sm">ID Dossier : {order.id}</span>
                         <h2 className="text-6xl font-black text-slate-800 tracking-tighter">
-                            {Number(order.totalAmount).toLocaleString()} <span className="text-emerald-500 text-3xl">FCFA</span>
+                            {Number(order.totalAmount).toLocaleString()} <span className="text-manioco-terracotta-500 text-3xl">FCFA</span>
                         </h2>
                         <div className="flex gap-6 text-xs font-bold text-slate-400 italic">
                             <span className="flex items-center gap-2"><Clock size={16}/> Enregistrée le {date}</span>
-                            <span className="flex items-center gap-2 text-emerald-600 font-black"><CheckCircle2 size={16}/> Statut : {statusLabels[order.status] || order.status}</span>
+                            <span className="flex items-center gap-2 text-manioco-terracotta-600 font-black"><CheckCircle2 size={16}/> Statut : {statusLabels[order.status] || order.status}</span>
                         </div>
                     </div>
                     <div className="flex gap-3">
@@ -369,8 +369,8 @@ function OrderDisplay({ order }: { readonly order: any }) {
                             </tbody>
                         </table>
                         <div className="p-10 bg-slate-900 text-white flex justify-between items-center px-12">
-                            <div><p className="text-[10px] font-black uppercase tracking-widest opacity-70">Taxe Afrigari Collectée (10%)</p><p className="text-2xl font-black italic">{(Number(order.totalAmount) * 0.1).toLocaleString()} FCFA</p></div>
-                            <ShieldCheck size={48} className="text-emerald-500" />
+                            <div><p className="text-[10px] font-black uppercase tracking-widest opacity-70">Taxe Manioco Collectée (10%)</p><p className="text-2xl font-black italic">{(Number(order.totalAmount) * 0.1).toLocaleString()} FCFA</p></div>
+                            <ShieldCheck size={48} className="text-manioco-terracotta" />
                         </div>
                     </div>
                 </div>
@@ -382,11 +382,11 @@ function OrderDisplay({ order }: { readonly order: any }) {
 function CustomerDisplay({ customer }: { readonly customer: any }) {
     return (
         <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="p-12 border-b border-slate-50 bg-emerald-50/20">
+            <div className="p-12 border-b border-slate-50 bg-manioco-terracotta-50/20">
                 <div className="flex items-center gap-10">
                     <div className="w-28 h-28 bg-slate-900 rounded-[2rem] flex items-center justify-center text-white text-5xl font-black shadow-2xl">{customer.avatar}</div>
                     <div className="space-y-3">
-                        <span className="px-3 py-1 bg-emerald-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200">Base de Donnée CRM</span>
+                        <span className="px-3 py-1 bg-manioco-terracotta text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-lg shadow-manioco-terracotta/20">Base de Donnée CRM</span>
                         <h2 className="text-5xl font-black text-slate-800 tracking-tighter uppercase">{customer.name}</h2>
                         <div className="flex gap-6 text-sm font-bold text-slate-400 italic">
                             <span className="flex items-center gap-2"><Mail size={16}/> {customer.email}</span>
@@ -409,13 +409,13 @@ function CustomerDisplay({ customer }: { readonly customer: any }) {
                     </h3>
                     <div className="space-y-4">
                         {customer.orders.slice().reverse().map((o: any) => (
-                            <div key={o.id} className="p-8 bg-white border border-slate-100 rounded-[2rem] flex items-center justify-between hover:shadow-xl hover:border-emerald-100 transition-all cursor-pointer">
+                            <div key={o.id} className="p-8 bg-white border border-slate-100 rounded-[2rem] flex items-center justify-between hover:shadow-xl hover:border-manioco-terracotta-100 transition-all cursor-pointer">
                                 <div className="flex items-center gap-6">
-                                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-emerald-500 group-hover:text-white transition-all"><Package size={24}/></div>
+                                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400 group-hover:bg-manioco-terracotta group-hover:text-white transition-all"><Package size={24}/></div>
                                     <div><p className="font-black text-xs uppercase text-slate-700">Commande #{o.id.split('-')[0]}</p><p className="text-[11px] font-bold text-slate-400">{o.date}</p></div>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-lg font-black text-emerald-600 font-mono italic">{Number(o.totalAmount).toLocaleString()} FCFA</p>
+                                    <p className="text-lg font-black text-manioco-terracotta font-mono italic">{Number(o.totalAmount).toLocaleString()} FCFA</p>
                                     <span className={`text-[9px] font-black uppercase px-3 py-1 rounded-full bg-slate-50 text-slate-500 border border-slate-100`}>{o.status}</span>
                                 </div>
                             </div>
@@ -428,12 +428,12 @@ function CustomerDisplay({ customer }: { readonly customer: any }) {
 }
 
 function PartyBox({ title, name, sub, icon: Icon, color }: { readonly title: string, readonly name: string, readonly sub: string, readonly icon: any, readonly color: string }) {
-    const styles: any = { slate: 'bg-slate-50 border-slate-100 text-slate-800', emerald: 'bg-emerald-50 border-emerald-100 text-emerald-800 shadow-sm' };
+    const styles: any = { slate: 'bg-slate-50 border-slate-100 text-slate-800', emerald: 'bg-manioco-terracotta-50 border-manioco-terracotta-100 text-manioco-terracotta-800 shadow-sm' };
     return (
         <div className={`p-8 rounded-[2.5rem] border ${styles[color]} relative group hover:shadow-md transition-all`}>
             <span className="absolute top-6 right-8 text-[9px] font-black uppercase tracking-widest opacity-30 italic">{title}</span>
             <div className="flex items-center gap-6 mt-4">
-                <div className={`p-5 rounded-[1.5rem] ${color==='slate'?'bg-white shadow-sm text-slate-400':'bg-emerald-500 text-white shadow-lg'}`}><Icon size={28} /></div>
+                <div className={`p-5 rounded-[1.5rem] ${color==='slate'?'bg-white shadow-sm text-slate-400':'bg-manioco-terracotta text-white shadow-lg shadow-manioco-terracotta/20'}`}><Icon size={28} /></div>
                 <div className="min-w-0"><h4 className="text-xl font-black tracking-tighter uppercase truncate">{name || 'Inconnu'}</h4><p className="text-xs font-bold opacity-60 flex items-center gap-2 mt-1 truncate"><Mail size={14}/>{sub || 'Aucun contact'}</p></div>
             </div>
         </div>
@@ -441,7 +441,7 @@ function PartyBox({ title, name, sub, icon: Icon, color }: { readonly title: str
 }
 
 function KpiBox({ label, value, sub, color }: { readonly label: string, readonly value: string | number, readonly sub: string, readonly color: string }) {
-    const colors: any = { emerald: 'bg-emerald-50 text-emerald-600', slate: 'bg-slate-900 text-white shadow-xl' };
+    const colors: any = { emerald: 'bg-manioco-terracotta-50 text-manioco-terracotta-600', slate: 'bg-slate-900 text-white shadow-xl' };
     return (
         <div className={`p-10 rounded-[2.5rem] ${colors[color]} flex flex-col items-center justify-center transition-transform hover:scale-105`}>
             <p className="text-[10px] font-black uppercase tracking-widest opacity-60 mb-2">{label}</p>
@@ -455,7 +455,7 @@ function DetailAction({ icon: Icon, label, color, onClick }: { readonly icon: an
     return (
         <button 
             onClick={onClick}
-            className={`h-14 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 ${color === 'emerald' ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-200 hover:bg-emerald-600' : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-800 shadow-sm'}`}
+            className={`h-14 px-8 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center gap-3 ${color === 'emerald' ? 'bg-manioco-terracotta text-white shadow-xl shadow-manioco-terracotta/20 hover:bg-manioco-brown' : 'bg-white border border-slate-200 text-slate-400 hover:text-slate-800 shadow-sm'}`}
         >
             <Icon size={18} />
             {label}

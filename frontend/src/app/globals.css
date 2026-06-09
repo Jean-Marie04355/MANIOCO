@@ -15,9 +15,32 @@
   --color-afrigari-gold: #C5A059;
   --color-afrigari-bronze: #8E6E3E;
 
-  /* Manioco Theme Tokens */
+  /* Manioco Theme Tokens & Shades */
   --color-manioco-terracotta: #9E4E3B;
+  --color-manioco-terracotta-50: #FAF0EE;
+  --color-manioco-terracotta-100: #F5DDD9;
+  --color-manioco-terracotta-200: #EDBEB4;
+  --color-manioco-terracotta-300: #E09483;
+  --color-manioco-terracotta-400: #D06952;
+  --color-manioco-terracotta-500: #9E4E3B;
+  --color-manioco-terracotta-600: #8E402F;
+  --color-manioco-terracotta-700: #763324;
+  --color-manioco-terracotta-800: #5E271B;
+  --color-manioco-terracotta-900: #4D2117;
+  --color-manioco-terracotta-950: #2A0F0A;
+
   --color-manioco-brown: #5C2D23;
+  --color-manioco-brown-50: #FAF6F5;
+  --color-manioco-brown-100: #F4EBE9;
+  --color-manioco-brown-200: #EAD8D4;
+  --color-manioco-brown-300: #D8BDB7;
+  --color-manioco-brown-400: #C09A91;
+  --color-manioco-brown-500: #5C2D23;
+  --color-manioco-brown-600: #4F251D;
+  --color-manioco-brown-700: #421D17;
+  --color-manioco-brown-800: #351611;
+  --color-manioco-brown-900: #2C120D;
+  
   --color-manioco-cream: #FAF7F2;
 }
 

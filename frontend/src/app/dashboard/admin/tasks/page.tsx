@@ -88,7 +88,7 @@ export default function AdminTasksPage() {
             <div className="flex bg-[#F8FAFC] min-h-screen">
                 <Sidebar mode="admin" />
                 <main className="flex-1 ml-64 flex items-center justify-center">
-                    <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+                    <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
                 </main>
             </div>
         );
@@ -106,7 +106,7 @@ export default function AdminTasksPage() {
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                         <div>
                             <h1 className="text-4xl font-black italic uppercase tracking-tighter text-slate-900 leading-none">
-                                Tâches en <span className="text-emerald-500">attente</span>
+                                Tâches en <span className="text-manioco-terracotta">attente</span>
                             </h1>
                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">
                                 Gérer les flux de travail et les urgences administratives
@@ -140,7 +140,7 @@ export default function AdminTasksPage() {
                         
                         {tasks.length === 0 ? (
                             <div className="text-center py-16 bg-white rounded-[2.5rem] border border-slate-100 shadow-sm">
-                                <CheckCircle2 size={48} className="mx-auto text-emerald-500 opacity-50 mb-4" />
+                                <CheckCircle2 size={48} className="mx-auto text-manioco-terracotta opacity-50 mb-4" />
                                 <h3 className="font-bold text-slate-800 text-lg">Aucune tâche en attente !</h3>
                                 <p className="text-slate-400 text-sm mt-1">Excellent travail, la plateforme est à jour.</p>
                             </div>
@@ -148,14 +148,14 @@ export default function AdminTasksPage() {
                             <Link 
                                 href={task.link}
                                 key={task.id} 
-                                className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-500/10 hover:-translate-y-1 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6"
+                                className="group bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-manioco-terracotta/10 hover:-translate-y-1 transition-all cursor-pointer flex flex-col md:flex-row md:items-center justify-between gap-6"
                             >
                                 <div className="flex items-start gap-6">
                                     <div className={`w-14 h-14 rounded-3xl flex items-center justify-center border-2 transition-all group-hover:scale-110 ${getTaskColorStyles(task.color)}`}>
                                         <TaskIcon type={task.type} />
                                     </div>
                                     <div>
-                                        <h3 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-emerald-500 transition-colors uppercase italic">{task.title}</h3>
+                                        <h3 className="font-black text-slate-800 text-lg tracking-tight group-hover:text-manioco-terracotta transition-colors uppercase italic">{task.title}</h3>
                                         <p className="text-sm text-slate-400 font-medium leading-relaxed mt-1 max-w-xl">{task.description}</p>
                                     </div>
                                 </div>
@@ -165,7 +165,7 @@ export default function AdminTasksPage() {
                                         <TaskStatusBadge status={task.status} />
                                         <p className="text-[10px] font-bold text-slate-300 uppercase tracking-wider mt-2">{task.time}</p>
                                     </div>
-                                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
+                                    <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-300 group-hover:bg-manioco-terracotta group-hover:text-white transition-all shadow-inner">
                                         <ChevronRight size={20} />
                                     </div>
                                 </div>

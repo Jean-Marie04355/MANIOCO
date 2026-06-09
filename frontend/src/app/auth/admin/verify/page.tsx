@@ -1,5 +1,5 @@
 "use client";
-import { ShieldCheck, Timer, RefreshCw, Loader2, Leaf } from 'lucide-react';
+import { ShieldCheck, Timer, RefreshCw, Loader2 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/features/auth/AuthContext';
@@ -68,7 +68,7 @@ export default function AdminVerifyPage() {
             subtitle="Synchronisation de sécurité nécessaire. Veuillez entrer le code envoyé à votre terminal."
             backUrl="/auth/admin/login"
             backLabel="Retour à l'accueil admin"
-            icon={<Leaf size={56} className="text-green-500" fill="currentColor" />}
+            icon={<ShieldCheck size={56} className="text-manioco-terracotta" />}
         >
             <div className="w-full space-y-12">
                 <div className="flex justify-between gap-2.5">
@@ -81,15 +81,15 @@ export default function AdminVerifyPage() {
                             value={data}
                             onChange={e => handleChange(e.target, index)}
                             onKeyDown={e => handleKeyDown(e, index)}
-                            className="w-12 h-16 sm:w-14 sm:h-20 bg-white/50 border-2 border-forest-green/5 rounded-[24px] text-center text-3xl font-black text-forest-green outline-none focus:border-forest-green focus:bg-white focus:ring-8 focus:ring-forest-green/5 focus:scale-105 transition-all shadow-sm"
+                            className="w-12 h-16 sm:w-14 sm:h-20 bg-white/50 border-2 border-manioco-terracotta/5 rounded-[24px] text-center text-3xl font-black text-manioco-brown outline-none focus:border-manioco-terracotta focus:bg-white focus:ring-8 focus:ring-manioco-terracotta/5 focus:scale-105 transition-all shadow-sm"
                         />
                     ))}
                 </div>
 
                 <div className="flex flex-col items-center gap-8">
-                    <div className="px-8 py-4 bg-forest-green/5 rounded-full border border-forest-green/5 flex items-center gap-3">
-                        <Timer size={20} className="text-afrigari-gold" />
-                        <span className="text-lg font-black text-forest-green tabular-nums">
+                    <div className="px-8 py-4 bg-manioco-terracotta/5 rounded-full border border-manioco-terracotta/5 flex items-center gap-3">
+                        <Timer size={20} className="text-[#F4A261]" />
+                        <span className="text-lg font-black text-manioco-brown tabular-nums">
                             {Math.floor(timeLeft / 60).toString().padStart(2, '0')}:{(timeLeft % 60).toString().padStart(2, '0')}
                         </span>
                     </div>
@@ -97,12 +97,12 @@ export default function AdminVerifyPage() {
                     <button
                         onClick={handleVerify}
                         disabled={!isComplete || isLoading}
-                        className={`w-full py-6 rounded-[28px] font-black text-sm uppercase tracking-widest transition-all shadow-2xl flex items-center justify-center gap-4 group ${isComplete && !isLoading ? 'bg-forest-green text-white hover:bg-afrigari-gold active:scale-95' : 'bg-slate-100 text-slate-400 pointer-events-none'}`}
+                        className={`w-full py-6 rounded-[28px] font-black text-sm uppercase tracking-widest transition-all shadow-2xl flex items-center justify-center gap-4 group ${isComplete && !isLoading ? 'bg-manioco-terracotta text-white hover:bg-manioco-brown active:scale-95' : 'bg-slate-100 text-slate-400 pointer-events-none'}`}
                     >
                         {isLoading ? <Loader2 className="animate-spin" size={20} /> : <>Valider l'Accès <ShieldCheck size={20} /></>}
                     </button>
 
-                    <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-forest-green/30 hover:text-forest-green transition-all group p-2">
+                    <button className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-manioco-brown/30 hover:text-manioco-brown transition-all group p-2">
                         <RefreshCw size={14} className="group-hover:rotate-180 transition-transform duration-700" /> Renvoyer un code
                     </button>
                 </div>

@@ -56,7 +56,7 @@ export default function AdminAdsPage() {
                             <h2 className="text-2xl font-black text-slate-900 tracking-tight italic uppercase">Mes Campagnes</h2>
                             <p className="text-sm text-slate-400 font-medium">Gérez vos bannières et messages promotionnels en direct.</p>
                         </div>
-                        <button className="flex items-center gap-3 bg-emerald-500 text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-emerald-100 hover:scale-105 transition-all">
+                        <button className="flex items-center gap-3 bg-manioco-terracotta text-white px-8 py-4 rounded-2xl font-black text-[11px] uppercase tracking-widest shadow-xl shadow-manioco-terracotta/10 hover:scale-105 transition-all">
                             <Plus size={18} />
                             Nouvelle Annonce
                         </button>
@@ -65,13 +65,13 @@ export default function AdminAdsPage() {
                     {/* Ads Grid */}
                     <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
                         {ads.map((ad) => (
-                            <div key={ad.id} className={`bg-white rounded-[2.5rem] border transition-all overflow-hidden relative group ${ad.status === 'INACTIVE' ? 'opacity-60 border-slate-100' : 'border-emerald-100 shadow-xl shadow-emerald-500/5'}`}>
+                            <div key={ad.id} className={`bg-white rounded-[2.5rem] border transition-all overflow-hidden relative group ${ad.status === 'INACTIVE' ? 'opacity-60 border-slate-100' : 'border-manioco-terracotta/20 shadow-xl shadow-manioco-terracotta/5'}`}>
                                 
                                 {/* Status Toggle Overlay */}
                                 <div className="absolute top-6 right-6 z-10 flex gap-2">
                                     <button 
                                         onClick={() => toggleStatus(ad.id)}
-                                        className={`p-3 rounded-xl transition-all ${ad.status === 'ACTIVE' ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}
+                                        className={`p-3 rounded-xl transition-all ${ad.status === 'ACTIVE' ? 'bg-manioco-terracotta text-white shadow-lg' : 'bg-slate-100 text-slate-400'}`}
                                     >
                                         <Power size={18} />
                                     </button>
@@ -96,7 +96,7 @@ export default function AdminAdsPage() {
                                                 <span className={`px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest ${ad.type === 'BANNER' ? 'bg-blue-50 text-blue-500' : 'bg-amber-50 text-amber-500'}`}>
                                                     {ad.type === 'BANNER' ? 'Bannière Image' : 'Alerte Texte'}
                                                 </span>
-                                                <span className={`text-[9px] font-black uppercase tracking-widest ${ad.status === 'ACTIVE' ? 'text-emerald-500' : 'text-slate-400'}`}>
+                                                <span className={`text-[9px] font-black uppercase tracking-widest ${ad.status === 'ACTIVE' ? 'text-manioco-terracotta' : 'text-slate-400'}`}>
                                                     ● {ad.status === 'ACTIVE' ? 'Active' : 'Désactivée'}
                                                 </span>
                                             </div>

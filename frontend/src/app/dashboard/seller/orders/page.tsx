@@ -146,7 +146,7 @@ export default function SellerOrders() {
     { label: "Total commandes", value: orders.length, icon: ShoppingBag, color: "bg-slate-100 text-slate-600" },
     { label: "En attente", value: orders.filter(o => o.status === "En attente").length, icon: Clock, color: "bg-blue-100 text-blue-600" },
     { label: "Confirmées", value: orders.filter(o => o.status === "Confirmée").length, icon: CheckCircle2, color: "bg-green-100 text-green-600" },
-    { label: "Expédiées / Livrées", value: orders.filter(o => ["Expédiée", "Expédiée avec succès", "Échec d'expédition"].includes(o.status)).length, icon: Truck, color: "bg-orange-100 text-orange-600" },
+    { label: "Expédiées / Livrées", value: orders.filter(o => ["Expédiée", "Expédiée avec succès", "Échec d'expédition"].includes(o.status)).length, icon: Truck, color: "bg-manioco-terracotta-50 text-manioco-terracotta" },
   ];
 
   if (isLoading) {
@@ -154,7 +154,7 @@ export default function SellerOrders() {
       <div className="flex bg-slate-50 min-h-screen">
         <Sidebar mode="seller" />
         <main className="flex-1 ml-64 flex items-center justify-center">
-          <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+          <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
         </main>
       </div>
     );
@@ -170,10 +170,10 @@ export default function SellerOrders() {
         <div className="p-8">
           {!hasStore ? (
             <div className="h-[calc(100vh-140px)] flex flex-col items-center justify-center bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm p-12 text-center">
-               <ShoppingBag size={48} className="text-orange-500 mb-6" />
+               <ShoppingBag size={48} className="text-manioco-terracotta mb-6" />
                <h2 className="text-2xl font-black text-slate-900 mb-2">Boutique requise</h2>
                <p className="text-slate-500 mb-8 max-w-sm">Vous devez créer votre boutique avant de pouvoir recevoir et gérer des commandes.</p>
-               <Link href="/dashboard/seller/settings/store" className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-bold">Créer ma boutique</Link>
+               <Link href="/dashboard/seller/settings/store" className="px-6 py-3 bg-manioco-terracotta text-white rounded-2xl font-bold hover:bg-manioco-brown transition-colors">Créer ma boutique</Link>
             </div>
           ) : (
             <>
@@ -197,7 +197,7 @@ export default function SellerOrders() {
                   <input 
                     type="text" 
                     placeholder="Rechercher par ID ou client..." 
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-sm"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta transition-all text-sm"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -210,7 +210,7 @@ export default function SellerOrders() {
                     </div>
                     <input 
                       type="date" 
-                      className="pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all appearance-none cursor-pointer"
+                      className="pl-12 pr-6 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta transition-all appearance-none cursor-pointer"
                       value={selectedDate}
                       onChange={(e) => setSelectedDate(e.target.value)}
                     />

@@ -197,7 +197,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                   type="text" 
                   required
                   placeholder="Ex: iPhone 15 Pro Max" 
-                  className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all text-sm font-bold shadow-inner"
+                  className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-manioco-terracotta/10 focus:bg-white transition-all text-sm font-bold shadow-inner"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
@@ -227,12 +227,12 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                     </>
                   ) : (
                     <div className="flex flex-col gap-2">
-                       <div className="px-5 py-4 bg-orange-50 text-orange-600 rounded-2xl text-xs font-bold border border-orange-100">
+                       <div className="px-5 py-4 bg-manioco-terracotta-50 text-manioco-terracotta rounded-2xl text-xs font-bold border border-manioco-terracotta-100">
                          Aucune catégorie trouvée.
                        </div>
                        <Link 
                          href="/dashboard/seller/categories"
-                         className="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:underline px-2"
+                         className="text-[10px] font-black text-manioco-terracotta uppercase tracking-widest hover:underline px-2"
                        >
                          + Créer ma première catégorie
                        </Link>
@@ -276,7 +276,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                   <select
                     value={formData.unit}
                     onChange={(e) => handleUnitChange(e.target.value)}
-                    className="bg-transparent border-none outline-none text-xs font-black text-orange-500 uppercase tracking-widest cursor-pointer shrink-0"
+                    className="bg-transparent border-none outline-none text-xs font-black text-manioco-terracotta uppercase tracking-widest cursor-pointer shrink-0"
                   >
                     <option value="Sac">Sac (50 kg)</option>
                     <option value="Demi-sac">Demi-sac (25 kg)</option>
@@ -323,7 +323,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                 {imagePreview ? (
                   <button 
                     type="button"
-                    className="relative aspect-square rounded-[2rem] overflow-hidden border-2 border-orange-100 group cursor-pointer w-full" 
+                    className="relative aspect-square rounded-[2rem] overflow-hidden border-2 border-manioco-terracotta-100 group cursor-pointer w-full" 
                     onClick={triggerFileInput}
                   >
                     <Image src={imagePreview} alt="Aperçu du produit" fill className="object-cover" />
@@ -335,10 +335,10 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
                   <button 
                     type="button"
                     onClick={triggerFileInput}
-                    className="aspect-square bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-orange-50 hover:border-orange-200 transition-all group shadow-inner w-full"
+                    className="aspect-square bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200 flex flex-col items-center justify-center cursor-pointer hover:bg-manioco-terracotta-50 hover:border-manioco-terracotta-200 transition-all group shadow-inner w-full"
                   >
-                    <ImageIcon className="text-slate-300 group-hover:text-orange-400 mb-2" size={32} />
-                    <span className="text-[10px] font-black text-slate-400 group-hover:text-orange-500 uppercase tracking-widest">Ajouter</span>
+                    <ImageIcon className="text-slate-300 group-hover:text-manioco-terracotta mb-2" size={32} />
+                    <span className="text-[10px] font-black text-slate-400 group-hover:text-manioco-terracotta uppercase tracking-widest">Ajouter</span>
                   </button>
                 )}
               </div>
@@ -358,7 +358,7 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
             type="submit"
             form="product-form"
             disabled={isSubmitting || (categories.length === 0 && !productToEdit)}
-            className="flex-[2] py-4 bg-orange-500 text-white rounded-2xl text-sm font-black hover:bg-orange-600 transition-all shadow-xl shadow-orange-500/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-[2] py-4 bg-manioco-terracotta text-white rounded-2xl text-sm font-black hover:bg-manioco-brown transition-all shadow-xl shadow-manioco-terracotta/20 active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <>

@@ -76,7 +76,7 @@ export default function SellerSupport() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'OPEN': 
-        return <span className="px-2.5 py-1 rounded-full bg-orange-50 text-orange-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit"><AlertCircle size={12}/> Ouvert</span>;
+        return <span className="px-2.5 py-1 rounded-full bg-manioco-terracotta-50 text-manioco-terracotta text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit"><AlertCircle size={12}/> Ouvert</span>;
       case 'IN_PROGRESS': 
         return <span className="px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-wider flex items-center gap-1 w-fit"><Clock size={12}/> En traitement</span>;
       case 'CLOSED': 
@@ -90,7 +90,7 @@ export default function SellerSupport() {
       <div className="flex bg-slate-50 min-h-screen">
         <Sidebar mode="seller" />
         <main className="flex-1 ml-64 flex items-center justify-center">
-          <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+          <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
         </main>
       </div>
     );
@@ -129,7 +129,7 @@ export default function SellerSupport() {
                   <input 
                     type="text" 
                     placeholder="Rechercher un ticket..." 
-                    className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all"
+                    className="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta transition-all"
                   />
                 </div>
               </div>
@@ -152,7 +152,7 @@ export default function SellerSupport() {
                       onClick={() => globalThis.location.href = `/dashboard/seller/support/${ticket.id}`}
                     >
                       <div className="flex gap-4 items-center">
-                        <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                        <div className="w-12 h-12 rounded-2xl bg-manioco-terracotta-50 text-manioco-terracotta flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                           <HelpCircle size={20} />
                         </div>
                         <div>
@@ -169,7 +169,7 @@ export default function SellerSupport() {
                           </div>
                         </div>
                       </div>
-                      <div className="text-orange-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="text-manioco-terracotta opacity-0 group-hover:opacity-100 transition-opacity">
                          <span className="text-xs font-black uppercase tracking-widest">Voir</span>
                       </div>
                     </button>
@@ -195,7 +195,7 @@ export default function SellerSupport() {
           <div className="relative w-full max-w-xl bg-white rounded-[2.5rem] shadow-2xl border border-slate-100 overflow-hidden animate-in zoom-in fade-in duration-300">
             <div className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
               <h3 className="text-xl font-black text-slate-900 flex items-center gap-2">
-                <HelpCircle className="text-orange-500" />
+                <HelpCircle className="text-manioco-terracotta" />
                 Nouveau Ticket
               </h3>
               <button 
@@ -218,7 +218,7 @@ export default function SellerSupport() {
                     value={subject}
                     onChange={e => setSubject(e.target.value)}
                     placeholder="Ex: Mon paiement FedaPay est bloqué"
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta focus:bg-white transition-all"
                   />
                 </div>
                 
@@ -228,7 +228,7 @@ export default function SellerSupport() {
                     id="ticketCategory"
                     value={category}
                     onChange={e => setCategory(e.target.value)}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all appearance-none cursor-pointer"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta focus:bg-white transition-all appearance-none cursor-pointer"
                   >
                     {categories.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
@@ -243,7 +243,7 @@ export default function SellerSupport() {
                     value={message}
                     onChange={e => setMessage(e.target.value)}
                     placeholder="Expliquez votre problème en détail ici..."
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 focus:bg-white transition-all resize-none custom-scrollbar"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta focus:bg-white transition-all resize-none custom-scrollbar"
                   ></textarea>
                 </div>
               </div>
@@ -259,7 +259,7 @@ export default function SellerSupport() {
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-1 py-3 bg-orange-500 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 shadow-lg shadow-orange-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                  className="flex-1 py-3 bg-manioco-terracotta text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-manioco-brown shadow-lg shadow-manioco-terracotta/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
                 >
                   {isSubmitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   Envoyer le ticket

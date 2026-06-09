@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../../components/Sidebar';
 import TopNav from '../../components/TopNav';
@@ -109,7 +109,7 @@ export default function SellerCategories() {
       <div className="flex bg-slate-50 min-h-screen">
         <Sidebar mode="seller" />
         <main className="flex-1 ml-64 flex items-center justify-center">
-          <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+          <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
         </main>
       </div>
     );
@@ -137,10 +137,10 @@ export default function SellerCategories() {
         <div className="p-8">
           {!hasStore ? (
             <div className="h-[calc(100vh-140px)] flex flex-col items-center justify-center bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm p-12 text-center">
-               <ShoppingBag size={48} className="text-orange-500 mb-6" />
+               <ShoppingBag size={48} className="text-manioco-terracotta mb-6" />
                <h2 className="text-2xl font-black text-slate-900 mb-2">Boutique requise</h2>
                <p className="text-slate-500 mb-8 max-w-sm">Vous devez créer votre boutique avant de pouvoir gérer vos catégories personnalisées.</p>
-               <Link href="/dashboard/seller/settings/store" className="px-6 py-3 bg-orange-500 text-white rounded-2xl font-bold">Créer ma boutique</Link>
+               <Link href="/dashboard/seller/settings/store" className="px-6 py-3 bg-manioco-terracotta text-white rounded-2xl font-bold">Créer ma boutique</Link>
             </div>
           ) : (
             <>
@@ -150,14 +150,14 @@ export default function SellerCategories() {
                   <input 
                     type="text" 
                     placeholder="Rechercher une catégorie..." 
-                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500/20 text-sm font-medium"
+                    className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-manioco-terracotta-100 text-sm font-medium"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
                 <button 
                   onClick={() => setIsAddModalOpen(true)}
-                  className="flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-2xl text-sm font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20"
+                  className="flex items-center gap-2 px-6 py-3 bg-manioco-terracotta text-white rounded-2xl text-sm font-bold hover:bg-manioco-brown transition-all shadow-lg shadow-manioco-terracotta/20"
                 >
                   <Plus size={18} />
                   Nouvelle catégorie
@@ -168,7 +168,7 @@ export default function SellerCategories() {
                 {categories.filter(c => c.name.toLowerCase().includes(searchTerm.toLowerCase())).map((category) => (
                   <div key={category.id} className="bg-white p-6 rounded-[2rem] border border-slate-200/60 shadow-sm hover:shadow-md transition-all group relative overflow-hidden">
                     <div className="flex items-center gap-4 mb-4">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${!category.storeId ? 'bg-slate-50 text-slate-400' : 'bg-orange-50 text-orange-500'}`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${!category.storeId ? 'bg-slate-50 text-slate-400' : 'bg-manioco-terracotta-50 text-manioco-terracotta'}`}>
                         <Tag size={20} />
                       </div>
                       <div className="min-w-0 flex-1">
@@ -184,7 +184,7 @@ export default function SellerCategories() {
                         <>
                           <button 
                             onClick={() => handleEdit(category)}
-                            className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all"
+                            className="p-2 text-slate-400 hover:text-manioco-terracotta hover:bg-manioco-terracotta-50 rounded-xl transition-all"
                             title="Modifier"
                           >
                             <Edit2 size={16} />
@@ -233,7 +233,7 @@ export default function SellerCategories() {
                   autoFocus
                   required
                   placeholder="Ex: Épices du terroir, Chaussures..."
-                  className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-orange-500/10 focus:bg-white transition-all text-sm font-bold"
+                  className="w-full px-5 py-4 bg-slate-50 border-none rounded-2xl outline-none focus:ring-4 focus:ring-manioco-terracotta-100/10 focus:bg-white transition-all text-sm font-bold"
                   value={newCategoryName}
                   onChange={(e) => setNewCategoryName(e.target.value)}
                 />
@@ -253,7 +253,7 @@ export default function SellerCategories() {
                 <button 
                   type="submit"
                   disabled={isSubmitting}
-                  className="flex-[2] py-4 bg-orange-500 text-white rounded-2xl text-sm font-black hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2"
+                  className="flex-[2] py-4 bg-manioco-terracotta text-white rounded-2xl text-sm font-black hover:bg-manioco-brown transition-all shadow-lg shadow-manioco-terracotta/20 flex items-center justify-center gap-2"
                 >
                   {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : (categoryToEdit ? "Mettre à jour" : "Créer")}
                 </button>

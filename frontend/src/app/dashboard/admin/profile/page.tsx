@@ -5,8 +5,8 @@ export default function AdminProfilePage() {
     return (
         <AdminProfileView 
             mode="admin"
-            themeColor="emerald-500"
-            accentColor="emerald"
+            themeColor="manioco-terracotta-500"
+            accentColor="manioco-terracotta"
             identityTag="Identité_Admin_V1"
         />
     );

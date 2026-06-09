@@ -126,13 +126,13 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
               onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
               className={`p-2 rounded-xl transition-colors relative ${
                 isNotificationsOpen 
-                  ? (pathname.includes('/admin') ? 'bg-emerald-50 text-emerald-500' : 'bg-orange-50 text-orange-500')
+                  ? ((pathname.includes('/admin') || pathname.includes('/seller')) ? 'bg-manioco-terracotta-50 text-manioco-terracotta-500' : 'bg-orange-50 text-orange-500')
                   : 'hover:bg-slate-100 text-slate-500'
               }`}
             >
               <Bell size={20} />
               {unreadCount > 0 && (
-                <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-white shadow-lg animate-bounce ${pathname.includes('/admin') ? 'bg-emerald-500' : 'bg-orange-500'}`}>
+                <span className={`absolute -top-1 -right-1 min-w-[18px] h-[18px] text-white text-[10px] font-black flex items-center justify-center rounded-full border-2 border-white shadow-lg animate-bounce ${(pathname.includes('/admin') || pathname.includes('/seller')) ? 'bg-manioco-terracotta-500' : 'bg-orange-500'}`}>
                   {unreadCount > 99 ? '99+' : unreadCount}
                 </span>
               )}
@@ -143,7 +143,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                 <div className="px-6 pb-4 border-b border-slate-50 flex justify-between items-center">
                   <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest">Notifications</h3>
                   {unreadCount > 0 && (
-                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${pathname.includes('/admin') ? 'text-emerald-500 bg-emerald-50' : 'text-orange-500 bg-orange-50'}`}>{unreadCount} NOUVELLES</span>
+                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${(pathname.includes('/admin') || pathname.includes('/seller')) ? 'text-manioco-terracotta-500 bg-manioco-terracotta-50' : 'text-orange-500 bg-orange-50'}`}>{unreadCount} NOUVELLES</span>
                   )}
                 </div>
                 <div className="max-h-[300px] overflow-y-auto custom-scrollbar">
@@ -155,7 +155,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                       notifications.map((notif) => {
                         let bgClass = '';
                         if (!notif.isRead) {
-                          bgClass = pathname.includes('/admin') ? 'bg-emerald-50/10' : 'bg-orange-50/10';
+                          bgClass = (pathname.includes('/admin') || pathname.includes('/seller')) ? 'bg-manioco-terracotta-50/10' : 'bg-orange-50/10';
                         }
                         
                         return (
@@ -178,7 +178,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                   <button 
                     onClick={markAllAsRead}
                     disabled={unreadCount === 0}
-                    className={`text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${pathname.includes('/admin') ? 'hover:text-emerald-500' : 'hover:text-orange-500'}`}
+                    className={`text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${(pathname.includes('/admin') || pathname.includes('/seller')) ? 'hover:text-manioco-terracotta-500' : 'hover:text-orange-500'}`}
                   >
                     Tout marquer comme lu
                   </button>
@@ -218,7 +218,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                 {pathname.includes('/admin') || pathname.includes('/super-admin') ? (
                   <Link 
                     href={pathname.includes('/super-admin') ? "/dashboard/super-admin/profile" : "/dashboard/admin/profile"} 
-                    className={`flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors ${pathname.includes('/admin') && !pathname.includes('/super-admin') ? 'hover:text-emerald-600 hover:bg-emerald-50' : 'hover:text-indigo-600'}`}
+                    className={`flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50 transition-colors ${pathname.includes('/admin') && !pathname.includes('/super-admin') ? 'hover:text-manioco-terracotta-600 hover:bg-manioco-terracotta-50' : 'hover:text-indigo-600'}`}
                     onClick={() => setIsDropdownOpen(false)}
                   >
                     <User size={16} /> Mon Profil
@@ -235,7 +235,7 @@ export default function TopNav({ title, isAdmin }: TopNavProps) {
                     {pathname.includes('/seller') && (
                       <Link 
                         href="/dashboard/seller/settings/store" 
-                        className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors"
+                        className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-manioco-terracotta-50 hover:text-manioco-terracotta-600 transition-colors"
                         onClick={() => setIsDropdownOpen(false)}
                       >
                         <Settings size={16} /> Ma Boutique

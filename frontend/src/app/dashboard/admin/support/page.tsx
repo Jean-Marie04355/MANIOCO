@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Sidebar from '../../components/Sidebar';
@@ -86,7 +86,7 @@ export default function AdminSupportHub() {
       <div className="flex bg-slate-50 min-h-screen">
         <Sidebar mode="admin" />
         <main className="flex-1 ml-64 flex items-center justify-center">
-            <Loader2 className="w-10 h-10 text-emerald-500 animate-spin" />
+            <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
         </main>
       </div>
     );
@@ -106,10 +106,10 @@ export default function AdminSupportHub() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
               <div>
                 <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                    <div className="w-2 h-2 rounded-full bg-manioco-terracotta shadow-[0_0_8px_rgba(158,78,59,0.5)]"></div>
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Opérations Clientèle</span>
                 </div>
-                <h1 className="text-4xl font-black tracking-tight text-slate-900">Support <span className="text-emerald-500">Exécutif</span></h1>
+                <h1 className="text-4xl font-black tracking-tight text-slate-900">Support <span className="text-manioco-terracotta">Exécutif</span></h1>
                 <p className="text-sm text-slate-500 mt-2 font-medium">Gérez les demandes de vos vendeurs avec élégance et rapidité.</p>
               </div>
 
@@ -130,7 +130,7 @@ export default function AdminSupportHub() {
             {/* Premium Control Bar */}
             <div className="bg-white border border-slate-200/60 rounded-[2rem] p-3 shadow-xl shadow-slate-200/40 flex flex-col lg:flex-row gap-4 items-center">
               <div className="relative flex-1 group w-full">
-                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-emerald-500 transition-colors" size={18} />
+                <Search className="absolute left-6 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-manioco-terracotta transition-colors" size={18} />
                 <input 
                   type="text" 
                   value={searchQuery}
@@ -147,7 +147,7 @@ export default function AdminSupportHub() {
                     onClick={() => setFilter(f)}
                     className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                       filter === f 
-                      ? 'bg-white text-emerald-600 shadow-md border border-slate-100' 
+                      ? 'bg-white text-manioco-terracotta shadow-md border border-slate-100' 
                       : 'text-slate-400 hover:text-slate-600 hover:bg-white/50'
                     }`}
                   >
@@ -171,29 +171,29 @@ export default function AdminSupportHub() {
                   <Link 
                     key={ticket.id} 
                     href={`/dashboard/admin/support/${ticket.id}`}
-                    className="group bg-white border border-slate-200/60 rounded-[2.5rem] p-8 hover:border-emerald-500/30 transition-all cursor-pointer flex items-center justify-between shadow-sm hover:shadow-2xl hover:shadow-emerald-500/5 hover:-translate-y-1 text-left"
+                    className="group bg-white border border-slate-200/60 rounded-[2.5rem] p-8 hover:border-manioco-terracotta/30 transition-all cursor-pointer flex items-center justify-between shadow-sm hover:shadow-2xl hover:shadow-manioco-terracotta/5 hover:-translate-y-1 text-left"
                   >
                     <div className="flex gap-8 items-center">
                         <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center border transition-all ${
-                            ticket.status === 'OPEN' ? 'bg-red-50 border-red-100 text-red-500' : 'bg-emerald-50 border-emerald-100 text-emerald-500'
+                            ticket.status === 'OPEN' ? 'bg-red-50 border-red-100 text-red-500' : 'bg-manioco-terracotta-50 border-manioco-terracotta-100 text-manioco-terracotta-500'
                         }`}>
                             <Inbox size={28} />
                         </div>
                         <div className="space-y-2">
                             <div className="flex items-center gap-4">
-                                <h3 className="text-xl font-black text-slate-800 group-hover:text-emerald-500 transition-colors uppercase tracking-tight">{ticket.subject}</h3>
+                                <h3 className="text-xl font-black text-slate-800 group-hover:text-manioco-terracotta transition-colors uppercase tracking-tight">{ticket.subject}</h3>
                                 {getStatusBadge(ticket.status)}
                             </div>
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-100">
-                                    <UserIcon size={12} className="text-emerald-500"/>
+                                    <UserIcon size={12} className="text-manioco-terracotta"/>
                                     {ticket.seller?.name || `Vendeur #${ticket.sellerId.substring(0,8)}`}
                                 </div>
                                 <div className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">
                                     <Calendar size={12} className="text-slate-300"/>
                                     {new Date(ticket.createdAt).toLocaleDateString('fr-FR')}
                                 </div>
-                                <div className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">
+                                <div className="text-[10px] font-black text-manioco-terracotta uppercase tracking-widest">
                                     #{ticket.category}
                                 </div>
                             </div>
@@ -201,7 +201,7 @@ export default function AdminSupportHub() {
                     </div>
                     
                     <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 group-hover:bg-emerald-500 group-hover:text-white transition-all group-hover:rotate-45 shadow-sm group-hover:shadow-emerald-200">
+                        <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center text-slate-300 group-hover:bg-manioco-terracotta group-hover:text-white transition-all group-hover:rotate-45 shadow-sm group-hover:shadow-manioco-terracotta/20">
                             <ArrowRight size={20} />
                         </div>
                     </div>
@@ -226,7 +226,7 @@ export default function AdminSupportHub() {
           border-radius: 10px;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: #10b981;
+          background: #9E4E3B;
         }
       `}</style>
     </div>

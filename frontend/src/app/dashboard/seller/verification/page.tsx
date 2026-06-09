@@ -85,7 +85,7 @@ export default function SellerVerificationPage() {
     if (user?.kycStatus === 'APPROVED' || user?.isVerified) {
         return (
             <StatusView 
-                icon={<CheckCircle2 className="text-emerald-500" size={64} />}
+                icon={<CheckCircle2 className="text-manioco-terracotta" size={64} />}
                 title="Compte validé avec succès !"
                 message="Félicitations ! Votre identité a été confirmée. Vous faites désormais partie de la communauté des marchands Afrigari."
                 badge="Vérifié"
@@ -125,7 +125,7 @@ export default function SellerVerificationPage() {
     if (user?.kycStatus === 'NOT_SUBMITTED' && !started) {
         return (
             <StatusView 
-                icon={<ShieldCheck className="text-emerald-500" size={64} />}
+                icon={<ShieldCheck className="text-manioco-terracotta" size={64} />}
                 title="Validation en attente"
                 message="Avant de pouvoir vendre sur Afrigari, vous devez soumettre vos pièces d'identité pour validation administrative."
                 badge="Action Requise"
@@ -144,13 +144,13 @@ export default function SellerVerificationPage() {
                 {/* Information Side */}
                 <div className="lg:col-span-5 space-y-8 py-8">
                     <div>
-                        <Link href="/dashboard/seller" className="text-orange-500 font-black text-2xl tracking-tighter italic">Afrigari</Link>
+                        <Link href="/dashboard/seller" className="text-manioco-terracotta font-black text-2xl tracking-tighter italic">Afrigari</Link>
                         <h1 className="text-3xl font-black text-slate-900 mt-6 tracking-tight leading-tight">Soumission de votre dossier</h1>
                         <p className="text-slate-500 mt-4 font-medium italic text-sm">Remplissez les informations suivantes pour activer votre compte marchand.</p>
                     </div>
 
                     <div className="space-y-6">
-                        <InfoItem icon={<ShieldCheck className="text-emerald-500" />} title="Sécurité" text="Données cryptées aux standards bancaires." />
+                        <InfoItem icon={<ShieldCheck className="text-manioco-terracotta" />} title="Sécurité" text="Données cryptées aux standards bancaires." />
                         <InfoItem icon={<FileText className="text-blue-500" />} title="Confiance" text="Vendez en toute sérénité sur la plateforme." />
                     </div>
 
@@ -201,7 +201,7 @@ export default function SellerVerificationPage() {
                                 <FileLoader label="Selfie Vendeur" field="sellerSelfie" value={files.sellerSelfie} onUpload={handleFileUpload} isFull error={rejectionReasons.sellerSelfie} />
                             </div>
 
-                            <button onClick={handleSubmit} disabled={submitting} className="w-full bg-emerald-500 text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:scale-[1.02] disabled:opacity-50 transition-all">
+                            <button onClick={handleSubmit} disabled={submitting} className="w-full bg-manioco-terracotta text-white py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] flex items-center justify-center gap-3 hover:scale-[1.02] hover:bg-manioco-brown disabled:opacity-50 transition-all">
                                 {submitting ? <Loader2 className="animate-spin" /> : "Soumettre le dossier"}
                             </button>
                         </div>
@@ -237,7 +237,7 @@ function StatusView({ icon, title, message, badge, showHome, actionLabel, onActi
                         onClick={onAction}
                         disabled={disabledAction}
                         className={`block w-full py-5 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-xl ${
-                            disabledAction ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' : 'bg-orange-500 text-white hover:scale-[1.02] shadow-orange-100'
+                            disabledAction ? 'bg-slate-100 text-slate-400 cursor-not-allowed shadow-none' : 'bg-manioco-terracotta text-white hover:scale-[1.02] shadow-manioco-terracotta/20'
                         }`}
                     >
                         {actionLabel}
@@ -288,7 +288,7 @@ function FileLoader({ label, field, value, onUpload, isFull, error }: any) {
     return (
         <div className={`space-y-2 text-left ${isFull ? 'md:col-span-2' : ''}`}>
             <label htmlFor={`file-${field}`} className="text-[10px] font-black uppercase tracking-widest text-slate-400 block ml-4">{label}</label>
-            <div className={`relative h-40 group cursor-pointer overflow-hidden rounded-[2rem] border-2 border-dashed transition-all ${error ? 'border-rose-300 bg-rose-50' : 'border-slate-100 bg-slate-50 hover:bg-orange-50/20'}`}>
+            <div className={`relative h-40 group cursor-pointer overflow-hidden rounded-[2rem] border-2 border-dashed transition-all ${error ? 'border-rose-300 bg-rose-50' : 'border-slate-100 bg-slate-50 hover:bg-manioco-terracotta-50/20'}`}>
                 {value ? (
                     <img src={value} className="w-full h-full object-cover" alt={label} />
                 ) : (

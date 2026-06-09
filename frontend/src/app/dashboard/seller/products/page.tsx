@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from 'react';
 import { Product } from '@/types/product';
 import Sidebar from '../../components/Sidebar';
@@ -90,7 +90,7 @@ export default function SellerProducts() {
       <div className="flex bg-slate-50 min-h-screen">
         <Sidebar mode="seller" />
         <main className="flex-1 ml-64 flex items-center justify-center">
-          <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+          <Loader2 className="w-10 h-10 text-manioco-terracotta animate-spin" />
         </main>
       </div>
     );
@@ -106,10 +106,10 @@ export default function SellerProducts() {
         <div className="p-8">
           {!hasStore ? (
             <div className="h-[calc(100vh-140px)] flex flex-col items-center justify-center bg-white rounded-[2.5rem] border border-slate-200/60 shadow-sm p-12 text-center animate-in fade-in zoom-in-95 duration-500">
-              <div className="w-24 h-24 bg-orange-50 rounded-[2rem] flex items-center justify-center mb-8 relative group">
-                <div className="absolute inset-0 bg-orange-500 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-all duration-300 -rotate-6"></div>
-                <div className="absolute inset-0 bg-orange-100 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-all duration-300 rotate-3"></div>
-                <ShoppingBag size={48} className="text-orange-500 relative z-10 group-hover:scale-110 group-hover:text-white transition-all duration-300" />
+              <div className="w-24 h-24 bg-manioco-terracotta-50 rounded-[2rem] flex items-center justify-center mb-8 relative group">
+                <div className="absolute inset-0 bg-manioco-terracotta rounded-[2rem] opacity-0 group-hover:opacity-100 transition-all duration-300 -rotate-6"></div>
+                <div className="absolute inset-0 bg-manioco-terracotta-100 rounded-[2rem] opacity-0 group-hover:opacity-100 transition-all duration-300 rotate-3"></div>
+                <ShoppingBag size={48} className="text-manioco-terracotta relative z-10 group-hover:scale-110 group-hover:text-white transition-all duration-300" />
               </div>
               <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-4">Création de boutique requise</h2>
               <p className="text-sm font-medium text-slate-500 max-w-md mx-auto leading-relaxed mb-10">
@@ -117,7 +117,7 @@ export default function SellerProducts() {
               </p>
               <Link 
                 href="/dashboard/seller/settings/store"
-                className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-orange-500 hover:shadow-lg hover:shadow-orange-500/30 transition-all duration-300 flex items-center gap-2"
+                className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-sm font-bold hover:bg-manioco-terracotta hover:shadow-lg hover:shadow-manioco-terracotta/30 transition-all duration-300 flex items-center gap-2"
               >
                 Créer ma boutique maintenant
               </Link>
@@ -131,7 +131,7 @@ export default function SellerProducts() {
               <input 
                 type="text" 
                 placeholder="Rechercher un produit..." 
-                className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-sm font-medium"
+                className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-manioco-terracotta/20 focus:border-manioco-terracotta transition-all text-sm font-medium"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -144,7 +144,7 @@ export default function SellerProducts() {
               </button>
               <button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-orange-500 text-white rounded-2xl text-sm font-bold hover:bg-orange-600 transition-all shadow-lg shadow-orange-500/30"
+                className="flex items-center gap-2 px-6 py-3 bg-manioco-terracotta text-white rounded-2xl text-sm font-bold hover:bg-manioco-brown transition-all shadow-lg shadow-manioco-terracotta/30"
               >
                 <Plus size={18} />
                 Ajouter un produit
@@ -167,7 +167,7 @@ export default function SellerProducts() {
               <p className="text-sm text-slate-400 max-w-xs mt-3 font-medium">Commencez par ajouter votre premier produit pour le mettre en ligne sur Afrigari.</p>
               <button 
                 onClick={() => setIsAddModalOpen(true)}
-                className="mt-8 px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl text-sm font-bold hover:bg-orange-500 hover:text-white transition-all"
+                className="mt-8 px-6 py-3 bg-slate-100 text-slate-600 rounded-2xl text-sm font-bold hover:bg-manioco-terracotta hover:text-white transition-all"
               >
                 Ajouter mon premier produit
               </button>

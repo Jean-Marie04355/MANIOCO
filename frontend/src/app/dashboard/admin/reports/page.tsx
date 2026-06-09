@@ -151,13 +151,13 @@ export default function AdminReports() {
         <div className="p-8 space-y-6">
 
           {/* Header */}
-          <div className="bg-gradient-to-r from-red-600 to-orange-500 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl shadow-red-500/20">
+          <div className="bg-gradient-to-r from-manioco-terracotta to-manioco-brown rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl shadow-manioco-terracotta/20">
             <div className="relative z-10">
               <div className="flex items-center gap-3 mb-2">
                 <Flag size={28} />
                 <h2 className="text-3xl font-black">Centre de Signalements</h2>
               </div>
-              <p className="text-red-100 font-medium">
+              <p className="text-manioco-cream/90 font-medium">
                 Gérez les litiges signalés par les clients contre les vendeurs.
               </p>
             </div>
@@ -202,7 +202,7 @@ export default function AdminReports() {
           {/* Tableau */}
           {isLoading ? (
             <div className="py-20 flex justify-center">
-              <Loader2 size={40} className="animate-spin text-orange-500" />
+              <Loader2 size={40} className="animate-spin text-manioco-terracotta" />
             </div>
           ) : null}
 
@@ -244,7 +244,7 @@ export default function AdminReports() {
                               {REASON_LABELS[report.reason] ?? report.reason}
                             </span>
                             {report.sellerReportCount && report.sellerReportCount > 2 && (
-                              <span className="px-2 py-0.5 bg-orange-100 text-orange-600 text-[9px] font-black uppercase tracking-widest rounded-full flex items-center gap-1">
+                              <span className="px-2 py-0.5 bg-manioco-terracotta-50 text-manioco-terracotta-600 text-[9px] font-black uppercase tracking-widest rounded-full flex items-center gap-1">
                                 <AlertTriangle size={10} /> {report.sellerReportCount} signalements ce vendeur
                               </span>
                             )}
@@ -269,7 +269,7 @@ export default function AdminReports() {
                           </div>
                         </div>
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500">
+                          <div className="w-8 h-8 rounded-xl bg-manioco-terracotta-50 flex items-center justify-center text-manioco-terracotta">
                             <Store size={14} />
                           </div>
                           <div>
@@ -279,7 +279,7 @@ export default function AdminReports() {
                         </div>
                         {report.order && (
                           <div className="flex items-center gap-2">
-                            <div className="w-8 h-8 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500">
+                            <div className="w-8 h-8 rounded-xl bg-manioco-terracotta-50 flex items-center justify-center text-manioco-terracotta-500">
                               <ShoppingCart size={14} />
                             </div>
                             <div>
@@ -343,15 +343,15 @@ export default function AdminReports() {
                           </div>
 
                           {/* B. Sanctions vendeur */}
-                          <div className="bg-orange-50 rounded-2xl p-5 border border-orange-100">
-                            <p className="text-[10px] font-black uppercase tracking-widest text-orange-500 mb-3 flex items-center gap-2">
+                          <div className="bg-manioco-terracotta-50 rounded-2xl p-5 border border-manioco-terracotta-100">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-manioco-terracotta-500 mb-3 flex items-center gap-2">
                               <Store size={12} /> Sanctions vendeur
                             </p>
                             <div className="space-y-2">
                               <button
                                 onClick={() => suspendSeller(report.seller?.id ?? '', report.id)}
                                 disabled={actionLoading === 'suspend-' + report.id}
-                                className="flex items-center gap-2 w-full px-3 py-2 bg-white rounded-xl text-orange-600 text-xs font-bold hover:bg-orange-100 transition-all border border-orange-200 disabled:opacity-50"
+                                className="flex items-center gap-2 w-full px-3 py-2 bg-white rounded-xl text-manioco-terracotta-600 text-xs font-bold hover:bg-manioco-terracotta-50 transition-all border border-manioco-terracotta-200 disabled:opacity-50"
                               >
                                 {actionLoading === 'suspend-' + report.id
                                   ? <Loader2 size={14} className="animate-spin" />
@@ -396,26 +396,26 @@ export default function AdminReports() {
                         </div>
 
                         {/* D. Note interne + Clôturer */}
-                        <div className="bg-emerald-50 rounded-2xl p-5 border border-emerald-100">
-                          <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-3 flex items-center gap-2">
+                        <div className="bg-manioco-terracotta-50 rounded-2xl p-5 border border-manioco-terracotta-100">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-manioco-terracotta-600 mb-3 flex items-center gap-2">
                             <FileText size={12} /> Note interne (visible admins uniquement)
                           </p>
                           {report.internalNote && (
-                            <div className="bg-white rounded-xl p-3 mb-3 border border-emerald-100 text-xs text-slate-600 font-medium italic">
+                            <div className="bg-white rounded-xl p-3 mb-3 border border-manioco-terracotta-100 text-xs text-slate-600 font-medium italic">
                               📝 {report.internalNote}
                             </div>
                           )}
                           <div className="flex gap-3">
                             <textarea
-                              value={noteInput[report.id] ?? ''}
-                              onChange={e => setNoteInput(prev => ({ ...prev, [report.id]: e.target.value }))}
-                              placeholder="Ex : Vendeur contacté par email, en attente de réponse..."
-                              className="flex-1 bg-white rounded-xl p-3 text-sm text-slate-700 border border-emerald-200 outline-none focus:ring-2 focus:ring-emerald-300 resize-none min-h-[70px] font-medium"
+                               value={noteInput[report.id] ?? ''}
+                               onChange={e => setNoteInput(prev => ({ ...prev, [report.id]: e.target.value }))}
+                               placeholder="Ex : Vendeur contacté par email, en attente de réponse..."
+                               className="flex-1 bg-white rounded-xl p-3 text-sm text-slate-700 border border-manioco-terracotta-200 outline-none focus:ring-2 focus:ring-manioco-terracotta-300 resize-none min-h-[70px] font-medium"
                             />
                             <button
                               onClick={() => updateStatus(report.id, 'RESOLVED', noteInput[report.id])}
                               disabled={!noteInput[report.id]?.trim() || !!actionLoading}
-                              className="px-5 py-3 bg-emerald-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-emerald-700 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 self-end shadow-lg shadow-emerald-500/20"
+                              className="px-5 py-3 bg-manioco-terracotta-600 text-white rounded-xl font-black text-xs uppercase tracking-widest hover:bg-manioco-brown transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2 self-end shadow-lg shadow-manioco-terracotta/20"
                             >
                               {actionLoading?.includes(report.id)
                                 ? <Loader2 size={16} className="animate-spin" />

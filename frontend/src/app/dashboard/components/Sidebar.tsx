@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, Users, ShoppingCart, 
   Megaphone, Bell, Flag, Clock, Image as ImageIcon, Settings,
-  ShieldCheck, Database, Terminal, Activity, Server, Shield, Leaf,
+  ShieldCheck, Database, Terminal, Activity, Server, Shield,
   Heart, MessageSquare, Star, MapPin, CreditCard, HelpCircle, LogOut,
   Gift, BarChart3, Store, UserCheck, ChevronRight, ShoppingBag, FolderTree
 } from 'lucide-react';
@@ -163,13 +163,11 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
 
   return (
     <aside className={`w-64 h-screen fixed left-0 top-0 flex flex-col border-r transition-colors duration-300 ${getSidebarBackground(mode, isAdminOrSuper)} border-slate-200 dark:border-slate-800`}>
-      <div className="p-6 flex items-center gap-3">
-        <div className="relative w-10 h-10 flex items-center justify-center">
-          <Leaf className="text-green-500 fill-green-500 absolute -rotate-12 translate-x-[-4px] translate-y-[2px]" size={22} />
-          <Leaf className="text-green-400 fill-green-400 absolute rotate-12 translate-x-[4px] translate-y-[2px]" size={22} />
-          <Leaf className="text-green-600 fill-green-600 absolute -translate-y-[4px]" size={24} />
-        </div>
-        <span className={`${isAdminOrSuper ? 'text-white' : 'text-slate-900'} font-black text-2xl tracking-tighter`}>Afrigari</span>
+      <div className="p-6 flex items-center gap-2">
+        <span className={`font-extrabold text-xl tracking-tight ${isAdminOrSuper ? 'text-white' : 'text-manioco-brown'}`}>Mani</span>
+        <span className={`relative inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#F4A261] border-[2px] ${isAdminOrSuper ? 'border-white text-white' : 'border-manioco-brown text-manioco-brown'} text-xs font-black`}>o</span>
+        <span className={`font-extrabold text-xl tracking-tight ${isAdminOrSuper ? 'text-white' : 'text-manioco-brown'}`}>c</span>
+        <span className={`relative inline-flex items-center justify-center w-6 h-6 rounded-full bg-[#F4A261] border-[2px] ${isAdminOrSuper ? 'border-white text-white' : 'border-manioco-brown text-manioco-brown'} text-xs font-black`}>o</span>
       </div>
 
       {mode === 'super-admin' && (
@@ -190,11 +188,11 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
       {mode === 'admin' && (
         <div className="px-4 mb-6">
           <Link href="/dashboard/admin/profile" className="flex items-center gap-4 bg-white/5 p-4 rounded-[30px] border border-white/10 hover:bg-white/10 transition-all group">
-            <div className="w-12 h-12 bg-emerald-500 rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-emerald-500/20 group-hover:scale-110 transition-transform">
+            <div className="w-12 h-12 bg-manioco-terracotta rounded-2xl flex items-center justify-center text-white font-black shadow-lg shadow-manioco-terracotta/20 group-hover:scale-110 transition-transform">
               AD
             </div>
             <div className="flex-1">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-emerald-400 transition-colors">Admin_Local</p>
+              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest group-hover:text-manioco-terracotta transition-colors">Admin_Local</p>
               <p className="text-xs font-black text-white uppercase">{displayUser?.name || 'Administrateur'}</p>
             </div>
             <ChevronRight size={18} className="text-slate-500 group-hover:text-white transition-all" />
@@ -216,7 +214,7 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
                 {item.label}
               </div>
               {item.badge && (
-                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${isItemActive ? 'bg-white text-indigo-600' : 'bg-indigo-500 text-white'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${getBadgeStyles(mode, isItemActive)}`}>
                   {item.badge}
                 </span>
               )}
@@ -248,13 +246,20 @@ function getSidebarBackground(mode: string, isAdminOrSuper: boolean) {
 function getMenuItemStyles(mode: string, isItemActive: boolean, isAdminOrSuper: boolean) {
   if (isItemActive) {
     switch (mode) {
-      case 'client': return 'bg-green-500 text-white shadow-lg shadow-green-500/20';
-      case 'seller': return 'bg-orange-500 text-white shadow-lg shadow-orange-500/20';
-      case 'admin': return 'bg-green-500 text-white shadow-lg shadow-green-500/20';
+      case 'client': return 'bg-manioco-terracotta text-white shadow-lg shadow-manioco-terracotta/20';
+      case 'seller': return 'bg-manioco-terracotta text-white shadow-lg shadow-manioco-terracotta/20';
+      case 'admin': return 'bg-manioco-terracotta text-white shadow-lg shadow-manioco-terracotta/20';
       default: return 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/20';
     }
   }
   return isAdminOrSuper ? 'text-slate-400 hover:text-white hover:bg-white/5' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50';
+}
+
+function getBadgeStyles(mode: string, isItemActive: boolean) {
+  if (isItemActive) {
+    return 'bg-white text-manioco-terracotta';
+  }
+  return 'bg-manioco-terracotta text-white';
 }
 
 export default Sidebar;

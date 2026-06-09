@@ -60,9 +60,9 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
       case 'En attente':
         return 'bg-blue-50 text-blue-600 border-blue-100';
       case 'Expédiée':
-        return 'bg-orange-50 text-orange-600 border-orange-100';
+        return 'bg-manioco-terracotta-50 text-manioco-terracotta border-manioco-terracotta-100';
       case 'Expédiée avec succès':
-        return 'bg-emerald-50 text-emerald-600 border-emerald-100 font-bold';
+        return 'bg-green-50 text-green-600 border-green-100 font-bold';
       case "Échec d'expédition":
         return 'bg-rose-50 text-rose-600 border-rose-100 font-bold';
       case 'Annulée':
@@ -77,7 +77,7 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
       case 'Confirmée': return <CheckCircle2 size={14} />;
       case 'En attente': return <Clock size={14} />;
       case 'Expédiée': return <Truck size={14} />;
-      case 'Expédiée avec succès': return <CheckCircle2 size={14} className="text-emerald-600" />;
+      case 'Expédiée avec succès': return <CheckCircle2 size={14} className="text-green-600" />;
       case "Échec d'expédition": return <XCircle size={14} className="text-rose-600" />;
       case 'Annulée': return <XCircle size={14} />;
     }
@@ -109,7 +109,7 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
                   </td>
                   <td className="px-6 py-5">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center text-[10px] font-black text-orange-600">
+                      <div className="w-8 h-8 rounded-full bg-manioco-terracotta-50 flex items-center justify-center text-[10px] font-black text-manioco-terracotta">
                         {order.client.split(' ').map(n => n[0]).join('')}
                       </div>
                       <span className="text-sm font-bold text-slate-700">{order.client}</span>
@@ -138,7 +138,7 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
                       </button>
                       <button 
                         onClick={() => setSelectedOrder(order)}
-                        className="p-2 text-slate-400 hover:text-orange-500 hover:bg-orange-50 rounded-xl transition-all"
+                        className="p-2 text-slate-400 hover:text-manioco-terracotta hover:bg-manioco-terracotta-50 rounded-xl transition-all"
                         title="Détails"
                       >
                         <Eye size={18} />
@@ -166,7 +166,7 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
                                 <button onClick={() => { onStatusChange(order.id, 'Confirmée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-green-50 hover:text-green-600 transition-colors flex items-center gap-2">
                                   <CheckCircle2 size={14} /> Confirmer
                                 </button>
-                                <button onClick={() => { onStatusChange(order.id, 'Expédiée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-colors flex items-center gap-2">
+                                <button onClick={() => { onStatusChange(order.id, 'Expédiée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-manioco-terracotta-50 hover:text-manioco-terracotta transition-colors flex items-center gap-2">
                                   <Truck size={14} /> Expédier
                                 </button>
                                 <button onClick={() => { onStatusChange(order.id, 'Annulée'); setActiveMenu(null); }} className="w-full px-4 py-2 text-left text-xs font-bold text-slate-600 hover:bg-red-50 hover:text-red-600 transition-colors flex items-center gap-2">
@@ -215,7 +215,7 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
               <div className="space-y-6">
                 <div>
                   <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                    <User size={14} className="text-orange-500" /> Client
+                    <User size={14} className="text-manioco-terracotta" /> Client
                   </h4>
                   <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
                     <p className="text-sm font-black text-slate-900">{selectedOrder.client}</p>
@@ -225,7 +225,7 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
 
                 <div>
                   <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                    <Calendar size={14} className="text-orange-500" /> Date & Statut
+                    <Calendar size={14} className="text-manioco-terracotta" /> Date & Statut
                   </h4>
                   <div className="space-y-3">
                     <div className="flex justify-between items-center text-sm">
@@ -243,11 +243,11 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
 
                 <div>
                   <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                    <CreditCard size={14} className="text-orange-500" /> Paiement
+                    <CreditCard size={14} className="text-manioco-terracotta" /> Paiement
                   </h4>
-                  <div className="bg-green-50/50 p-4 rounded-2xl border border-green-100 flex justify-between items-center">
-                    <span className="text-sm font-bold text-green-700">Montant Total</span>
-                    <span className="text-lg font-black text-green-700">{selectedOrder.amount}</span>
+                  <div className="bg-manioco-terracotta-50/50 p-4 rounded-2xl border border-manioco-terracotta-100 flex justify-between items-center">
+                    <span className="text-sm font-bold text-manioco-terracotta">Montant Total</span>
+                    <span className="text-lg font-black text-manioco-terracotta">{selectedOrder.amount}</span>
                   </div>
                 </div>
               </div>
@@ -255,7 +255,7 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
               {/* Right Column: Items */}
               <div>
                 <h4 className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">
-                  <Package size={14} className="text-orange-500" /> Articles ({selectedOrder.itemCount})
+                  <Package size={14} className="text-manioco-terracotta" /> Articles ({selectedOrder.itemCount})
                 </h4>
                 <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {selectedOrder.items && selectedOrder.items.map((item: any, idx: number) => (
@@ -291,7 +291,7 @@ export default function OrderTable({ orders, onStatusChange }: OrderTableProps) 
               {selectedOrder.status === 'Confirmée' && (
                 <button 
                   onClick={() => { onStatusChange(selectedOrder.id, 'Expédiée'); setSelectedOrder(null); }}
-                  className="flex-1 py-3 bg-orange-500 text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-orange-600 shadow-lg shadow-orange-500/20 transition-all"
+                  className="flex-1 py-3 bg-manioco-terracotta text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-manioco-brown shadow-lg shadow-manioco-terracotta/20 transition-all"
                 >
                   Expédier la commande
                 </button>

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import TopNav from '../components/TopNav';
@@ -42,7 +42,7 @@ export default function AdminDashboard() {
       <div className="flex bg-slate-50 min-h-screen">
         <Sidebar mode="admin" />
         <main className="flex-1 ml-64 flex items-center justify-center">
-          <Loader2 className="w-10 h-10 text-orange-500 animate-spin" />
+          <Loader2 className="w-10 h-10 text-manioco-terracotta-500 animate-spin" />
         </main>
       </div>
     );
@@ -57,10 +57,10 @@ export default function AdminDashboard() {
         
         <div className="p-8 space-y-8">
           {/* Main Info Banner */}
-          <div className="bg-orange-500 rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl shadow-orange-500/20">
+          <div className="bg-manioco-terracotta rounded-[2rem] p-8 text-white relative overflow-hidden shadow-xl shadow-manioco-terracotta/20">
              <div className="relative z-10">
                 <h2 className="text-3xl font-black mb-2">Bonjour, Admin !</h2>
-                <p className="text-orange-100 font-medium">Voici l'état actuel de votre plateforme Afrigari aujourd'hui.</p>
+                <p className="text-manioco-terracotta-100 font-medium">Voici l'état actuel de votre plateforme Manioco aujourd'hui.</p>
              </div>
              <div className="absolute right-[-20px] top-[-20px] w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
           </div>
@@ -107,9 +107,9 @@ export default function AdminDashboard() {
                   <h3 className="font-black text-slate-900 text-xl tracking-tight">Performance Financière</h3>
                   <p className="text-xs text-slate-400 font-bold uppercase tracking-widest mt-1">Revenus cumulés sur les ventes</p>
                 </div>
-                <div className="flex gap-2">
-                   <div className="px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-emerald-100">Taux: 10%</div>
-                </div>
+                 <div className="flex gap-2">
+                    <div className="px-4 py-2 bg-manioco-terracotta-50 text-manioco-terracotta-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-manioco-terracotta-100">Taux: 10%</div>
+                 </div>
               </div>
               
               <div className="h-64 flex items-end justify-between gap-2 px-2 relative border-b border-slate-100 pb-6">
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
                         <div className="w-full bg-slate-100/50 rounded-t-lg relative transition-all hover:bg-slate-200/50 flex-1 flex items-end">
                           <div 
                             style={{ height: `${Math.max(height, day.amount > 0 ? 8 : 0)}%` }} 
-                            className={`w-full rounded-t-lg transition-all duration-500 ${day.amount > 0 ? 'bg-gradient-to-t from-orange-600 to-orange-400 shadow-[0_-4px_12px_rgba(234,88,12,0.3)]' : 'h-0'}`}
+                            className={`w-full rounded-t-lg transition-all duration-500 ${day.amount > 0 ? 'bg-gradient-to-t from-manioco-terracotta-600 to-manioco-terracotta-400 shadow-[0_-4px_12px_rgba(158,78,59,0.3)]' : 'h-0'}`}
                           ></div>
                           
                           {/* Tooltip */}
@@ -155,7 +155,7 @@ export default function AdminDashboard() {
                   icon={ShieldCheck} 
                   label="Vérifications KYC" 
                   count={stats?.pendingKycCount || 0} 
-                  color="bg-amber-500" 
+                  color="bg-manioco-terracotta" 
                   href="/dashboard/admin/users"
                 />
                 <ActionItem 
@@ -165,11 +165,11 @@ export default function AdminDashboard() {
                   color="bg-blue-500" 
                   href="/dashboard/admin/support"
                 />
-                <ActionItem 
+                 <ActionItem 
                   icon={ShoppingCart} 
                   label="Commandes en cours" 
                   count={0} // To be implemented later if needed
-                  color="bg-emerald-500" 
+                  color="bg-manioco-terracotta" 
                   href="/dashboard/admin/orders"
                 />
               </div>
@@ -187,12 +187,12 @@ export default function AdminDashboard() {
 function StatCard({ icon: Icon, label, value, change, color, suffix = "", urgent = false }: any) {
   const colors: any = {
     blue: 'text-blue-500 bg-blue-50',
-    orange: 'text-orange-500 bg-orange-50',
-    green: 'text-emerald-500 bg-emerald-50',
-    emerald: 'text-emerald-600 bg-emerald-50',
+    orange: 'text-manioco-terracotta-500 bg-manioco-terracotta-50',
+    green: 'text-manioco-terracotta-600 bg-manioco-terracotta-50',
+    emerald: 'text-manioco-brown-500 bg-manioco-brown-50',
   };
   return (
-    <div className={`bg-white p-7 rounded-[2rem] shadow-sm border ${urgent ? 'border-orange-200 ring-2 ring-orange-500/5' : 'border-slate-100'} hover:shadow-md transition-all duration-300`}>
+    <div className={`bg-white p-7 rounded-[2rem] shadow-sm border ${urgent ? 'border-manioco-terracotta-200 ring-2 ring-manioco-terracotta-500/5' : 'border-slate-100'} hover:shadow-md transition-all duration-300`}>
       <div className="flex items-center gap-4 mb-5">
         <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${colors[color]}`}><Icon size={22} /></div>
         <p className="text-slate-400 text-[10px] font-black uppercase tracking-widest leading-tight">{label}</p>
@@ -201,17 +201,20 @@ function StatCard({ icon: Icon, label, value, change, color, suffix = "", urgent
         <h4 className="text-2xl font-black text-slate-900 flex items-baseline gap-1">
           {value} <span className="text-[10px] font-bold text-slate-400 tracking-normal">{suffix}</span>
         </h4>
-        <span className={`text-[10px] font-black uppercase tracking-wider ${urgent ? 'text-orange-500' : 'text-slate-400 opacity-60'}`}>{change}</span>
+        <span className={`text-[10px] font-black uppercase tracking-wider ${urgent ? 'text-manioco-terracotta-500' : 'text-slate-400 opacity-60'}`}>{change}</span>
       </div>
     </div>
   );
 }
 
 function ActionItem({ icon: Icon, label, count, color, href }: any) {
+  const shadowClass = color.includes('manioco-terracotta') 
+    ? 'shadow-manioco-terracotta/20' 
+    : (color.split('-')[1] ? `shadow-${color.split('-')[1]}-500/20` : 'shadow-slate-500/20');
   return (
     <a href={href} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl hover:bg-slate-100 transition-all cursor-pointer group">
       <div className="flex items-center gap-4">
-        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${color} shadow-lg shadow-${color.split('-')[1]}-500/20`}>
+        <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${color} shadow-lg ${shadowClass}`}>
           <Icon size={18} />
         </div>
         <span className="text-sm font-bold text-slate-700">{label}</span>
