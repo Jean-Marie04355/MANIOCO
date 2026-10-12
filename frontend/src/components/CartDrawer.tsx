@@ -24,6 +24,30 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
     return "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&q=80&w=100";
   };
 
+  const isItemStockInsufficient = (item: any) => {
+    if (item.stock === undefined || item.stock === null) return false;
+
+    const UNIT_FACTORS: Record<string, number> = {
+      'Sac': 50,
+      'Demi-sac': 25,
+      'Kg': 1,
+      'Demi-kg': 0.5,
+    };
+
+    const baseUnit = item.baseUnit || 'Kg';
+    const currentUnit = item.unit || 'Kg';
+
+    const baseFactor = UNIT_FACTORS[baseUnit] || 1;
+    const currentFactor = UNIT_FACTORS[currentUnit] || 1;
+
+    const availableWeight = Number(item.stock) * baseFactor;
+    const requestedWeight = Number(item.quantity) * currentFactor;
+
+    return requestedWeight > availableWeight;
+  };
+
+  const hasInsufficientStock = items.some(item => item.selected && isItemStockInsufficient(item));
+
   const getErrorMessage = (error: any) => {
     const responseMessage = error?.response?.data?.message;
 
@@ -153,48 +177,59 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
                <p className="text-xs font-black text-manioco-brown/30 uppercase tracking-widest">Votre panier est vide</p>
             </div>
           ) : (
-            items.map((item) => (
-              <div key={item.id} className="flex gap-4 group items-center">
-                <input 
-                  type="checkbox" 
-                  checked={item.selected} 
-                  onChange={() => toggleSelection(item.id)}
-                  className="w-5 h-5 rounded border-manioco-brown/20 text-manioco-terracotta focus:ring-manioco-terracotta cursor-pointer accent-manioco-terracotta"
-                />
-                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-manioco-cream shrink-0 border border-manioco-brown/5">
-                  <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
-                </div>
-                <div className="flex-1 flex flex-col justify-between">
-                  <div>
-                    <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1 text-manioco-brown">{item.name}</h4>
-                    <select 
-                      value={item.unit || 'Kg'} 
-                      onChange={(e) => updateUnit(item.id, e.target.value)}
-                      className="text-[10px] font-black text-manioco-terracotta uppercase tracking-widest bg-transparent border-none focus:ring-0 cursor-pointer p-0"
-                    >
-                      <option value="Kg">Kg</option>
-                      <option value="Sac">Sac</option>
-                      <option value="Demi-sac">Demi-sac</option>
-                      <option value="Demi-kg">Demi-kg</option>
-                    </select>
-                    <span className="text-[9px] font-black text-manioco-brown/30 ml-2 uppercase tracking-widest">
-                       {item.price.toLocaleString()} FCFA / {item.unit || 'Kg'}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center bg-manioco-cream rounded-lg px-2">
-                      <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 hover:text-manioco-terracotta transition-colors text-manioco-brown/60"><Minus size={12} /></button>
-                      <span className="w-8 text-center text-xs font-black text-manioco-brown">{item.quantity}</span>
-                      <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 hover:text-manioco-terracotta transition-colors text-manioco-brown/60"><Plus size={12} /></button>
+            items.map((item) => {
+              const isInsufficient = isItemStockInsufficient(item);
+              return (
+                <div key={item.id} className="flex flex-col gap-2 pb-4 border-b border-manioco-brown/5">
+                  <div className="flex gap-4 group items-center">
+                    <input 
+                      type="checkbox" 
+                      checked={item.selected} 
+                      onChange={() => toggleSelection(item.id)}
+                      className="w-5 h-5 rounded border-manioco-brown/20 text-manioco-terracotta focus:ring-manioco-terracotta cursor-pointer accent-manioco-terracotta"
+                    />
+                    <div className="w-20 h-20 rounded-2xl overflow-hidden bg-manioco-cream shrink-0 border border-manioco-brown/5">
+                      <img src={getImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover" />
                     </div>
-                    <span className="text-sm font-black text-manioco-brown">{(item.price * item.quantity).toLocaleString()} FCFA</span>
+                    <div className="flex-1 flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-sm font-black uppercase tracking-tight line-clamp-1 text-manioco-brown">{item.name}</h4>
+                        <select 
+                          value={item.unit || 'Kg'} 
+                          onChange={(e) => updateUnit(item.id, e.target.value)}
+                          className="text-[10px] font-black text-manioco-terracotta uppercase tracking-widest bg-transparent border-none focus:ring-0 cursor-pointer p-0"
+                        >
+                          <option value="Kg">Kg</option>
+                          <option value="Sac">Sac</option>
+                          <option value="Demi-sac">Demi-sac</option>
+                          <option value="Demi-kg">Demi-kg</option>
+                        </select>
+                        <span className="text-[9px] font-black text-manioco-brown/30 ml-2 uppercase tracking-widest">
+                           {item.price.toLocaleString()} FCFA / {item.unit || 'Kg'}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center bg-manioco-cream rounded-lg px-2">
+                          <button onClick={() => updateQuantity(item.id, item.quantity - 1)} className="p-1 hover:text-manioco-terracotta transition-colors text-manioco-brown/60"><Minus size={12} /></button>
+                          <span className="w-8 text-center text-xs font-black text-manioco-brown">{item.quantity}</span>
+                          <button onClick={() => updateQuantity(item.id, item.quantity + 1)} className="p-1 hover:text-manioco-terracotta transition-colors text-manioco-brown/60"><Plus size={12} /></button>
+                        </div>
+                        <span className="text-sm font-black text-manioco-brown">{(item.price * item.quantity).toLocaleString()} FCFA</span>
+                      </div>
+                    </div>
+                    <button onClick={() => removeFromCart(item.id)} className="text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                       <Trash2 size={16} />
+                    </button>
                   </div>
+                  {isInsufficient && (
+                    <div className="pl-28 text-[11px] font-bold text-red-500 flex items-center gap-1.5 animate-pulse mt-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                      Stock insuffisant (Disponible : {item.stock} {item.baseUnit || 'Kg'})
+                    </div>
+                  )}
                 </div>
-                <button onClick={() => removeFromCart(item.id)} className="text-red-400 opacity-0 group-hover:opacity-100 transition-all">
-                   <Trash2 size={16} />
-                </button>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
@@ -209,7 +244,7 @@ export default function CartDrawer({ isOpen, onClose, onSuccess }: { isOpen: boo
             </div>
             <button 
               onClick={handleCheckout}
-              disabled={isSubmitting || items.filter(i => i.selected).length === 0}
+              disabled={isSubmitting || items.filter(i => i.selected).length === 0 || hasInsufficientStock}
               className="w-full bg-manioco-terracotta text-white py-5 rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-xl hover:bg-manioco-brown transition-all flex items-center justify-center gap-3 disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 className="animate-spin" /> : `Commander (${items.filter(i => i.selected).length})`} <ArrowRight size={18} />

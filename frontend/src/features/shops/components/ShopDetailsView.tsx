@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, usePathname } from 'next/navigation';
 import api from '@/lib/axios';
 import { useAuth } from '@/features/auth/AuthContext';
 import { useCart } from '@/features/cart/CartContext';
@@ -22,6 +22,7 @@ interface Product {
   profilePhoto?: string;
   unit?: string;
   description?: string;
+  stock?: number;
 }
 
 interface Store {
@@ -47,6 +48,7 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
   const cartContext = useCart();
   const { totalFavorites } = useFavorites();
   const router = useRouter();
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [store, setStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
@@ -145,80 +147,82 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
     <div className="bg-[#fcfbf7] min-h-screen text-manioco-brown font-sans overflow-x-hidden">
 
       {/* NAVBAR */}
-      <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-xl shadow-[0_4px_30px_rgba(92,45,35,0.08)]' : 'bg-white'}`}>
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center px-8 lg:px-12 py-5">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-1 group">
-            <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">Mani</span>
-            <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">o</span>
-            <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">c</span>
-            <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">o</span>
-          </Link>
-
-          {/* Nav Links */}
-          <div className="hidden lg:flex items-center gap-10 text-sm font-semibold text-manioco-brown/60">
-            <Link href="/" className="hover:text-manioco-brown transition-colors">Accueil</Link>
-            <Link href="/produits" className="hover:text-manioco-brown transition-colors">Nos produits</Link>
-            <Link href="/shops" className="text-manioco-terracotta font-bold bg-manioco-terracotta/5 px-4 py-2 rounded-full">Vendeurs</Link>
-          </div>
-
-          {/* Actions */}
-          <div className="flex items-center gap-4">
-            {/* Favoris */}
-            <Link
-              href="/favoris"
-              className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
-              title="Mes Favoris"
-            >
-              <Heart size={20} className={`text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors ${totalFavorites > 0 ? 'fill-manioco-terracotta text-manioco-terracotta' : ''}`} />
-              {totalFavorites > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
-                  {totalFavorites}
-                </span>
-              )}
+      {!pathname?.startsWith('/dashboard') && (
+        <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-300 ${scrolled ? 'bg-white/95 backdrop-blur-xl shadow-[0_4px_30px_rgba(92,45,35,0.08)]' : 'bg-white'}`}>
+          <div className="max-w-[1400px] mx-auto flex justify-between items-center px-8 lg:px-12 py-5">
+            {/* Logo */}
+            <Link href="/" className="flex items-center gap-1 group">
+              <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">Mani</span>
+              <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">o</span>
+              <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">c</span>
+              <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">o</span>
             </Link>
 
-            <button
-              type="button"
-              onClick={() => setIsCartOpen(true)}
-              className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
-            >
-              <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
-              {cartContext && cartContext.totalItems > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
-                  {cartContext.totalItems}
-                </span>
-              )}
-            </button>
+            {/* Nav Links */}
+            <div className="hidden lg:flex items-center gap-10 text-sm font-semibold text-manioco-brown/60">
+              <Link href="/" className="hover:text-manioco-brown transition-colors">Accueil</Link>
+              <Link href="/produits" className="hover:text-manioco-brown transition-colors">Nos produits</Link>
+              <Link href="/shops" className="text-manioco-terracotta font-bold bg-manioco-terracotta/5 px-4 py-2 rounded-full">Vendeurs</Link>
+            </div>
 
-            {user ? (
-              <div className="relative" ref={profileRef}>
-                <button
-                  onClick={() => setIsProfileOpen(!isProfileOpen)}
-                  className="w-10 h-10 rounded-full border-2 border-manioco-terracotta/20 bg-manioco-cream flex items-center justify-center text-manioco-brown font-bold text-sm"
-                >
-                  <span>{user?.name?.[0] || 'U'}</span>
-                </button>
-                {isProfileOpen && (
-                  <div className="absolute top-14 right-0 w-64 bg-white shadow-2xl rounded-3xl p-5 z-[300] border border-manioco-brown/5">
-                    <button onClick={() => logout()} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition-all">
-                      <LogOut size={16} />
-                      <span className="text-xs font-semibold">Déconnexion</span>
-                    </button>
-                  </div>
+            {/* Actions */}
+            <div className="flex items-center gap-4">
+              {/* Favoris */}
+              <Link
+                href="/favoris"
+                className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+                title="Mes Favoris"
+              >
+                <Heart size={20} className={`text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors ${totalFavorites > 0 ? 'fill-manioco-terracotta text-manioco-terracotta' : ''}`} />
+                {totalFavorites > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                    {totalFavorites}
+                  </span>
                 )}
-              </div>
-            ) : (
-              <Link href="/auth/login" className="flex items-center gap-2 bg-manioco-terracotta text-white px-6 py-2.5 rounded-full hover:bg-manioco-brown transition-all text-sm font-semibold shadow-md">
-                <UserIcon size={16} />
-                <span>Se connecter</span>
               </Link>
-            )}
-          </div>
-        </div>
-      </nav>
 
-      <main className="pt-[72px]">
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+              >
+                <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
+                {cartContext && cartContext.totalItems > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                    {cartContext.totalItems}
+                  </span>
+                )}
+              </button>
+
+              {user ? (
+                <div className="relative" ref={profileRef}>
+                  <button
+                    onClick={() => setIsProfileOpen(!isProfileOpen)}
+                    className="w-10 h-10 rounded-full border-2 border-manioco-terracotta/20 bg-manioco-cream flex items-center justify-center text-manioco-brown font-bold text-sm"
+                  >
+                    <span>{user?.name?.[0] || 'U'}</span>
+                  </button>
+                  {isProfileOpen && (
+                    <div className="absolute top-14 right-0 w-64 bg-white shadow-2xl rounded-3xl p-5 z-[300] border border-manioco-brown/5">
+                      <button onClick={() => logout()} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition-all">
+                        <LogOut size={16} />
+                        <span className="text-xs font-semibold">Déconnexion</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link href="/auth/login" className="flex items-center gap-2 bg-manioco-terracotta text-white px-6 py-2.5 rounded-full hover:bg-manioco-brown transition-all text-sm font-semibold shadow-md">
+                  <UserIcon size={16} />
+                  <span>Se connecter</span>
+                </Link>
+              )}
+            </div>
+          </div>
+        </nav>
+      )}
+
+      <main className={pathname?.startsWith('/dashboard') ? "" : "pt-[72px]"}>
         {/* Hero Cover */}
         <div className="relative h-[340px] w-full overflow-hidden">
           <img
@@ -387,6 +391,25 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
                 {products.map((product) => {
                   const rating = (4.5 + Math.random() * 0.8).toFixed(1);
+
+                  const cartItem = cartContext?.items?.find(item => String(item.id) === String(product.id));
+                  const isInsufficient = (() => {
+                    if (!cartItem || product.stock === undefined || product.stock === null) return false;
+                    const UNIT_FACTORS: Record<string, number> = {
+                      'Sac': 50,
+                      'Demi-sac': 25,
+                      'Kg': 1,
+                      'Demi-kg': 0.5,
+                    };
+                    const baseUnit = product.unit || 'Kg';
+                    const currentUnit = cartItem.unit || 'Kg';
+                    const baseFactor = UNIT_FACTORS[baseUnit] || 1;
+                    const currentFactor = UNIT_FACTORS[currentUnit] || 1;
+                    const availableWeight = Number(product.stock) * baseFactor;
+                    const requestedWeight = Number(cartItem.quantity) * currentFactor;
+                    return requestedWeight > availableWeight;
+                  })();
+
                   return (
                     <div key={product.id} className="bg-white rounded-[20px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all border border-transparent hover:border-manioco-brown/5 flex flex-col group">
                       <div className="relative h-[200px] p-4 pb-0">
@@ -425,6 +448,12 @@ export default function ShopDetailsView({ isPublic = false }: Readonly<ShopDetai
                             )}
                           </div>
                         </div>
+                        {isInsufficient && (
+                          <div className="mt-3 pt-2 border-t border-red-100 flex items-center gap-1.5 justify-center text-[11px] font-bold text-red-500 animate-pulse">
+                            <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                            Stock insuffisant (Max: {product.stock} {product.unit || 'Kg'})
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

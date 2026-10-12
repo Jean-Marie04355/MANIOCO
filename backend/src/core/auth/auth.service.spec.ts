@@ -263,10 +263,11 @@ describe('AuthService', () => {
   });
 
   describe('forgotPassword', () => {
-    it('should return generic message even if user not found', async () => {
+    it('should throw BadRequestException if user not found', async () => {
       usersServiceMock.findByEmail.mockResolvedValue(null);
-      const result = await service.forgotPassword('unknown@test.com');
-      expect(result.message).toContain('If this email is registered');
+      await expect(service.forgotPassword('unknown@test.com')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should update user and add job to queue if user found', async () => {

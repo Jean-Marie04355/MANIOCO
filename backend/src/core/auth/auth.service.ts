@@ -43,12 +43,12 @@ export class AuthService {
   async login(email: string, password: string): Promise<LoginResponse> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Adresse email incorrecte');
     }
 
     const ok = await comparePassword(password, user.password);
     if (!ok) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException('Mot de passe incorrect');
     }
 
     // Vérification de suspension temporelle
@@ -112,16 +112,16 @@ export class AuthService {
   ): Promise<{ message: string; email: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials.');
+      throw new UnauthorizedException('Adresse email incorrecte');
     }
 
     if (user.role !== UserRole.ADMIN && user.role !== UserRole.SUPER_ADMIN) {
-      throw new UnauthorizedException('Access reserved for administrators.');
+      throw new UnauthorizedException('Accès réservé aux administrateurs.');
     }
 
     const ok = await comparePassword(password, user.password);
     if (!ok) {
-      throw new UnauthorizedException('Invalid credentials.');
+      throw new UnauthorizedException('Mot de passe incorrect');
     }
 
     const otpCode = crypto.randomInt(100000, 999999).toString();
@@ -200,11 +200,7 @@ export class AuthService {
   async forgotPassword(email: string): Promise<{ message: string }> {
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      // Pour des raisons de sécurité, on ne dit pas si l'email existe ou non
-      return {
-        message:
-          'If this email is registered, you will receive a reset link shortly.',
-      };
+      throw new BadRequestException('Adresse email incorrecte ou invalide.');
     }
 
     const resetPasswordToken = crypto.randomBytes(32).toString('hex');

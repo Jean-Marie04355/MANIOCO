@@ -32,6 +32,7 @@ export async function handleWorkerJob(job: Job) {
   if (job.name === 'send-reset-password-email') {
     const { email, resetLink } = job.data;
     log(`[worker] Processing send-reset-password-email for ${email}`);
+    log(`[worker] DEV ONLY - Catch Reset Password Link: ${resetLink}`);
 
     try {
       await emailService.sendEmail({

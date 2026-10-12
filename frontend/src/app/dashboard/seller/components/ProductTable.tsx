@@ -14,8 +14,17 @@ export default function ProductTable({ products, onDelete, onEdit }: ProductTabl
     return new Intl.NumberFormat('fr-FR').format(num) + " FCFA";
   };
 
-  const getStatus = (stock: number) => {
-    if (stock <= 0) return { label: 'Epuisé', class: 'bg-red-50 text-red-600' };
+  const getStatus = (prod: any) => {
+    if (prod.status === 'PENDING') {
+      return { label: 'En attente', class: 'bg-amber-50 text-amber-600 border border-amber-200' };
+    }
+    if (prod.status === 'REJECTED') {
+      return { label: 'Refusé', class: 'bg-red-50 text-red-600 border border-red-200' };
+    }
+    
+    // Approved or fallback
+    const stock = Number(prod.stock);
+    if (stock <= 0) return { label: 'Epuisé', class: 'bg-slate-50 text-slate-500 border border-slate-200' };
     if (stock <= 5) return { label: 'Stock faible', class: 'bg-manioco-terracotta-50 text-manioco-terracotta' };
     return { label: 'En ligne', class: 'bg-green-50 text-green-600' };
   };
@@ -36,7 +45,7 @@ export default function ProductTable({ products, onDelete, onEdit }: ProductTabl
           </thead>
           <tbody className="divide-y divide-slate-50">
             {products.map((product) => {
-              const status = getStatus(product.stock);
+              const status = getStatus(product);
               return (
                 <tr key={product.id} className="hover:bg-slate-50/30 transition-colors group">
                   <td className="px-8 py-5">
@@ -84,9 +93,33 @@ export default function ProductTable({ products, onDelete, onEdit }: ProductTabl
                     </div>
                   </td>
                   <td className="px-8 py-5">
-                    <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm ${status.class}`}>
-                      {status.label}
-                    </span>
+                    <div className="flex flex-col items-start gap-1.5">
+                      <div className="flex flex-wrap gap-1.5">
+                        <span className={`px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm ${status.class}`}>
+                          {status.label}
+                        </span>
+                        {product.revision && product.revision.status === 'PENDING' && (
+                          <span className="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm bg-amber-50 text-amber-600 border border-amber-200">
+                            Modif. en attente
+                          </span>
+                        )}
+                        {product.revision && product.revision.status === 'REJECTED' && (
+                          <span className="px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest shadow-sm bg-red-50 text-red-600 border border-red-200">
+                            Modif. refusée
+                          </span>
+                        )}
+                      </div>
+                      {product.status === 'REJECTED' && product.rejectionReason && (
+                        <span className="text-[10px] text-red-500 font-bold max-w-xs mt-1 italic block leading-tight">
+                          Motif : {product.rejectionReason}
+                        </span>
+                      )}
+                      {product.revision && product.revision.status === 'REJECTED' && product.revision.rejectionReason && (
+                        <span className="text-[10px] text-red-500 font-bold max-w-xs mt-1 italic block leading-tight">
+                          Motif modif : {product.revision.rejectionReason}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-8 py-5 text-right">
                     <div className="flex items-center justify-end gap-3">

@@ -27,6 +27,7 @@ interface Product {
    description?: string;
    rating?: number;
    ratingsCount?: number;
+   stock?: number;
    store?: {
       name?: string;
       city?: string;
@@ -35,7 +36,7 @@ interface Product {
 
 export default function ProductsCatalogView() {
    const { user, logout } = useAuth();
-   const { addToCart, totalItems } = useCart();
+   const { addToCart, totalItems, items } = useCart();
    const { socket } = useSocket();
    const { toggleFavorite, isFavorited, totalFavorites } = useFavorites();
    const router = useRouter();
@@ -225,6 +226,25 @@ export default function ProductsCatalogView() {
                              const rating = hasRealRating
                                 ? Number(product.rating).toFixed(1)
                                 : (4.5 + (i % 5) * 0.1).toFixed(1); // Note par défaut élégante
+
+                             const cartItem = items.find(item => String(item.id) === String(product.id));
+                             const isInsufficient = (() => {
+                                if (!cartItem || product.stock === undefined || product.stock === null) return false;
+                                const UNIT_FACTORS: Record<string, number> = {
+                                   'Sac': 50,
+                                   'Demi-sac': 25,
+                                   'Kg': 1,
+                                   'Demi-kg': 0.5,
+                                };
+                                const baseUnit = product.unit || 'Kg';
+                                const currentUnit = cartItem.unit || 'Kg';
+                                const baseFactor = UNIT_FACTORS[baseUnit] || 1;
+                                const currentFactor = UNIT_FACTORS[currentUnit] || 1;
+                                const availableWeight = Number(product.stock) * baseFactor;
+                                const requestedWeight = Number(cartItem.quantity) * currentFactor;
+                                return requestedWeight > availableWeight;
+                             })();
+
                              return (
                               <div key={product.id} className="bg-white rounded-[20px] overflow-hidden shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] transition-all border border-transparent hover:border-manioco-brown/5 flex flex-col h-full group">
                                  <div className="relative h-[220px] p-4 pb-0">
@@ -272,6 +292,12 @@ export default function ProductsCatalogView() {
                                           </button>
                                        </div>
                                     </div>
+                                    {isInsufficient && (
+                                       <div className="mt-3 pt-2 border-t border-red-100 flex items-center gap-1.5 justify-center text-[11px] font-bold text-red-500 animate-pulse">
+                                          <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                                          Stock insuffisant (Max: {product.stock} {product.unit || 'Kg'})
+                                       </div>
+                                    )}
                                  </div>
                               </div>
                            );

@@ -335,191 +335,193 @@ export default function HomeView() {
          {/* ============================================ */}
          {/* NAVBAR */}
          {/* ============================================ */}
-         <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-500 ${scrolled ? 'bg-white/95 backdrop-blur-xl shadow-[0_4px_30px_rgba(92,45,35,0.08)]' : 'bg-transparent'}`}>
-            <div className="max-w-[1400px] mx-auto flex justify-between items-center px-8 lg:px-12 py-5">
-               {/* Logo Manioco */}
-               <Link href="/" className="flex items-center gap-1 group">
-                  <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">
-                     Mani
-                  </span>
-                  <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">
-                     o
-                  </span>
-                  <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">
-                     c
-                  </span>
-                  <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">
-                     o
-                  </span>
-               </Link>
+         {!pathname?.startsWith('/dashboard') && (
+            <nav className={`fixed top-0 left-0 right-0 z-[200] transition-all duration-500 ${scrolled ? 'bg-white/95 backdrop-blur-xl shadow-[0_4px_30px_rgba(92,45,35,0.08)]' : 'bg-transparent'}`}>
+               <div className="max-w-[1400px] mx-auto flex justify-between items-center px-8 lg:px-12 py-5">
+                  {/* Logo Manioco */}
+                  <Link href="/" className="flex items-center gap-1 group">
+                     <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">
+                        Mani
+                     </span>
+                     <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">
+                        o
+                     </span>
+                     <span className="text-2xl font-extrabold tracking-tight text-manioco-brown font-sans">
+                        c
+                     </span>
+                     <span className="relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-[#F4A261] border-[2.5px] border-manioco-brown text-manioco-brown text-sm font-black group-hover:scale-110 transition-transform">
+                        o
+                     </span>
+                  </Link>
 
-               {/* Nav Links */}
-               <div className="hidden lg:flex items-center gap-4">
-                  {navLink('/', 'Accueil')}
-                  {navLink('/produits', 'Nos produits')}
-                  {navLink('/shops', 'Vendeurs')}
-               </div>
+                  {/* Nav Links */}
+                  <div className="hidden lg:flex items-center gap-4">
+                     {navLink('/', 'Accueil')}
+                     {navLink('/produits', 'Nos produits')}
+                     {navLink('/shops', 'Vendeurs')}
+                  </div>
 
-               {/* Right side actions */}
-               <div className="flex items-center gap-4">
-                  {user && (
-                     <>
-                        {/* Messages */}
-                        <Link href="/dashboard/client/messages" className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all">
-                           <MessageSquare size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
-                           {unreadMessages > 0 && (
-                              <>
-                                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></span>
-                                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
-                                    {unreadMessages}
-                                 </span>
-                              </>
-                           )}
-                        </Link>
+                  {/* Right side actions */}
+                  <div className="flex items-center gap-4">
+                     {user && (
+                        <>
+                           {/* Messages */}
+                           <Link href="/dashboard/client/messages" className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all">
+                              <MessageSquare size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
+                              {unreadMessages > 0 && (
+                                 <>
+                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 rounded-full animate-ping opacity-75"></span>
+                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                                       {unreadMessages}
+                                    </span>
+                                 </>
+                              )}
+                           </Link>
 
-                        {/* Notifications */}
-                        <div className="relative" ref={notificationsRef}>
-                           <button
-                              type="button"
-                              onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
-                              className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
-                           >
-                              <Bell size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
-                              {unreadCount > 0 && (
-                                 <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white animate-bounce">
-                                    {unreadCount > 9 ? '9+' : unreadCount}
-                                 </span>
+                           {/* Notifications */}
+                           <div className="relative" ref={notificationsRef}>
+                              <button
+                                 type="button"
+                                 onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                                 className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+                              >
+                                 <Bell size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
+                                 {unreadCount > 0 && (
+                                    <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white animate-bounce">
+                                       {unreadCount > 9 ? '9+' : unreadCount}
+                                    </span>
+                                 )}
+                              </button>
+
+                              {isNotificationsOpen && (
+                                 <div className="absolute right-0 mt-3 w-80 bg-white rounded-3xl shadow-2xl border border-manioco-brown/5 py-5 z-[300] animate-fade-up overflow-hidden">
+                                    <div className="px-6 pb-4 border-b border-manioco-brown/5 flex justify-between items-center">
+                                       <h3 className="text-sm font-bold text-manioco-brown">Notifications</h3>
+                                       {unreadCount > 0 && (
+                                          <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-manioco-terracotta bg-manioco-terracotta/10">{unreadCount} nouvelles</span>
+                                       )}
+                                    </div>
+                                    <div className="max-h-[300px] overflow-y-auto">
+                                       {isNotificationLoading && notifications.length === 0 ? (
+                                          <div className="px-6 py-8 text-center text-manioco-brown/40 text-xs font-medium">Chargement...</div>
+                                       ) : notifications.length === 0 ? (
+                                          <div className="px-6 py-8 text-center text-manioco-brown/40 text-xs font-medium">Aucune notification</div>
+                                       ) : (
+                                          notifications.map((notif) => (
+                                             <button 
+                                                type="button"
+                                                key={notif.id} 
+                                                onClick={() => markAsRead(notif.id)} 
+                                                className={`w-full text-left px-6 py-4 hover:bg-manioco-terracotta/5 transition-colors cursor-pointer border-b border-manioco-brown/5 last:border-0 ${notif.isRead ? '' : 'bg-manioco-terracotta/5'}`}
+                                             >
+                                                <div className="flex justify-between items-start mb-1">
+                                                   <p className={`text-xs font-bold ${notif.isRead ? 'text-manioco-brown/40' : 'text-manioco-brown'}`}>{notif.title}</p>
+                                                   <span className="text-[10px] font-medium text-manioco-terracotta ml-2 whitespace-nowrap">{timeAgo(notif.createdAt)}</span>
+                                                </div>
+                                                <p className={`text-xs leading-relaxed ${notif.isRead ? 'text-manioco-brown/30' : 'text-manioco-brown/60'}`}>{notif.message}</p>
+                                             </button>
+                                          ))
+                                       )}
+                                    </div>
+                                    <div className="px-6 pt-3 text-center">
+                                       <button 
+                                          onClick={markAllAsRead}
+                                          disabled={unreadCount === 0}
+                                          className="text-xs font-semibold text-manioco-terracotta hover:underline transition-colors disabled:opacity-30"
+                                       >
+                                          Tout marquer comme lu
+                                       </button>
+                                    </div>
+                                 </div>
+                              )}
+                           </div>
+                        </>
+                     )}
+
+                     {/* Favoris */}
+                     <Link
+                        href="/favoris"
+                        className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+                        title="Mes Favoris"
+                     >
+                        <Heart size={20} className={`text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors ${totalFavorites > 0 ? 'fill-manioco-terracotta text-manioco-terracotta' : ''}`} />
+                        {totalFavorites > 0 && (
+                           <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                              {totalFavorites}
+                           </span>
+                        )}
+                     </Link>
+
+                     {/* Cart */}
+                     <button
+                        type="button"
+                        onClick={() => setIsCartOpen(true)}
+                        className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
+                     >
+                        <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
+                        {totalItems > 0 && (
+                           <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
+                              {totalItems}
+                           </span>
+                        )}
+                     </button>
+
+                     {user ? (
+                        /* Profile */
+                        <div className="relative" ref={profileRef}>
+                           <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-10 h-10 rounded-full border-2 border-manioco-terracotta/20 shadow-md hover:scale-105 transition-all overflow-hidden bg-manioco-cream flex items-center justify-center text-manioco-brown font-bold text-sm">
+                              {user?.profilePhoto ? (
+                                 <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover" />
+                              ) : (
+                                 <span>{user?.name?.[0] || 'U'}</span>
                               )}
                            </button>
 
-                           {isNotificationsOpen && (
-                              <div className="absolute right-0 mt-3 w-80 bg-white rounded-3xl shadow-2xl border border-manioco-brown/5 py-5 z-[300] animate-fade-up overflow-hidden">
-                                 <div className="px-6 pb-4 border-b border-manioco-brown/5 flex justify-between items-center">
-                                    <h3 className="text-sm font-bold text-manioco-brown">Notifications</h3>
-                                    {unreadCount > 0 && (
-                                       <span className="text-[10px] font-bold px-2.5 py-1 rounded-full text-manioco-terracotta bg-manioco-terracotta/10">{unreadCount} nouvelles</span>
-                                    )}
+                           {isProfileOpen && (
+                              <div className="absolute top-14 right-0 w-64 bg-white shadow-2xl rounded-3xl p-5 z-[300] border border-manioco-brown/5 animate-fade-up">
+                                 <div className="flex flex-col items-center mb-5">
+                                    <div className="w-14 h-14 rounded-full border-3 border-manioco-terracotta/20 p-0.5 mb-2 overflow-hidden bg-manioco-cream flex items-center justify-center text-manioco-brown text-lg font-bold">
+                                       {user?.profilePhoto ? (
+                                          <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover rounded-full" />
+                                       ) : (
+                                          <span>{user?.name?.[0] || 'U'}</span>
+                                       )}
+                                    </div>
+                                    <h4 className="font-bold text-base text-manioco-brown text-center">{user?.name || 'Utilisateur'}</h4>
+                                    <p className="text-[10px] font-semibold text-manioco-terracotta uppercase tracking-wider mt-0.5">{user?.role || 'Client'}</p>
                                  </div>
-                                 <div className="max-h-[300px] overflow-y-auto">
-                                    {isNotificationLoading && notifications.length === 0 ? (
-                                       <div className="px-6 py-8 text-center text-manioco-brown/40 text-xs font-medium">Chargement...</div>
-                                    ) : notifications.length === 0 ? (
-                                       <div className="px-6 py-8 text-center text-manioco-brown/40 text-xs font-medium">Aucune notification</div>
-                                    ) : (
-                                       notifications.map((notif) => (
-                                          <button 
-                                             type="button"
-                                             key={notif.id} 
-                                             onClick={() => markAsRead(notif.id)} 
-                                             className={`w-full text-left px-6 py-4 hover:bg-manioco-terracotta/5 transition-colors cursor-pointer border-b border-manioco-brown/5 last:border-0 ${notif.isRead ? '' : 'bg-manioco-terracotta/5'}`}
-                                          >
-                                             <div className="flex justify-between items-start mb-1">
-                                                <p className={`text-xs font-bold ${notif.isRead ? 'text-manioco-brown/40' : 'text-manioco-brown'}`}>{notif.title}</p>
-                                                <span className="text-[10px] font-medium text-manioco-terracotta ml-2 whitespace-nowrap">{timeAgo(notif.createdAt)}</span>
-                                             </div>
-                                             <p className={`text-xs leading-relaxed ${notif.isRead ? 'text-manioco-brown/30' : 'text-manioco-brown/60'}`}>{notif.message}</p>
-                                          </button>
-                                       ))
-                                    )}
-                                 </div>
-                                 <div className="px-6 pt-3 text-center">
-                                    <button 
-                                       onClick={markAllAsRead}
-                                       disabled={unreadCount === 0}
-                                       className="text-xs font-semibold text-manioco-terracotta hover:underline transition-colors disabled:opacity-30"
-                                    >
-                                       Tout marquer comme lu
+                                 <div className="space-y-1">
+                                    <Link href="/dashboard/client/messages" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
+                                       <MessageSquare size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
+                                       <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Conversations</span>
+                                    </Link>
+                                    <Link href="/dashboard/client/orders" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
+                                       <Clock size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
+                                       <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Commandes</span>
+                                    </Link>
+                                    <Link href="/dashboard/client/settings" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
+                                       <Settings size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
+                                       <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Paramètres</span>
+                                    </Link>
+                                    <div className="h-px bg-manioco-brown/5 my-3 mx-2"></div>
+                                    <button onClick={() => logout()} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition-all">
+                                       <LogOut size={16} />
+                                       <span className="text-xs font-semibold">Déconnexion</span>
                                     </button>
                                  </div>
                               </div>
                            )}
                         </div>
-                     </>
-                  )}
-
-                  {/* Favoris */}
-                  <Link
-                     href="/favoris"
-                     className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
-                     title="Mes Favoris"
-                  >
-                     <Heart size={20} className={`text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors ${totalFavorites > 0 ? 'fill-manioco-terracotta text-manioco-terracotta' : ''}`} />
-                     {totalFavorites > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
-                           {totalFavorites}
-                        </span>
+                     ) : (
+                        <Link href="/auth/login" className="flex items-center gap-2 bg-manioco-terracotta text-white px-6 py-2.5 rounded-full hover:bg-manioco-brown transition-all text-sm font-semibold shadow-md hover:shadow-lg">
+                           <UserIcon size={16} />
+                           <span>Se connecter</span>
+                        </Link>
                      )}
-                  </Link>
-
-                  {/* Cart */}
-                  <button
-                     type="button"
-                     onClick={() => setIsCartOpen(true)}
-                     className="relative cursor-pointer group p-2.5 hover:bg-manioco-terracotta/10 rounded-xl transition-all"
-                  >
-                     <ShoppingCart size={20} className="text-manioco-brown/60 group-hover:text-manioco-terracotta transition-colors" />
-                     {totalItems > 0 && (
-                        <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-manioco-terracotta text-white text-[9px] flex items-center justify-center rounded-full font-bold shadow-sm border border-white">
-                           {totalItems}
-                        </span>
-                     )}
-                  </button>
-
-                  {user ? (
-                     /* Profile */
-                     <div className="relative" ref={profileRef}>
-                        <button onClick={() => setIsProfileOpen(!isProfileOpen)} className="w-10 h-10 rounded-full border-2 border-manioco-terracotta/20 shadow-md hover:scale-105 transition-all overflow-hidden bg-manioco-cream flex items-center justify-center text-manioco-brown font-bold text-sm">
-                           {user?.profilePhoto ? (
-                              <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover" />
-                           ) : (
-                              <span>{user?.name?.[0] || 'U'}</span>
-                           )}
-                        </button>
-
-                        {isProfileOpen && (
-                           <div className="absolute top-14 right-0 w-64 bg-white shadow-2xl rounded-3xl p-5 z-[300] border border-manioco-brown/5 animate-fade-up">
-                              <div className="flex flex-col items-center mb-5">
-                                 <div className="w-14 h-14 rounded-full border-3 border-manioco-terracotta/20 p-0.5 mb-2 overflow-hidden bg-manioco-cream flex items-center justify-center text-manioco-brown text-lg font-bold">
-                                    {user?.profilePhoto ? (
-                                       <img src={getRealInternetLink({ name: 'user', image: user.profilePhoto })} alt={user.name || "Profil"} className="w-full h-full object-cover rounded-full" />
-                                    ) : (
-                                       <span>{user?.name?.[0] || 'U'}</span>
-                                    )}
-                                 </div>
-                                 <h4 className="font-bold text-base text-manioco-brown text-center">{user?.name || 'Utilisateur'}</h4>
-                                 <p className="text-[10px] font-semibold text-manioco-terracotta uppercase tracking-wider mt-0.5">{user?.role || 'Client'}</p>
-                              </div>
-                              <div className="space-y-1">
-                                 <Link href="/dashboard/client/messages" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
-                                    <MessageSquare size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
-                                    <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Conversations</span>
-                                 </Link>
-                                 <Link href="/dashboard/client/orders" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
-                                    <Clock size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
-                                    <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Commandes</span>
-                                 </Link>
-                                 <Link href="/dashboard/client/settings" className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-manioco-terracotta/5 transition-all group">
-                                    <Settings size={16} className="text-manioco-brown/30 group-hover:text-manioco-terracotta" />
-                                    <span className="text-xs font-semibold text-manioco-brown/60 group-hover:text-manioco-brown">Paramètres</span>
-                                 </Link>
-                                 <div className="h-px bg-manioco-brown/5 my-3 mx-2"></div>
-                                 <button onClick={() => logout()} className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-500 transition-all">
-                                    <LogOut size={16} />
-                                    <span className="text-xs font-semibold">Déconnexion</span>
-                                 </button>
-                              </div>
-                           </div>
-                        )}
-                     </div>
-                  ) : (
-                     <Link href="/auth/login" className="flex items-center gap-2 bg-manioco-terracotta text-white px-6 py-2.5 rounded-full hover:bg-manioco-brown transition-all text-sm font-semibold shadow-md hover:shadow-lg">
-                        <UserIcon size={16} />
-                        <span>Se connecter</span>
-                     </Link>
-                  )}
+                  </div>
                </div>
-            </div>
-         </nav>
+            </nav>
+         )}
 
          <main>
             {/* ============================================ */}
@@ -1236,6 +1238,26 @@ export default function HomeView() {
 
 function ManiocoProductCard({ product, addToCart, handleActionClick, storeId, name, unit, producer, price, img, badge }: any) {
    const { toggleFavorite, isFavorited } = useFavorites();
+   const { items } = useCart();
+
+   const cartItem = items.find(item => String(item.id) === String(product?.id));
+   const isInsufficient = (() => {
+      if (!cartItem || product?.stock === undefined || product?.stock === null) return false;
+      const UNIT_FACTORS: Record<string, number> = {
+         'Sac': 50,
+         'Demi-sac': 25,
+         'Kg': 1,
+         'Demi-kg': 0.5,
+      };
+      const baseUnit = product.unit || 'Kg';
+      const currentUnit = cartItem.unit || 'Kg';
+      const baseFactor = UNIT_FACTORS[baseUnit] || 1;
+      const currentFactor = UNIT_FACTORS[currentUnit] || 1;
+      const availableWeight = Number(product.stock) * baseFactor;
+      const requestedWeight = Number(cartItem.quantity) * currentFactor;
+      return requestedWeight > availableWeight;
+   })();
+
    return (
       <div className="group animate-fade-up">
          <div className="bg-white rounded-[32px] overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2 border border-manioco-brown/5">
@@ -1298,6 +1320,12 @@ function ManiocoProductCard({ product, addToCart, handleActionClick, storeId, na
                      </button>
                   </div>
                </div>
+               {isInsufficient && (
+                  <div className="mt-3 pt-2 border-t border-red-100 flex items-center gap-1.5 justify-center text-[11px] font-bold text-red-500 animate-pulse">
+                     <span className="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                     Stock insuffisant (Max: {product.stock} {product.unit || 'Kg'})
+                  </div>
+               )}
             </div>
          </div>
       </div>

@@ -14,11 +14,16 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/guards/optional-jwt-auth.guard';
 import { PermissionsGuard } from '../../common/guards/permissions.guard';
 import { Permissions } from '../../common/decorators/permissions.decorator';
 import { Permission } from '../../common/enum/permission.enum';
 import { CurrentUser } from '../../common/decorators/user.decorator';
 import { AuthenticatedUser } from '../auth/strategies/jwt.strategy';
+import { RolesGuard } from '../../common/guards/roles.guard';
+import { Roles } from '../../common/decorators/roles.decorator';
+import { UserRole } from '../../common/enum/role.enum';
+import { ProductStatus } from '../../common/enum/product-status.enum';
 
 @ApiTags('Products')
 @Controller('products')
@@ -38,11 +43,15 @@ export class ProductsController {
   }
 
   @Get()
+  @UseGuards(OptionalJwtAuthGuard)
   @ApiOperation({
     summary: 'Retrieve all products, optionally filtered by storeId',
   })
-  findAll(@Query('storeId') storeId?: string) {
-    return this.productsService.findAll(storeId);
+  findAll(
+    @Query('storeId') storeId?: string,
+    @CurrentUser() user?: AuthenticatedUser,
+  ) {
+    return this.productsService.findAll(storeId, user);
   }
 
   @Get(':id')
@@ -71,6 +80,36 @@ export class ProductsController {
   @ApiOperation({ summary: 'Delete a product by ID' })
   remove(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
     return this.productsService.remove(id, user);
+  }
+
+  @Get('admin/pending')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Retrieve all products pending moderation' })
+  findPending() {
+    return this.productsService.findPending();
+  }
+
+  @Patch(':id/approve')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Approve a product' })
+  approve(@Param('id') id: string) {
+    return this.productsService.updateStatus(id, ProductStatus.APPROVED);
+  }
+
+  @Patch(':id/reject')
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN, UserRole.SUPER_ADMIN)
+  @ApiOperation({ summary: 'Reject a product' })
+  reject(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+  ) {
+    return this.productsService.updateStatus(id, ProductStatus.REJECTED, reason);
   }
 
   @Get('reviews')

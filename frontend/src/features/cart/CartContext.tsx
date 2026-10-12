@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { createContext, useContext, useState, useEffect, ReactNode, useMemo } from 'react';
 import { useAuth } from '../auth/AuthContext';
 
@@ -13,6 +13,7 @@ interface CartItem {
   baseUnit?: string;
   basePrice?: number;
   storeId?: string;
+  stock?: number;
 }
 
 interface CartContextType {
@@ -68,7 +69,12 @@ export function CartProvider({ children }: { children: ReactNode }) {
       
       if (existing) {
         return prev.map(item => 
-          item.id === product.id ? { ...item, quantity: item.quantity + 1, selected: true } : item
+          item.id === product.id ? { 
+            ...item, 
+            quantity: item.quantity + 1, 
+            selected: true,
+            stock: product.stock !== undefined ? Number(product.stock) : item.stock 
+          } : item
         );
       }
 
@@ -85,7 +91,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         selected: true,
         image: product.image,
         unit: baseUnit,
-        storeId: product.storeId || product.store?.id
+        storeId: product.storeId || product.store?.id,
+        stock: product.stock !== undefined ? Number(product.stock) : undefined
       }];
     });
   };

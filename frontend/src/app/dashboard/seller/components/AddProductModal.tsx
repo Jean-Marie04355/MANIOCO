@@ -48,16 +48,17 @@ export default function ProductModal({ isOpen, onClose, onSuccess, storeId, prod
   useEffect(() => {
     if (isOpen) {
       if (productToEdit) {
+        const dataToLoad = productToEdit.revision || productToEdit;
         setFormData({
-          name: productToEdit.name,
-          categoryId: productToEdit.categoryId || (productToEdit.category?.id || ''),
-          price: productToEdit.price.toString(),
-          stock: productToEdit.stock,
-          unit: productToEdit.unit || 'Sac',
-          description: productToEdit.description || ''
+          name: dataToLoad.name,
+          categoryId: dataToLoad.categoryId || (dataToLoad.category?.id || ''),
+          price: dataToLoad.price.toString(),
+          stock: dataToLoad.stock,
+          unit: dataToLoad.unit || 'Sac',
+          description: dataToLoad.description || ''
         });
-        setPrevUnit(productToEdit.unit || 'Sac');
-        setImagePreview(productToEdit.image || productToEdit.profilePhoto || null);
+        setPrevUnit(dataToLoad.unit || 'Sac');
+        setImagePreview(dataToLoad.image || dataToLoad.profilePhoto || null);
       } else {
         const initialUnit = 'Sac';
         setFormData({ name: '', categoryId: categories[0]?.id || '', price: '', stock: 1, unit: initialUnit, description: '' });

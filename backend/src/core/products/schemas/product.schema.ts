@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document, Schema as MongooseSchema } from 'mongoose';
 import { ProductCategory } from '../../product-categories/schemas/product-category.schema';
+import { ProductStatus } from '../../../common/enum/product-status.enum';
 
 export type ProductDocument = Product & Document;
 
@@ -37,6 +38,18 @@ export class Product {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Store', required: false })
   storeId: string;
 
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', default: null })
+  parentId: string;
+
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Product', default: null })
+  parent: Product;
+
+  @Prop({ type: String, default: ProductStatus.PENDING })
+  status: ProductStatus;
+
+  @Prop({ type: String })
+  rejectionReason: string;
+
   @Prop()
   deletedAt: Date;
 }
@@ -45,7 +58,7 @@ export const ProductSchema = SchemaFactory.createForClass(Product);
 
 // Auto-populate category for NoSQL consistency with SQL eager loading
 ProductSchema.pre(['find', 'findOne'], function () {
-  this.populate('category');
+  this.populate('category').populate('parent');
 });
 
 // Align the 'id' property with TypeORM

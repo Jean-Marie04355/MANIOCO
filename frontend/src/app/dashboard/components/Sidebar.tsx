@@ -118,7 +118,8 @@ const Sidebar: React.FC<SidebarProps> = ({ mode }) => {
           { icon: Megaphone, label: 'Annonces', href: '/dashboard/admin/ads' },
           { icon: Bell, label: 'Notifications', href: '/dashboard/admin/notifications', badge: notificationCount > 0 ? notificationCount.toString() : undefined },
           { icon: HelpCircle, label: 'Support Vendeurs', href: '/dashboard/admin/support' },
-          { icon: Flag, label: 'Signalements', href: '/dashboard/admin/reports' }
+          { icon: Flag, label: 'Signalements', href: '/dashboard/admin/reports' },
+          { icon: ShoppingBag, label: 'Validation Produits', href: '/dashboard/admin/products' }
         ];
       case 'super-admin':
         return [

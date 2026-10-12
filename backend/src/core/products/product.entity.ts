@@ -10,6 +10,7 @@ import {
 } from 'typeorm';
 import { ProductCategory } from '../product-categories/product-category.entity';
 import { Store } from '../store/store.entity';
+import { ProductStatus } from '../../common/enum/product-status.enum';
 
 @Entity('products')
 export class Product {
@@ -37,6 +38,12 @@ export class Product {
   @Column({ nullable: true })
   image: string;
 
+  @Column({ type: 'varchar', default: ProductStatus.PENDING })
+  status: ProductStatus;
+
+  @Column({ nullable: true })
+  rejectionReason: string;
+
   @Column({ type: 'decimal', precision: 3, scale: 2, default: 0.0 })
   rating: number;
 
@@ -49,6 +56,13 @@ export class Product {
   @ManyToOne(() => Store, { nullable: true, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'storeId' })
   store: Store;
+
+  @Column({ nullable: true })
+  parentId: string;
+
+  @ManyToOne(() => Product, { nullable: true, onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'parentId' })
+  parent: Product;
 
   @Column()
   categoryId: string;

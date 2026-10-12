@@ -39,6 +39,14 @@ export default function SellerDashboard() {
     // Rediriger vers la vérification UNIQUEMENT pour les vendeurs non vérifiés
     if (user.role === 'vendeur' && !user.isVerified) {
       router.push('/dashboard/seller/verification');
+      return;
+    }
+    // Rediriger vers l'onboarding (présentation) si pas encore effectué
+    if (user.role === 'vendeur' && user.isVerified) {
+      const hasOnboarded = localStorage.getItem(`onboarded_${user.id}`);
+      if (!hasOnboarded) {
+        router.push('/dashboard/seller/onboarding');
+      }
     }
   }, [user, isAuthLoading, router]);
   const [stats, setStats] = useState({

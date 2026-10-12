@@ -47,10 +47,11 @@ describe('SqlRepository', () => {
     expect(repoMock.save).toHaveBeenCalled();
   });
 
-  it('should call update by using findOne and save', async () => {
-    repoMock.findOne.mockResolvedValue({ id: '1', name: 'old' });
-    await repository.update('1', { name: 'updated' });
-    expect(repoMock.save).toHaveBeenCalledWith({ id: '1', name: 'updated' });
+  it('should call update using TypeORM native update and findOne', async () => {
+    repoMock.findOne.mockResolvedValue({ id: '1', name: 'updated' });
+    const result = await repository.update('1', { name: 'updated' });
+    expect(repoMock.update).toHaveBeenCalledWith('1', { name: 'updated' });
+    expect(result).toEqual({ id: '1', name: 'updated' });
   });
 
   it('should call delete', async () => {

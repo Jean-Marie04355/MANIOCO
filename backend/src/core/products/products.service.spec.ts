@@ -5,7 +5,9 @@ import { UserRole } from '../../common/enum/role.enum';
 import { S3StorageService } from '../../libs/storage/s3-storage.service';
 import { CacheService } from '../../libs/cache/cache.service';
 import { RealtimeGateway } from '../../libs/realtime/realtime.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
 import { NotFoundException, ForbiddenException } from '@nestjs/common';
+import { ProductStatus } from '../../common/enum/product-status.enum';
 
 describe('ProductsService', () => {
   let service: ProductsService;
@@ -14,6 +16,8 @@ describe('ProductsService', () => {
   let storageServiceMock: any;
   let cacheServiceMock: any;
   let realtimeGatewayMock: any;
+  let userRepoMock: any;
+  let notificationsServiceMock: any;
 
   const mockAdmin = {
     id: 'admin-uuid',
@@ -30,10 +34,12 @@ describe('ProductsService', () => {
       update: jest.fn(),
       save: jest.fn(),
       softDelete: jest.fn(),
+      delete: jest.fn(),
     };
 
     storeServiceMock = {
       findByOwnerId: jest.fn(),
+      findOne: jest.fn(),
     };
 
     storageServiceMock = {
@@ -52,12 +58,34 @@ describe('ProductsService', () => {
       },
     };
 
+    userRepoMock = {
+      find: jest.fn(),
+    };
+
+    notificationsServiceMock = {
+      create: jest.fn(),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ProductsService,
         {
           provide: 'PRODUCT_REPOSITORY',
           useValue: repoMock,
+        },
+        {
+          provide: 'PRODUCT_REVIEW_REPOSITORY',
+          useValue: {
+            create: jest.fn(),
+            find: jest.fn(),
+            findOne: jest.fn(),
+            update: jest.fn(),
+            save: jest.fn(),
+          },
+        },
+        {
+          provide: 'USER_REPOSITORY',
+          useValue: userRepoMock,
         },
         {
           provide: StoreService,
@@ -74,6 +102,10 @@ describe('ProductsService', () => {
         {
           provide: RealtimeGateway,
           useValue: realtimeGatewayMock,
+        },
+        {
+          provide: NotificationsService,
+          useValue: notificationsServiceMock,
         },
       ],
     }).compile();
@@ -106,7 +138,7 @@ describe('ProductsService', () => {
       repoMock.find.mockResolvedValue([]);
       await service.findAll('store-1');
       expect(repoMock.find).toHaveBeenCalledWith(expect.objectContaining({
-        where: { storeId: 'store-1' }
+        where: expect.objectContaining({ storeId: 'store-1', status: 'APPROVED' })
       }));
     });
   });
@@ -188,6 +220,29 @@ describe('ProductsService', () => {
       await service.create(dto as any, mockAdmin as any);
       expect(repoMock.create).toHaveBeenCalled();
     });
+
+    it('should set status to PENDING and notify admins when created by a vendor', async () => {
+      const vendorUser = { userId: 'v1', role: UserRole.VENDEUR, name: 'Vendor 1' };
+      const dto = { name: 'Prod' };
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-1', name: 'Store 1' });
+      repoMock.create.mockResolvedValue({ id: '1', name: 'Prod', status: 'PENDING' });
+      repoMock.findOne.mockResolvedValue({ id: '1', name: 'Prod', status: 'PENDING' });
+      
+      const mockAdmins = [{ id: 'admin-1', role: UserRole.ADMIN }, { id: 'admin-2', role: UserRole.SUPER_ADMIN }];
+      userRepoMock.find.mockResolvedValue(mockAdmins);
+
+      await service.create(dto as any, vendorUser as any);
+
+      expect(repoMock.create).toHaveBeenCalledWith(
+        expect.objectContaining({ status: ProductStatus.PENDING }),
+      );
+      expect(userRepoMock.find).toHaveBeenCalled();
+      expect(notificationsServiceMock.create).toHaveBeenCalledTimes(2);
+      expect(notificationsServiceMock.create).toHaveBeenNthCalledWith(1, expect.objectContaining({
+        userId: 'admin-1',
+        title: 'Nouveau produit en attente',
+      }));
+    });
   });
 
   describe('update', () => {
@@ -223,6 +278,63 @@ describe('ProductsService', () => {
       await service.update('1', dto as any, mockAdmin as any);
       expect(repoMock.save).toHaveBeenCalled();
     });
+
+    it('should set status to PENDING and notify admins when updated by a vendor (for non-approved product)', async () => {
+      const vendorUser = { userId: 'v1', role: UserRole.VENDEUR, name: 'Vendor 1' };
+      const dto = { name: 'Updated Prod' };
+      const existingProduct = { id: '1', name: 'Prod', storeId: 'store-1', status: ProductStatus.PENDING };
+      repoMock.findOne.mockImplementation((criteria: any) => {
+        if (criteria?.where?.parentId === '1') return null;
+        return existingProduct;
+      });
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-1', name: 'Store 1' });
+      
+      const mockAdmins = [{ id: 'admin-1', role: UserRole.ADMIN }];
+      userRepoMock.find.mockResolvedValue(mockAdmins);
+
+      await service.update('1', dto as any, vendorUser as any);
+
+      expect(existingProduct.status).toBe(ProductStatus.PENDING);
+      expect(repoMock.save).toHaveBeenCalledWith(expect.objectContaining({ status: ProductStatus.PENDING }));
+      expect(userRepoMock.find).toHaveBeenCalled();
+      expect(notificationsServiceMock.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 'admin-1',
+        title: 'Nouveau produit en attente',
+      }));
+    });
+
+    it('should create a revision when an approved product is updated by a vendor', async () => {
+      const vendorUser = { userId: 'v1', role: UserRole.VENDEUR, name: 'Vendor 1' };
+      const dto = { name: 'Updated Approved Prod', price: 200 };
+      const existingProduct = { id: '1', name: 'Prod', storeId: 'store-1', status: ProductStatus.APPROVED, price: 100 };
+      
+      repoMock.findOne.mockImplementation((criteria: any) => {
+        if (criteria?.where?.parentId === '1') {
+          return null; // no existing pending revision
+        }
+        return existingProduct;
+      });
+
+      storeServiceMock.findByOwnerId.mockResolvedValue({ id: 'store-1', name: 'Store 1' });
+      repoMock.create.mockResolvedValue({ id: 'revision-1', name: 'Updated Approved Prod', status: ProductStatus.PENDING, parentId: '1' });
+      
+      const mockAdmins = [{ id: 'admin-1', role: UserRole.ADMIN }];
+      userRepoMock.find.mockResolvedValue(mockAdmins);
+
+      await service.update('1', dto as any, vendorUser as any);
+
+      expect(existingProduct.status).toBe(ProductStatus.APPROVED);
+      expect(repoMock.create).toHaveBeenCalledWith(expect.objectContaining({
+        name: 'Updated Approved Prod',
+        parentId: '1',
+        status: ProductStatus.PENDING,
+      }));
+      expect(userRepoMock.find).toHaveBeenCalled();
+      expect(notificationsServiceMock.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 'admin-1',
+        title: 'Nouveau produit en attente',
+      }));
+    });
   });
 
   describe('remove', () => {
@@ -248,6 +360,93 @@ describe('ProductsService', () => {
       repoMock.findOne.mockResolvedValue({ id: '1', storeId: 's1' });
       await service.remove('1', mockAdmin as any);
       // Should not throw
+    });
+  });
+
+  describe('updateStatus', () => {
+    it('should approve product and notify vendor', async () => {
+      const product = { id: '1', name: 'Prod', storeId: 'store-1', status: ProductStatus.PENDING };
+      repoMock.findOne.mockResolvedValue(product);
+      storeServiceMock.findOne.mockResolvedValue({ id: 'store-1', ownerId: 'vendor-1' });
+
+      await service.updateStatus('1', ProductStatus.APPROVED);
+
+      expect(repoMock.update).toHaveBeenCalledWith('1', expect.objectContaining({ status: ProductStatus.APPROVED }));
+      expect(notificationsServiceMock.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 'vendor-1',
+        title: 'Produit approuvé',
+        message: expect.stringContaining('approuvé'),
+      }));
+    });
+
+    it('should reject product with reason and notify vendor', async () => {
+      const product = { id: '1', name: 'Prod', storeId: 'store-1', status: ProductStatus.PENDING };
+      repoMock.findOne.mockResolvedValue(product);
+      storeServiceMock.findOne.mockResolvedValue({ id: 'store-1', ownerId: 'vendor-1' });
+
+      await service.updateStatus('1', ProductStatus.REJECTED, 'Image floue');
+
+      expect(repoMock.update).toHaveBeenCalledWith('1', expect.objectContaining({
+        status: ProductStatus.REJECTED,
+        rejectionReason: 'Image floue',
+      }));
+      expect(notificationsServiceMock.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 'vendor-1',
+        title: 'Produit refusé',
+        message: expect.stringContaining('refusé. Motif : Image floue'),
+      }));
+    });
+
+    it('should approve revision, merge fields into parent product, and delete revision', async () => {
+      const parentProduct = { id: 'parent-1', name: 'Original Name', price: 100, status: ProductStatus.APPROVED };
+      const revisionProduct = { id: 'revision-1', name: 'New Name', price: 120, parentId: 'parent-1', status: ProductStatus.PENDING, storeId: 'store-1' };
+      
+      repoMock.findOne.mockImplementation((criteria: any) => {
+        const id = criteria.id;
+        if (id === 'revision-1') return revisionProduct;
+        if (id === 'parent-1') return parentProduct;
+        return null;
+      });
+      storeServiceMock.findOne.mockResolvedValue({ id: 'store-1', ownerId: 'vendor-1' });
+
+      await service.updateStatus('revision-1', ProductStatus.APPROVED);
+
+      expect(repoMock.save).toHaveBeenCalledWith(expect.objectContaining({
+        id: 'parent-1',
+        name: 'New Name',
+        price: 120,
+      }));
+      expect(repoMock.delete).toHaveBeenCalledWith('revision-1');
+      expect(notificationsServiceMock.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 'vendor-1',
+        title: 'Modification approuvée',
+        message: expect.stringContaining('modification du produit "New Name" a été approuvée'),
+      }));
+    });
+
+    it('should reject revision and notify vendor, leaving parent product intact', async () => {
+      const revisionProduct = { id: 'revision-1', name: 'New Name', price: 120, parentId: 'parent-1', status: ProductStatus.PENDING, storeId: 'store-1' };
+      
+      repoMock.findOne.mockImplementation((criteria: any) => {
+        const id = criteria.id;
+        if (id === 'revision-1') return revisionProduct;
+        if (id === 'parent-1') return { id: 'parent-1', name: 'Original Name' };
+        return null;
+      });
+      storeServiceMock.findOne.mockResolvedValue({ id: 'store-1', ownerId: 'vendor-1' });
+
+      await service.updateStatus('revision-1', ProductStatus.REJECTED, 'Price too high');
+
+      expect(repoMock.update).toHaveBeenCalledWith('revision-1', expect.objectContaining({
+        status: ProductStatus.REJECTED,
+        rejectionReason: 'Price too high',
+      }));
+      expect(repoMock.save).not.toHaveBeenCalled(); // parent product not saved
+      expect(notificationsServiceMock.create).toHaveBeenCalledWith(expect.objectContaining({
+        userId: 'vendor-1',
+        title: 'Modification refusée',
+        message: expect.stringContaining('modification du produit "Original Name" a été refusée. Motif : Price too high'),
+      }));
     });
   });
 });
